@@ -21,6 +21,9 @@ const AdminDashboard = () => {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [isDirty, setIsDirty] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchDate, setSearchDate] = useState('');
+  const [searchTheme, setSearchTheme] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
@@ -148,9 +151,33 @@ const AdminDashboard = () => {
           {activeTab === 'bookings' && (
             <div className="space-y-12">
               <div className="space-y-6">
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                   <h2 className="text-2xl font-bold">실시간 예약 현황</h2>
-                  <div className="text-xs text-white/40">최신 예약순 정렬</div>
+                  <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                    <input 
+                      type="date" 
+                      value={searchDate}
+                      onChange={(e) => setSearchDate(e.target.value)}
+                      className="bg-white/5 border border-white/10 text-white text-xs rounded-lg p-2 outline-none focus:border-white/30"
+                    />
+                    <select 
+                      value={searchTheme}
+                      onChange={(e) => setSearchTheme(e.target.value)}
+                      className="bg-white/5 border border-white/10 text-white text-xs rounded-lg p-2 outline-none focus:border-white/30"
+                    >
+                      <option value="">모든 테마</option>
+                      {themes.map(t => (
+                        <option key={t.id} value={t.title}>{t.title}</option>
+                      ))}
+                    </select>
+                    <input 
+                      type="text" 
+                      placeholder="예약자명/연락처 검색"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="bg-white/5 border border-white/10 text-white text-xs rounded-lg p-2 outline-none focus:border-white/30 flex-grow md:w-48"
+                    />
+                  </div>
                 </div>
                 {bookings.length === 0 ? (
                   <div className="p-20 text-center bg-white/5 rounded-3xl border border-white/5 text-white/40 italic">
@@ -158,7 +185,15 @@ const AdminDashboard = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {[...bookings].reverse().map((booking) => (
+                    {[...bookings]
+                      .filter(b => {
+                        const matchesSearch = b.userName.includes(searchTerm) || b.userPhone.includes(searchTerm);
+                        const matchesDate = searchDate ? b.date === searchDate : true;
+                        const matchesTheme = searchTheme ? b.themeTitle === searchTheme : true;
+                        return matchesSearch && matchesDate && matchesTheme;
+                      })
+                      .reverse()
+                      .map((booking) => (
                       <div key={booking.id} className={`bg-[#1a1a1a] p-6 rounded-2xl border border-white/5 flex flex-col gap-6 transition-opacity ${booking.status === 'cancelled' ? 'opacity-40 grayscale' : ''}`}>
                         <div className="flex flex-col md:flex-row justify-between gap-6">
                           <div className="flex gap-6">

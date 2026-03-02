@@ -30,7 +30,7 @@ const NoticeBoard = () => {
 
   return (
     <div className="pt-32 md:pt-48 pb-24 px-6 max-w-7xl mx-auto">
-      <div className="text-center mb-16">
+      <div className="text-center mb-10 md:mb-12">
         <h1 className="text-4xl md:text-6xl font-bold mb-6 uppercase tracking-tighter font-en">Information</h1>
         <p className="text-[#b3b3b3] opacity-60">크라임씬 이용 안내 및 매장 정보</p>
       </div>
@@ -95,7 +95,7 @@ const NoticeBoard = () => {
               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
               <h3 className="text-2xl font-bold flex items-center gap-3 px-4">
                 <Info size={24} className="text-white/40" /> 이용 가이드 및 주의사항
               </h3>
@@ -128,7 +128,7 @@ const NoticeBoard = () => {
                   </div>
                 )}
 
-                {notices.filter(n => !n.title.includes('크라임씨너스 이용가이드')).map((notice) => (
+                {notices.filter(n => !n.title.includes('크라임씨너스 이용 가이드')).map((notice) => (
                   <div key={notice.id} className="bg-[#1a1a1a] rounded-[32px] border border-white/5 overflow-hidden">
                     <button 
                       onClick={() => setExpandedNotice(expandedNotice === notice.id ? null : notice.id)}

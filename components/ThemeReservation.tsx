@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { THEMES, STORES } from '../constants';
-import { ChevronRight, Users, Clock, MapPin } from 'lucide-react';
+import { ChevronRight, Users, Clock, MapPin, Filter, ArrowUpDown } from 'lucide-react';
 import { Theme, Store } from '../types';
 import { dataService } from '../src/services/dataService';
 
@@ -10,6 +10,8 @@ const ThemeReservation = () => {
   const [themes, setThemes] = useState<Theme[]>(THEMES);
   const [stores, setStores] = useState<Store[]>(STORES);
   const [loading, setLoading] = useState(true);
+  const [selectedStoreId, setSelectedStoreId] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('latest');
 
   useEffect(() => {
     const loadData = async () => {
@@ -29,17 +31,86 @@ const ThemeReservation = () => {
     loadData();
   }, []);
 
+  const filteredAndSortedThemes = useMemo(() => {
+    let result = [...themes];
+
+    // Filter by store
+    if (selectedStoreId !== 'all') {
+      result = result.filter(t => t.storeId === selectedStoreId);
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case 'price':
+          return a.price - b.price;
+        case 'participants':
+          return a.maxPlayers - b.maxPlayers;
+        case 'duration':
+          return a.duration - b.duration;
+        case 'difficulty':
+          return a.difficulty - b.difficulty;
+        case 'fear':
+          return a.fearLevel - b.fearLevel;
+        case 'latest':
+        default:
+          // Assuming higher ID or reverse order for latest if no createdAt
+          return themes.indexOf(b) - themes.indexOf(a);
+      }
+    });
+
+    return result;
+  }, [themes, selectedStoreId, sortBy]);
+
   if (loading) return <div className="pt-32 text-center">Loading...</div>;
 
   return (
-    <div className="pt-32 pb-24 px-6 max-w-7xl mx-auto">
-      <div className="mb-16 text-center md:text-left">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tighter">THEME EPISODES</h1>
-        <p className="text-[#b3b3b3] text-lg">원하시는 에피소드를 선택하여 사건 현장으로 입장하세요.</p>
+    <div className="pt-32 pb-24 px-4 md:px-6 max-w-7xl mx-auto">
+      <div className="mb-12 md:mb-16 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-8">
+        <div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tighter uppercase font-en">#SCENARIOS</h1>
+          <p className="text-[#b3b3b3] text-base md:text-lg opacity-60">원하시는 시나리오를 선택하여 사건 현장으로 입장하세요.</p>
+        </div>
+        
+        <div className="flex flex-row items-center gap-3 w-full md:w-auto">
+          <div className="relative group flex-1 md:flex-none">
+            <div className="flex items-center justify-center md:justify-start gap-2 px-3 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold text-white/60">
+              <MapPin size={12} />
+              <select 
+                value={selectedStoreId} 
+                onChange={(e) => setSelectedStoreId(e.target.value)}
+                className="bg-transparent outline-none cursor-pointer appearance-none pr-3 w-full md:w-auto text-center md:text-left"
+              >
+                <option value="all" className="bg-[#1a1a1a]">전체 매장</option>
+                {stores.map(s => (
+                  <option key={s.id} value={s.id} className="bg-[#1a1a1a]">{s.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="relative group flex-1 md:flex-none">
+            <div className="flex items-center justify-center md:justify-start gap-2 px-3 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold text-white/60">
+              <ArrowUpDown size={12} />
+              <select 
+                value={sortBy} 
+                onChange={(e) => setSortBy(e.target.value)}
+                className="bg-transparent outline-none cursor-pointer appearance-none pr-3 w-full md:w-auto text-center md:text-left"
+              >
+                <option value="latest" className="bg-[#1a1a1a]">최신순</option>
+                <option value="price" className="bg-[#1a1a1a]">가격순</option>
+                <option value="participants" className="bg-[#1a1a1a]">참여인원순</option>
+                <option value="duration" className="bg-[#1a1a1a]">소요시간순</option>
+                <option value="difficulty" className="bg-[#1a1a1a]">난이도순</option>
+                <option value="fear" className="bg-[#1a1a1a]">공포도순</option>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-        {themes.map((theme) => {
+        {filteredAndSortedThemes.map((theme) => {
           const store = stores.find(s => s.id === theme.storeId);
           const now = new Date();
           const startDate = theme.startDate ? new Date(theme.startDate) : null;
@@ -129,9 +200,9 @@ const ThemeReservation = () => {
                 {!isComingSoon && (
                   <Link 
                     to={`/theme/${theme.id}`}
-                    className="text-xs font-bold text-white hover:underline uppercase font-en tracking-tight"
+                    className="flex items-center gap-1 text-xs font-bold text-white hover:text-[#dc2626] transition-colors uppercase font-en tracking-tight group/btn"
                   >
-                    예약하기
+                    예약하기 <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
                   </Link>
                 )}
               </div>

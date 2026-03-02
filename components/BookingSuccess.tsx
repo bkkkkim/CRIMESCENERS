@@ -13,38 +13,12 @@ const BookingSuccess = () => {
       navigate('/');
       return;
     }
-
-    const saveBooking = async () => {
-      const newBooking = {
-        themeId: state.theme.id,
-        themeTitle: state.theme.title,
-        themePoster: state.theme.posterUrl,
-        date: state.date,
-        time: state.time,
-        userName: state.name,
-        userPhone: state.phone,
-        participantCount: state.participants,
-        paymentMethod: state.paymentMethod,
-        notes: state.notes || '',
-        isCloseRequested: state.isCloseRequested || false,
-        id: `booking-${Date.now()}`,
-        status: 'confirmed' as const,
-        createdAt: new Date().toISOString()
-      };
-      
-      try {
-        await dataService.addBooking(newBooking);
-      } catch (error) {
-        console.error("Failed to save booking:", error);
-      }
-    };
-    
-    saveBooking();
   }, [state, navigate]);
 
-  if (!state) return null;
+  if (!state || !state.booking) return null;
 
-  const { theme, date, time, name, phone, participants, paymentMethod, notes, isCloseRequested } = state;
+  const { theme, booking } = state;
+  const { date, time, userName: name, userPhone: phone, participantCount: participants, paymentMethod, notes, isCloseRequested } = booking;
 
   return (
     <div className="pt-32 pb-24 px-6 max-w-2xl mx-auto">
@@ -52,8 +26,8 @@ const BookingSuccess = () => {
         <div className="inline-flex items-center justify-center w-20 h-20 bg-green-500/10 rounded-full mb-6">
           <CheckCircle2 size={48} className="text-green-500" />
         </div>
-        <h1 className="text-4xl font-bold mb-4">예약이 완료되었습니다!</h1>
-        <p className="text-[#b3b3b3] text-lg leading-relaxed">
+        <h1 className="text-3xl font-bold mb-4">예약이 완료되었습니다!</h1>
+        <p className="text-[#b3b3b3] text-base leading-relaxed">
           {name}님의 소중한 예약이 정상적으로 접수되었습니다.<br />
           입력하신 번호({phone})로 예약 확정 메시지가 발송되었습니다.
         </p>
@@ -66,7 +40,7 @@ const BookingSuccess = () => {
         </div>
         <div className="p-8 space-y-6">
           <div className="flex justify-between items-start">
-            <span className="text-[#b3b3b3]">선택 테마</span>
+            <span className="text-[#b3b3b3]">선택 시나리오</span>
             <span className="font-bold text-white text-right">{theme.title}</span>
           </div>
           <div className="flex justify-between items-center">
@@ -121,7 +95,7 @@ const BookingSuccess = () => {
             to="/reservation" 
             className="flex items-center justify-center py-4 bg-white text-black rounded-xl font-bold hover:bg-neutral-200 transition-all gap-2"
         >
-            추가 테마 예약 <ArrowRight size={20} />
+            추가 시나리오 예약 <ArrowRight size={20} />
         </Link>
       </div>
     </div>

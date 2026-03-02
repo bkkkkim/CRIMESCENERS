@@ -127,9 +127,13 @@ export const dataService = {
       status: booking.status || 'pending'
     };
 
+    // Omit columns that might not exist in the Supabase schema to avoid 400 errors
+    // BUT themeTitle and themePoster are required by the schema (not-null constraint)
+    const { totalPrice, ...insertData } = newBooking as any;
+
     const { error } = await supabase
       .from('reservations')
-      .insert([newBooking]);
+      .insert([insertData]);
     
     if (error) throw error;
     return newBooking;

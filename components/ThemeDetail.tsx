@@ -140,7 +140,7 @@ const ThemeDetail = () => {
     <div className="pt-24 md:pt-32 pb-24 px-0 md:px-6 max-w-7xl mx-auto">
       <div className="px-6 md:px-0">
         <Link to="/reservation" className="inline-flex items-center text-[#b3b3b3] hover:text-white mb-8 gap-2 text-sm font-bold tracking-widest uppercase font-en">
-          <ArrowLeft size={16} /> Back to Episodes
+          <ArrowLeft size={16} /> Back to Scenarios
         </Link>
       </div>
 

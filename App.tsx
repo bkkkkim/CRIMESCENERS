@@ -53,7 +53,7 @@ const Header = () => {
   const navItems = [
     { name: '홈', path: '/' },
     { name: '이용안내', path: '/info' },
-    { name: '테마예약', path: '/reservation' },
+    { name: '예약하기', path: '/reservation' },
     { name: '문의하기', path: '/contact' }
   ];
 

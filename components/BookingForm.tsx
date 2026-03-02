@@ -92,7 +92,10 @@ const BookingForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!handleValidationAlert()) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
 
     setLoading(true);
     try {
@@ -112,7 +115,7 @@ const BookingForm = () => {
 
       const result = await dataService.createBooking(bookingData);
       if (result) {
-        navigate('/booking-success', { state: { booking: result, theme } });
+        navigate('/success', { state: { booking: result, theme } });
       }
     } catch (err) {
       console.error(err);
@@ -149,7 +152,7 @@ const BookingForm = () => {
     <div className="pt-24 md:pt-32 pb-24 px-0 md:px-6 max-w-3xl mx-auto">
       <div className="px-6 md:px-0">
         <Link to={`/theme/${themeId}`} className="inline-flex items-center text-[#b3b3b3] hover:text-white mb-8 gap-1 text-sm font-bold tracking-widest uppercase">
-          <ChevronLeft size={16} /> Back to Episode
+          <ChevronLeft size={16} /> Back to Scenarios
         </Link>
       </div>
 
@@ -302,8 +305,8 @@ const BookingForm = () => {
                 />
               </div>
               <label htmlFor="closeBooking" className="cursor-pointer">
-                <p className="font-bold text-[#dc2626] text-sm mb-1">예약 마감 신청 (Private Play)</p>
-                <p className="text-sm text-[#b3b3b3] leading-relaxed opacity-60">
+                <p className="font-bold text-[#dc2626]/60 text-sm mb-1">예약 마감 신청 (Private Play)</p>
+                <p className="text-sm text-[#b3b3b3] leading-relaxed opacity-40">
                   최소 인원 조건이 충족되었습니다. 모르는 사람과 함께 플레이하는 것을 원치 않으시면 체크해주세요. 체크 시 해당 시간대는 즉시 예약 마감 처리됩니다.
                 </p>
               </label>
@@ -354,12 +357,6 @@ const BookingForm = () => {
             <button 
               type="submit"
               disabled={loading}
-              onClick={(e) => {
-                if (!handleValidationAlert()) {
-                  e.preventDefault();
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-              }}
               className={`w-full py-6 font-black rounded-none text-sm transition-all shadow-2xl flex items-center justify-center gap-3 tracking-normal uppercase font-en ${
                 isFormValid && !loading
                     ? 'bg-white text-black hover:bg-neutral-200 shadow-black/50' 

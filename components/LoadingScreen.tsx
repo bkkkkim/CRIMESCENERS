@@ -39,7 +39,7 @@ const LoadingScreen = () => {
         transition={{ delay: 0.5 }}
         className="mt-12 text-center"
       >
-        <p className="text-white/40 text-xs tracking-[0.4em] uppercase font-en animate-pulse">Investigating the scene...</p>
+        <p className="text-white/40 text-xs tracking-normal uppercase font-en animate-pulse">Investigating the scene...</p>
       </motion.div>
     </motion.div>
   );
