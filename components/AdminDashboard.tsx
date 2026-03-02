@@ -678,15 +678,20 @@ const AdminDashboard = () => {
                           }} />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="text-xs text-white/40 mb-1 block">매장 이미지 URL (Find Us 섹션 노출)</label>
-                        <input className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none focus:border-white" 
-                          placeholder="https://..."
-                          value={store.imageUrl || ''} onChange={e => {
-                            const updated = [...stores];
-                            updated[idx].imageUrl = e.target.value;
-                            setStores(updated);
-                            setIsDirty(true);
-                          }} />
+                        <label className="text-xs text-white/40 mb-1 block">매장 이미지 (Find Us 섹션 노출)</label>
+                        <div className="h-32 bg-black rounded-xl border border-white/10 flex items-center justify-center relative group overflow-hidden">
+                          {store.imageUrl ? <img src={store.imageUrl} className="w-full h-full object-cover" /> : <span className="text-white/20 text-xs">이미지 없음</span>}
+                          <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer">
+                            <Upload size={24} className="mb-2" />
+                            <span className="text-[10px]">이미지 업로드</span>
+                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, (base64) => {
+                              const updated = [...stores];
+                              updated[idx].imageUrl = base64;
+                              setStores(updated);
+                              setIsDirty(true);
+                            })} />
+                          </label>
+                        </div>
                       </div>
                       <div className="md:col-span-2">
                         <label className="text-xs text-white/40 mb-1 block">매장 주소</label>
@@ -761,19 +766,6 @@ const AdminDashboard = () => {
                         </label>
                       </div>
                     </div>
-                    <div className="space-y-4">
-                      <label className="text-sm font-bold block">Find Us 이미지</label>
-                      <div className="h-20 bg-black rounded-xl border border-white/10 flex items-center justify-center relative group overflow-hidden">
-                        {settings.findUsImageUrl ? <img src={settings.findUsImageUrl} className="w-full h-full object-cover" /> : <span className="text-white/20 text-xs">이미지 없음</span>}
-                        <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                          <Upload size={20} />
-                          <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, (base64) => {
-                            setSettings(prev => ({ ...prev, findUsImageUrl: base64 }));
-                            setIsDirty(true);
-                          })} />
-                        </label>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
@@ -843,6 +835,51 @@ const AdminDashboard = () => {
                           setSettings(prev => ({...prev, bankInfo: {...prev.bankInfo, holderName: e.target.value}}));
                           setIsDirty(true);
                         }} />
+                    </div>
+                  </div>
+                </section>
+
+                <section className="bg-[#1a1a1a] p-8 rounded-3xl border border-white/5 space-y-6">
+                  <h2 className="text-xl font-bold border-l-4 border-white pl-3 flex items-center gap-2"><Globe size={20}/> 이용약관 및 공지사항 설정</h2>
+                  <div className="space-y-8">
+                    <div className="grid grid-cols-1 gap-6 p-6 bg-black/40 rounded-2xl border border-white/5">
+                      <h3 className="font-bold text-white/60 text-sm uppercase tracking-widest">공지사항 및 주의사항 (Information 페이지)</h3>
+                      <div>
+                        <label className="text-xs text-white/40 mb-1 block">공지사항 제목</label>
+                        <input className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none focus:border-white" 
+                          value={settings.noticeTitle} onChange={e => {
+                            setSettings({...settings, noticeTitle: e.target.value});
+                            setIsDirty(true);
+                          }} />
+                      </div>
+                      <div>
+                        <label className="text-xs text-white/40 mb-1 block">공지사항 내용</label>
+                        <textarea className="w-full bg-black border border-white/10 p-4 rounded-xl text-sm outline-none focus:border-white" rows={6}
+                          value={settings.noticeContent} onChange={e => {
+                            setSettings({...settings, noticeContent: e.target.value});
+                            setIsDirty(true);
+                          }} />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-6 p-6 bg-black/40 rounded-2xl border border-white/5">
+                      <h3 className="font-bold text-white/60 text-sm uppercase tracking-widest">이용약관 및 개인정보처리방침</h3>
+                      <div>
+                        <label className="text-xs text-white/40 mb-1 block">이용약관</label>
+                        <textarea className="w-full bg-black border border-white/10 p-4 rounded-xl text-sm outline-none focus:border-white" rows={6}
+                          value={settings.termsContent} onChange={e => {
+                            setSettings({...settings, termsContent: e.target.value});
+                            setIsDirty(true);
+                          }} />
+                      </div>
+                      <div>
+                        <label className="text-xs text-white/40 mb-1 block">개인정보처리방침</label>
+                        <textarea className="w-full bg-black border border-white/10 p-4 rounded-xl text-sm outline-none focus:border-white" rows={6}
+                          value={settings.privacyContent} onChange={e => {
+                            setSettings({...settings, privacyContent: e.target.value});
+                            setIsDirty(true);
+                          }} />
+                      </div>
                     </div>
                   </div>
                 </section>

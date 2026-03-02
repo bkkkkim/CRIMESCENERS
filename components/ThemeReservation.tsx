@@ -52,7 +52,7 @@ const ThemeReservation = () => {
           const isComingSoon = (startDate && now < startDate) || (endDate && now > endDate);
 
           return (
-            <div key={theme.id} className={`group flex flex-col ${isComingSoon ? 'opacity-60' : ''}`}>
+            <div key={theme.id} className={`group flex flex-col mb-16 md:mb-0 ${isComingSoon ? 'opacity-60' : ''}`}>
               <Link 
                 to={isComingSoon ? '#' : `/theme/${theme.id}`} 
                 className={`relative aspect-[3/4] overflow-hidden rounded-2xl mb-6 shadow-xl block ${isComingSoon ? 'cursor-default' : ''}`}
@@ -78,21 +78,25 @@ const ThemeReservation = () => {
                 {!isComingSoon && (
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-8">
                     <span className="text-white font-bold flex items-center gap-2">
-                      자세히 보기 <ChevronRight size={18} />
+                      예약하기 <ChevronRight size={18} />
                     </span>
                   </div>
                 )}
               </Link>
               
               <div className="space-y-4">
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col gap-1">
                   <h3 className="text-2xl font-bold group-hover:text-white transition-colors">{theme.title}</h3>
-                  <span className="text-white font-mono text-sm">{theme.price.toLocaleString()}원 / 1인</span>
+                  <div className="flex items-center gap-2 text-white/60 text-sm font-bold">
+                    <span>{theme.price.toLocaleString()}원</span>
+                    <span className="text-white/20">|</span>
+                    <span>1명</span>
+                  </div>
                 </div>
               
               <div className="flex flex-wrap gap-4 text-[10px] font-bold tracking-widest uppercase text-white/40">
                 <div className="flex items-center gap-1.5">
-                  <span>DIFFICULTY</span>
+                  <span>난이도</span>
                   <div className="flex gap-0.5">
                     {[...Array(5)].map((_, i) => (
                       <div key={i} className={`w-2 h-2 rounded-full ${i < theme.difficulty ? 'bg-white' : 'bg-white/10'}`} />
@@ -100,7 +104,7 @@ const ThemeReservation = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span>FEAR</span>
+                  <span>공포도</span>
                   <div className="flex gap-0.5">
                     {[...Array(5)].map((_, i) => (
                       <div key={i} className={`w-2 h-2 rounded-full ${i < theme.fearLevel ? 'bg-[#dc2626]' : 'bg-white/10'}`} />
@@ -109,14 +113,14 @@ const ThemeReservation = () => {
                 </div>
               </div>
 
-              <p className="text-[#b3b3b3] text-sm line-clamp-2 leading-relaxed h-10">
+              <p className="text-[#b3b3b3] text-sm line-clamp-2 leading-relaxed min-h-[2.8rem]">
                 {theme.synopsis}
               </p>
 
               <div className="pt-4 flex items-center justify-between border-t border-white/5">
                 <div className="flex items-center gap-4 text-xs text-white/60">
                   <span className="flex items-center gap-1.5">
-                    <Users size={14} /> {theme.minPlayers}-{theme.maxPlayers}인
+                    <Users size={14} /> {theme.minPlayers}-{theme.maxPlayers}명
                   </span>
                   <span className="flex items-center gap-1.5">
                     <Clock size={14} /> {theme.duration}분
@@ -125,9 +129,9 @@ const ThemeReservation = () => {
                 {!isComingSoon && (
                   <Link 
                     to={`/theme/${theme.id}`}
-                    className="text-xs font-bold text-white hover:underline"
+                    className="text-xs font-bold text-white hover:underline uppercase font-en tracking-tight"
                   >
-                    RESERVE NOW
+                    예약하기
                   </Link>
                 )}
               </div>

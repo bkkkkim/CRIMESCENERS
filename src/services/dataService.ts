@@ -114,6 +114,26 @@ export const dataService = {
       .insert([booking]);
     if (error) throw error;
   },
+  createBooking: async (booking: Omit<BookingData, 'id' | 'createdAt' | 'themeTitle' | 'themePoster'>): Promise<BookingData | null> => {
+    const themes = await dataService.getThemes();
+    const theme = themes.find(t => t.id === booking.themeId);
+    
+    const newBooking: BookingData = {
+      ...booking,
+      id: crypto.randomUUID(),
+      themeTitle: theme?.title || 'Unknown Theme',
+      themePoster: theme?.posterUrl || '',
+      createdAt: new Date().toISOString(),
+      status: booking.status || 'pending'
+    };
+
+    const { error } = await supabase
+      .from('reservations')
+      .insert([newBooking]);
+    
+    if (error) throw error;
+    return newBooking;
+  },
   updateBookingStatus: async (id: string, status: BookingData['status']) => {
     await supabase
       .from('reservations')

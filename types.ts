@@ -62,7 +62,10 @@ export interface AdminSettings {
   logoUrl: string;
   faviconUrl: string;
   thumbnailUrl: string;
-  findUsImageUrl: string;
+  termsContent: string;
+  privacyContent: string;
+  noticeTitle: string;
+  noticeContent: string;
   smsTemplates: {
     onBooking: { content: string; enabled: boolean };
     dayBefore: { content: string; time: string; enabled: boolean };
@@ -85,8 +88,9 @@ export interface BookingData {
   participantCount: number;
   isCloseRequested: boolean;
   notes: string;
-  paymentMethod: 'on-site' | 'bank-transfer';
-  status: 'confirmed' | 'cancelled' | 'paid';
+  paymentMethod: 'on-site' | 'bank-transfer' | 'deposit' | 'onsite';
+  status: 'confirmed' | 'cancelled' | 'paid' | 'pending';
+  totalPrice?: number;
   createdAt: string;
 }
 

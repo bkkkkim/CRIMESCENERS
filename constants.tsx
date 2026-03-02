@@ -43,7 +43,7 @@ export const STORES: Store[] = [
 
 export const INTRO_POINTS = [
   {
-    title: '완성도 높은 스토리',
+    title: '탄탄한 시나리오',
     desc: '씨네마광 공대박사의 탄탄한 시나리오',
     img: 'https://ooeoox.cafe24.com/web/upload/ezst/image/ez-image-contents-1bh0f5q-1-0v6vr7s-3.jpg?v=1769305545109'
   },
@@ -78,7 +78,10 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
   logoUrl: 'https://ooeoox.cafe24.com/web/upload/category/logo/v2_e3568ec7d04031b1b19098dd3c4bda3b_CxpxDUUtZ4_top.jpg',
   faviconUrl: '',
   thumbnailUrl: '',
-  findUsImageUrl: 'https://ooeoox.cafe24.com/web/upload/ezst/image/ez-image-contents-0zpwh7y-1-3.jpg?v=1769306281477?v=1769429132925',
+  termsContent: `제1조 (목적)\n본 약관은 크라임씨너스(이하 "회사")가 제공하는 예약 서비스의 이용조건 및 절차에 관한 사항을 규정함을 목적으로 합니다...\n\n제2조 (예약 및 취소)\n1. 예약은 온라인 시스템을 통해 실시간으로 진행됩니다.\n2. 예약 취소는 방문 24시간 전까지 가능하며, 이후 취소 시 위약금이 발생할 수 있습니다.`,
+  privacyContent: `1. 수집하는 개인정보 항목\n회사는 예약 서비스를 위해 성함, 연락처를 수집합니다.\n\n2. 개인정보의 수집 및 이용목적\n수집된 정보는 예약 확인, 서비스 안내, 본인 확인을 위해 사용됩니다.\n\n3. 개인정보의 보유 및 이용기간\n서비스 이용 목적 달성 후 해당 정보를 지체 없이 파기합니다.`,
+  noticeTitle: '[필독] 크라임씨너스 이용 가이드 및 주의사항',
+  noticeContent: '현장에 도착하시면 먼저 의상 교체와 캐릭터 시트를 수령하게 됩니다. 원활한 게임 진행을 위해 예약 시간 10분 전까지 반드시 도착해 주시기 바랍니다.\n\n[주의사항]\n1. 스포일러 금지: 게임 내용 및 트릭에 대한 스포일러는 다른 이용자들을 위해 절대 금지됩니다.\n2. 기물 파손 주의: 현장 기물 파손 시 배상의 책임이 있을 수 있습니다.\n3. 촬영 금지: 내부 시설 및 소품 촬영은 금지되어 있습니다.',
   smsTemplates: {
     onBooking: {
       content: '[CRIME SCENERS] {name}님, {theme} 테마 예약이 완료되었습니다. {date} {time}에 뵙겠습니다.',

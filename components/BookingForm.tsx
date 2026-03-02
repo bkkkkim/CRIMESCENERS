@@ -25,6 +25,7 @@ const BookingForm = () => {
 
   const [agreed, setAgreed] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -41,7 +42,18 @@ const BookingForm = () => {
         const found = themeList.find((t: Theme) => t.id === themeId);
         if (found) {
           setTheme(found);
-          setFormData(prev => ({ ...prev, participants: found.minPlayers }));
+          // Don't default to minPlayers if it exceeds remaining capacity
+          const existing = savedBookings.filter(b => b.themeId === themeId && b.date === date && b.time === time && b.status !== 'cancelled');
+          const booked = existing.reduce((sum, b) => sum + b.participantCount, 0);
+          const remaining = found.maxPlayers - booked;
+          
+          // If there are existing bookings, we allow booking any number up to remaining capacity
+          // If it's a fresh slot, we default to minPlayers
+          if (booked > 0) {
+            setFormData(prev => ({ ...prev, participants: 0 })); // Force selection
+          } else {
+            setFormData(prev => ({ ...prev, participants: found.minPlayers }));
+          }
         }
       } catch (error) {
         console.error("Failed to load booking form data:", error);
@@ -52,7 +64,6 @@ const BookingForm = () => {
 
   if (!theme) return null;
 
-  // Calculate available participants
   const existingBookings = bookings.filter(b => b.themeId === themeId && b.date === date && b.time === time && b.status !== 'cancelled');
   const bookedCount = existingBookings.reduce((sum, b) => sum + b.participantCount, 0);
   const remainingCapacity = theme.maxPlayers - bookedCount;
@@ -62,14 +73,52 @@ const BookingForm = () => {
     if (!formData.name.trim()) newErrors.name = '예약자 성함을 입력해주세요.';
     if (!formData.phone.trim()) newErrors.phone = '휴대폰 번호를 입력해주세요.';
     if (!agreed) newErrors.agreed = '개인정보 수집 및 유의사항에 동의해주세요.';
+    
+    if (formData.participants === 0) {
+      newErrors.participants = '참여 인원을 선택해주세요.';
+    } else {
+      if (formData.participants > remainingCapacity) {
+        newErrors.participants = `현재 예약 가능한 인원은 최대 ${remainingCapacity}명입니다.`;
+      }
+      // Only check minPlayers if it's the first booking for this slot
+      if (bookedCount === 0 && formData.participants < theme.minPlayers) {
+        newErrors.participants = `최소 ${theme.minPlayers}명 이상 예약 가능합니다.`;
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validate()) {
-      navigate('/success', { state: { theme, date, time, ...formData } });
+    if (!validate()) return;
+
+    setLoading(true);
+    try {
+      const bookingData: Omit<BookingData, 'id' | 'createdAt' | 'themeTitle' | 'themePoster'> = {
+        themeId: themeId!,
+        date: date!,
+        time: time!,
+        userName: formData.name,
+        userPhone: formData.phone,
+        participantCount: formData.participants,
+        totalPrice: theme.price * formData.participants,
+        paymentMethod: formData.paymentMethod === 'bank-transfer' ? 'deposit' : 'onsite',
+        status: 'pending',
+        isCloseRequested: formData.isCloseRequested,
+        notes: formData.notes
+      };
+
+      const result = await dataService.createBooking(bookingData);
+      if (result) {
+        navigate('/booking-success', { state: { booking: result, theme } });
+      }
+    } catch (err) {
+      console.error(err);
+      alert('예약 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -79,8 +128,22 @@ const BookingForm = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const showCloseOption = formData.participants >= theme.minPlayers;
-  const isFormValid = formData.name.trim() && formData.phone.trim() && agreed;
+  const showCloseOption = (bookedCount + formData.participants) >= theme.minPlayers;
+  const isFormValid = formData.name.trim() && formData.phone.trim() && agreed && formData.participants > 0;
+
+  const handleValidationAlert = () => {
+    const missing = [];
+    if (!formData.name.trim()) missing.push('예약자 성함');
+    if (!formData.phone.trim()) missing.push('휴대폰 번호');
+    if (formData.participants === 0) missing.push('참여 인원');
+    if (!agreed) missing.push('개인정보 수집 및 유의사항 확인 동의');
+
+    if (missing.length > 0) {
+      alert(`예약 신청 정보를 확인해주세요\n\n필수 입력 항목: ${missing.join(', ')}`);
+      return false;
+    }
+    return true;
+  };
 
   return (
     <div className="pt-24 md:pt-32 pb-24 px-0 md:px-6 max-w-3xl mx-auto">
@@ -108,7 +171,7 @@ const BookingForm = () => {
               <input 
                 type="text" 
                 placeholder="성함을 입력해주세요"
-                className={`w-full bg-black/40 border rounded-xl p-4 focus:outline-none transition-colors text-white ${errors.name ? 'border-red-500' : 'border-white/10 focus:border-white'}`}
+                className={`w-full bg-black/40 border rounded-xl p-4 focus:outline-none transition-colors text-white placeholder:text-white/20 ${errors.name ? 'border-red-500' : 'border-white/10 focus:border-white'}`}
                 value={formData.name}
                 onChange={(e) => {
                   setFormData({...formData, name: e.target.value});
@@ -119,46 +182,59 @@ const BookingForm = () => {
             <div className="space-y-3">
               <label className="text-xs font-bold text-white/40 tracking-widest uppercase">휴대폰 번호</label>
               {errors.phone && <p className="text-[10px] text-red-500 font-bold animate-pulse">{errors.phone}</p>}
-              <input 
-                type="tel" 
-                placeholder="010-0000-0000"
-                className={`w-full bg-black/40 border rounded-xl p-4 focus:outline-none transition-colors text-white ${errors.phone ? 'border-red-500' : 'border-white/10 focus:border-white'}`}
-                value={formData.phone}
-                onChange={(e) => {
-                  setFormData({...formData, phone: e.target.value});
-                  if (errors.phone) setErrors(prev => { const {phone, ...rest} = prev; return rest; });
-                }}
-              />
+                <input 
+                  type="tel" 
+                  placeholder="숫자만 입력해주세요 (하이픈 제외)"
+                  className={`w-full bg-black/40 border rounded-xl p-4 focus:outline-none transition-colors text-white placeholder:text-white/20 ${errors.phone ? 'border-red-500' : 'border-white/10 focus:border-white'}`}
+                  value={formData.phone}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, '');
+                    setFormData({...formData, phone: value});
+                    if (errors.phone) setErrors(prev => { const {phone, ...rest} = prev; return rest; });
+                  }}
+                />
             </div>
           </div>
 
           <div className="space-y-6">
-            <div className="flex justify-between items-end">
+            <div className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/10">
               <label className="text-xs font-bold text-white/40 tracking-widest uppercase">참여 인원 선택</label>
-              <span className="text-[10px] text-white/20">잔여: {remainingCapacity}명 / 최대: {theme.maxPlayers}명</span>
+              <div className="flex items-center gap-3">
+                <p className="text-xs font-bold text-white/60">
+                  <span className="text-[#dc2626]">{remainingCapacity}</span> / {theme.maxPlayers}명 가능
+                </p>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
               {Array.from({ length: theme.maxPlayers }, (_, i) => i + 1).map(num => {
                 const isPossible = num <= remainingCapacity;
+                // Allow any number up to remaining capacity to be selected
+                const isSelectable = isPossible;
+                
                 return (
                   <button
                     key={num}
                     type="button"
-                    disabled={!isPossible}
-                    onClick={() => setFormData({...formData, participants: num})}
-                    className={`w-16 h-16 rounded-2xl border font-bold transition-all ${
+                    disabled={!isSelectable}
+                    onClick={() => {
+                      setFormData({...formData, participants: num});
+                      if (errors.participants) setErrors(prev => { const {participants, ...rest} = prev; return rest; });
+                    }}
+                    className={`aspect-square rounded-2xl border font-bold transition-all flex flex-col items-center justify-center gap-1 ${
                       formData.participants === num 
                           ? 'bg-white border-white text-black shadow-xl shadow-white/10 scale-110' 
-                          : isPossible 
+                          : isSelectable 
                             ? 'bg-transparent border-white/10 text-[#b3b3b3] hover:border-white/30'
                             : 'bg-white/5 border-white/5 text-white/10 cursor-not-allowed'
                     }`}
                   >
-                    {num}
+                    <span className="text-lg font-en leading-none">{num}</span>
+                    <span className="text-[8px] opacity-40 leading-none">명</span>
                   </button>
                 );
               })}
             </div>
+            {errors.participants && <p className="text-xs text-red-500 font-bold mt-2">{errors.participants}</p>}
             {!remainingCapacity && (
               <p className="text-xs text-red-500 font-bold">⚠️ 이 슬롯은 이미 예약이 가득 찼습니다.</p>
             )}
@@ -220,14 +296,14 @@ const BookingForm = () => {
                 <input 
                   type="checkbox" 
                   id="closeBooking"
-                  className="w-6 h-6 accent-[#dc2626]"
+                  className="w-5 h-5 accent-[#dc2626]"
                   checked={formData.isCloseRequested}
                   onChange={(e) => setFormData({...formData, isCloseRequested: e.target.checked})}
                 />
               </div>
               <label htmlFor="closeBooking" className="cursor-pointer">
-                <p className="font-bold text-[#dc2626] text-lg mb-2">예약 마감 신청 (Private Play)</p>
-                <p className="text-sm text-[#b3b3b3] leading-relaxed">
+                <p className="font-bold text-[#dc2626] text-sm mb-1">예약 마감 신청 (Private Play)</p>
+                <p className="text-sm text-[#b3b3b3] leading-relaxed opacity-60">
                   최소 인원 조건이 충족되었습니다. 모르는 사람과 함께 플레이하는 것을 원치 않으시면 체크해주세요. 체크 시 해당 시간대는 즉시 예약 마감 처리됩니다.
                 </p>
               </label>
@@ -238,7 +314,7 @@ const BookingForm = () => {
             <label className="text-xs font-bold text-white/40 tracking-widest uppercase">매장 전달 사항 (선택)</label>
             <textarea 
               rows={4}
-              className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 focus:outline-none focus:border-white transition-colors resize-none text-white"
+              className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 focus:outline-none focus:border-white transition-colors resize-none text-white placeholder:text-white/20"
               placeholder="함께 하실 분들이나 매장에 전달하실 사항을 남겨주세요."
               value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
@@ -277,14 +353,20 @@ const BookingForm = () => {
 
             <button 
               type="submit"
-              disabled={!isFormValid}
-              className={`w-full py-6 font-bold rounded-2xl text-xl transition-all shadow-2xl flex items-center justify-center gap-3 ${
-                isFormValid 
+              disabled={loading}
+              onClick={(e) => {
+                if (!handleValidationAlert()) {
+                  e.preventDefault();
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+              }}
+              className={`w-full py-6 font-black rounded-none text-sm transition-all shadow-2xl flex items-center justify-center gap-3 tracking-normal uppercase font-en ${
+                isFormValid && !loading
                     ? 'bg-white text-black hover:bg-neutral-200 shadow-black/50' 
                     : 'bg-white/5 text-white/20 cursor-not-allowed shadow-none'
               }`}
             >
-              <CheckCircle2 size={24} /> CONFIRM RESERVATION
+              {loading ? 'PROCESSING...' : <><CheckCircle2 size={20} /> CONFIRM RESERVATION</>}
             </button>
           </div>
         </form>
