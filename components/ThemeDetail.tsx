@@ -186,21 +186,21 @@ const ThemeDetail = () => {
                             </div>
                             <div className="space-y-4 text-xs text-[#b3b3b3] leading-relaxed">
                               <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-                                <p className="text-white/40 mb-1 uppercase tracking-widest text-[8px] font-bold">Address</p>
+                                <p className="text-white/40 mb-1 uppercase tracking-normal text-[8px] font-bold">Address</p>
                                 <p>{store.address}</p>
                               </div>
                               <div className="grid grid-cols-2 gap-3">
                                 <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-                                  <p className="text-white/40 mb-1 uppercase tracking-widest text-[8px] font-bold">Weekday</p>
+                                  <p className="text-white/40 mb-1 uppercase tracking-normal text-[8px] font-bold">Weekday</p>
                                   <p>{store.weekdayHours}</p>
                                 </div>
                                 <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-                                  <p className="text-white/40 mb-1 uppercase tracking-widest text-[8px] font-bold">Weekend</p>
+                                  <p className="text-white/40 mb-1 uppercase tracking-normal text-[8px] font-bold">Weekend</p>
                                   <p>{store.weekendHours}</p>
                                 </div>
                               </div>
                               <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-                                <p className="text-white/40 mb-1 uppercase tracking-widest text-[8px] font-bold">Contact</p>
+                                <p className="text-white/40 mb-1 uppercase tracking-normal text-[8px] font-bold">Contact</p>
                                 <p className="font-en">{store.phone}</p>
                               </div>
                             </div>
@@ -209,7 +209,7 @@ const ThemeDetail = () => {
                                 href={`https://map.naver.com/v5/search/${encodeURIComponent(store.address)}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="block w-full text-center py-2.5 bg-white text-black text-[10px] font-bold rounded-xl hover:bg-neutral-200 transition-colors uppercase tracking-widest font-en"
+                                className="block w-full text-center py-2.5 bg-white text-black text-[10px] font-bold rounded-xl hover:bg-neutral-200 transition-colors uppercase tracking-normal font-en"
                               >
                                 Naver Maps
                               </a>
@@ -239,12 +239,12 @@ const ThemeDetail = () => {
                               </div>
                               <div className="space-y-4 text-sm text-[#b3b3b3] leading-relaxed">
                                 <div className="p-4 bg-black/40 rounded-2xl border border-white/5">
-                                  <p className="text-white/40 mb-1 uppercase tracking-widest text-[10px] font-bold">Address</p>
+                                  <p className="text-white/40 mb-1 uppercase tracking-normal text-[10px] font-bold">Address</p>
                                   <p>{store.address}</p>
                                 </div>
                                 <div className="grid grid-cols-1 gap-3">
                                   <div className="p-4 bg-black/40 rounded-2xl border border-white/5">
-                                    <p className="text-white/40 mb-1 uppercase tracking-widest text-[10px] font-bold">Business Hours</p>
+                                    <p className="text-white/40 mb-1 uppercase tracking-normal text-[10px] font-bold">Business Hours</p>
                                     <div className="flex flex-col gap-1">
                                       <p>평일: {store.weekdayHours}</p>
                                       <p>주말: {store.weekendHours}</p>
@@ -252,7 +252,7 @@ const ThemeDetail = () => {
                                   </div>
                                 </div>
                                 <div className="p-4 bg-black/40 rounded-2xl border border-white/5">
-                                  <p className="text-white/40 mb-1 uppercase tracking-widest text-[10px] font-bold">Contact</p>
+                                  <p className="text-white/40 mb-1 uppercase tracking-normal text-[10px] font-bold">Contact</p>
                                   <p className="font-en">{store.phone}</p>
                                 </div>
                               </div>
@@ -261,7 +261,7 @@ const ThemeDetail = () => {
                                   href={`https://map.naver.com/v5/search/${encodeURIComponent(store.address)}`}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="block w-full text-center py-4 bg-white text-black font-bold rounded-2xl hover:bg-neutral-200 transition-colors uppercase tracking-widest font-en text-sm"
+                                  className="block w-full text-center py-4 bg-white text-black font-bold rounded-2xl hover:bg-neutral-200 transition-colors uppercase tracking-normal font-en text-sm"
                                 >
                                   Naver Maps
                                 </a>
@@ -280,7 +280,7 @@ const ThemeDetail = () => {
 
             <div className="grid grid-cols-2 md:grid-cols-5 gap-y-8 gap-x-4 py-10 border-y border-white/5">
               <div className="space-y-2">
-                <p className="text-[10px] font-bold text-white/40 tracking-widest uppercase font-en">난이도</p>
+                <p className="text-[10px] font-bold text-white/40 tracking-normal uppercase">난이도</p>
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
                     <div key={i} className={`w-4 h-1 rounded-full ${i < theme.difficulty ? 'bg-white' : 'bg-white/10'}`} />
@@ -288,7 +288,7 @@ const ThemeDetail = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="text-[10px] font-bold text-white/40 tracking-widest uppercase font-en">공포도</p>
+                <p className="text-[10px] font-bold text-white/40 tracking-normal uppercase">공포도</p>
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
                     <div key={i} className={`w-4 h-1 rounded-full ${i < theme.fearLevel ? 'bg-[#dc2626]' : 'bg-white/10'}`} />
@@ -296,21 +296,21 @@ const ThemeDetail = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="text-[10px] font-bold text-white/40 tracking-widest uppercase font-en">소요시간</p>
-                <div className="flex items-center gap-2 text-white font-bold text-sm font-en">
+                <p className="text-[10px] font-bold text-white/40 tracking-normal uppercase">소요시간</p>
+                <div className="flex items-center gap-2 text-white font-bold text-sm">
                   <Clock size={14} className="text-white/40" />
                   <span>{theme.duration}분</span>
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="text-[10px] font-bold text-white/40 tracking-widest uppercase font-en">참여인원</p>
-                <div className="flex items-center gap-2 text-white font-bold text-sm font-en">
+                <p className="text-[10px] font-bold text-white/40 tracking-normal uppercase">참여인원</p>
+                <div className="flex items-center gap-2 text-white font-bold text-sm">
                   <Users size={14} className="text-white/40" />
                   <span>{theme.minPlayers}-{theme.maxPlayers}명</span>
                 </div>
               </div>
               <div className="space-y-2 flex flex-col justify-end">
-                <p className="text-white font-bold text-sm font-en">{theme.price.toLocaleString()}원</p>
+                <p className="text-white font-bold text-sm">{theme.price.toLocaleString()}원</p>
               </div>
             </div>
           </div>
@@ -326,7 +326,7 @@ const ThemeDetail = () => {
               >
                 <ChevronLeft size={20}/>
               </button>
-              <span className="font-bold text-sm tracking-widest uppercase font-en">{currentMonth.getFullYear()}. {currentMonth.getMonth() + 1}</span>
+              <span className="font-bold text-sm tracking-normal uppercase font-en">{currentMonth.getFullYear()}. {currentMonth.getMonth() + 1}</span>
               <button 
                 onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() + 1)))}
                 className="p-2 hover:bg-white/5 rounded-full transition-colors"
@@ -336,7 +336,7 @@ const ThemeDetail = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-7 gap-2 text-center text-[10px] text-white/20 mb-6 font-bold tracking-widest uppercase font-en">
+          <div className="grid grid-cols-7 gap-2 text-center text-[10px] text-white/20 mb-6 font-bold tracking-normal uppercase font-en">
             {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => <div key={d}>{d}</div>)}
           </div>
           <div className="grid grid-cols-7 gap-2 mb-12">
@@ -368,13 +368,13 @@ const ThemeDetail = () => {
                       <div className="flex flex-col items-start gap-1">
                         <span className={`text-2xl font-bold font-en ${slotInfo.isAvailable ? 'group-hover:translate-x-2 transition-transform' : ''}`}>{slotInfo.time}</span>
                         {slotInfo.isAvailable && slotInfo.currentParticipants > 0 && (
-                          <span className="text-[10px] font-bold text-[#dc2626] tracking-widest uppercase font-en bg-[#dc2626]/10 px-2 py-0.5 rounded">
+                          <span className="text-[10px] font-bold text-[#dc2626] tracking-normal uppercase font-en bg-[#dc2626]/10 px-2 py-0.5 rounded">
                             {slotInfo.currentParticipants}/{theme.maxPlayers}명 Booked
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-xs font-bold tracking-widest uppercase font-en">
+                        <span className="text-xs font-bold tracking-normal uppercase font-en">
                           {slotInfo.isAvailable ? 'Available' : (slotInfo.isFull ? 'Full' : 'Closed')}
                         </span>
                         {slotInfo.isAvailable && <ChevronRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity" />}

@@ -180,7 +180,7 @@ const BookingForm = () => {
         <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-12">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-3">
-              <label className="text-xs font-bold text-white/40 tracking-widest uppercase">예약자 성함</label>
+              <label className="text-xs font-bold text-white/40 tracking-normal uppercase">예약자 성함</label>
               {errors.name && <p className="text-[10px] text-red-500 font-bold animate-pulse">{errors.name}</p>}
               <input 
                 type="text" 
@@ -194,7 +194,7 @@ const BookingForm = () => {
               />
             </div>
             <div className="space-y-3">
-              <label className="text-xs font-bold text-white/40 tracking-widest uppercase">휴대폰 번호</label>
+              <label className="text-xs font-bold text-white/40 tracking-normal uppercase">휴대폰 번호</label>
               {errors.phone && <p className="text-[10px] text-red-500 font-bold animate-pulse">{errors.phone}</p>}
                 <input 
                   type="tel" 
@@ -212,7 +212,7 @@ const BookingForm = () => {
 
           <div className="space-y-6">
             <div className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/10">
-              <label className="text-xs font-bold text-white/40 tracking-widest uppercase">참여 인원 선택</label>
+              <label className="text-xs font-bold text-white/40 tracking-normal uppercase">참여 인원 선택</label>
               <div className="flex items-center gap-3">
                 <p className="text-xs font-bold text-white/60">
                   <span className="text-[#dc2626]">{remainingCapacity}</span> / {theme.maxPlayers}명 가능
@@ -255,7 +255,7 @@ const BookingForm = () => {
           </div>
 
           <div className="space-y-6">
-            <label className="text-xs font-bold text-white/40 tracking-widest uppercase">결제 방식</label>
+            <label className="text-xs font-bold text-white/40 tracking-normal uppercase">결제 방식</label>
             <div className="grid grid-cols-2 gap-4">
               <button
                 type="button"
@@ -285,7 +285,7 @@ const BookingForm = () => {
               <div className="p-8 bg-white/5 rounded-[32px] border border-white/10 animate-in fade-in slide-in-from-top-4 duration-500">
                 <div className="flex items-center justify-between gap-4">
                   <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-white/40 tracking-widest uppercase mb-2">Deposit Account</p>
+                    <p className="text-[10px] font-bold text-white/40 tracking-normal uppercase mb-2">Deposit Account</p>
                     <div className="text-xl font-bold tracking-tight">
                       {settings.bankInfo.bankName} {settings.bankInfo.accountNumber}
                     </div>
@@ -325,7 +325,7 @@ const BookingForm = () => {
           )}
 
           <div className="space-y-3">
-            <label className="text-xs font-bold text-white/40 tracking-widest uppercase">매장 전달 사항 (선택)</label>
+            <label className="text-xs font-bold text-white/40 tracking-normal uppercase">매장 전달 사항 (선택)</label>
             <textarea 
               rows={4}
               className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 focus:outline-none focus:border-white transition-colors resize-none text-white placeholder:text-white/20"

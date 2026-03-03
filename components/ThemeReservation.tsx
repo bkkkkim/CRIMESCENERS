@@ -140,7 +140,7 @@ const ThemeReservation = () => {
                 {isComingSoon && (
                   <div className="absolute inset-0 flex items-center justify-center z-20">
                     <div className="bg-black/80 backdrop-blur-md px-6 py-3 rounded-xl border border-white/20">
-                      <span className="text-xl font-black tracking-[0.2em] text-white">COMING SOON</span>
+                      <span className="text-xl font-black tracking-normal text-white">COMING SOON</span>
                     </div>
                   </div>
                 )}
@@ -168,7 +168,7 @@ const ThemeReservation = () => {
                   </div>
                 </div>
               
-              <div className="flex flex-wrap gap-4 text-[10px] font-bold tracking-widest uppercase text-white/40">
+              <div className="flex flex-wrap gap-4 text-[10px] font-bold tracking-normal uppercase text-white/40">
                 <div className="flex items-center gap-1.5">
                   <span>난이도</span>
                   <div className="flex gap-0.5">

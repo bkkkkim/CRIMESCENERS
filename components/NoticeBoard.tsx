@@ -14,11 +14,12 @@ const NoticeBoard = () => {
   const [settings, setSettings] = useState<AdminSettings>(DEFAULT_ADMIN_SETTINGS);
   const [activeTab, setActiveTab] = useState<'method' | 'stores'>('method');
   const [expandedNotice, setExpandedNotice] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
       try {
+        // If data is already in cache, this will be instant
         const [noticeList, storeList, savedSettings] = await Promise.all([
           dataService.getNotices(),
           dataService.getStores(),
@@ -29,8 +30,6 @@ const NoticeBoard = () => {
         setSettings(savedSettings);
       } catch (error) {
         console.error("Failed to load info data:", error);
-      } finally {
-        setLoading(false);
       }
     };
     loadData();
@@ -100,7 +99,7 @@ const NoticeBoard = () => {
                 <Gamepad2 size={64} className="text-white/20 mb-8" />
                 <h3 className="text-2xl font-bold mb-4">준비되셨나요?</h3>
                 <p className="text-[#b3b3b3] mb-10 opacity-60">지금 바로 사건 현장으로 떠나보세요.</p>
-                <Link to="/reservation" className="px-12 py-5 bg-white text-black font-bold rounded-none hover:bg-neutral-200 transition-all tracking-[0.2em] uppercase text-sm font-en">
+                <Link to="/reservation" className="px-12 py-5 bg-white text-black font-bold rounded-none hover:bg-neutral-200 transition-all tracking-normal uppercase text-sm font-en">
                   Book Now
                 </Link>
               </div>
@@ -119,7 +118,7 @@ const NoticeBoard = () => {
                       className="w-full p-8 text-left flex justify-between items-center group"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="bg-[#dc2626] text-[10px] font-bold px-2 py-0.5 rounded tracking-widest uppercase font-en shrink-0">중요</span>
+                        <span className="bg-[#dc2626] text-[10px] font-bold px-2 py-0.5 rounded tracking-widest uppercase shrink-0">중요</span>
                         <h3 className="text-xl font-bold tracking-tight group-hover:text-white transition-colors">{settings.noticeTitle.replace('[필독] ', '')}</h3>
                       </div>
                       <ChevronRight size={20} className={`text-white/20 transition-transform ${expandedNotice === 'admin' ? 'rotate-90' : ''}`} />
@@ -146,7 +145,7 @@ const NoticeBoard = () => {
                       className="w-full p-8 text-left flex justify-between items-center group"
                     >
                       <div className="flex items-center gap-3">
-                        {notice.isImportant && <span className="bg-[#dc2626] text-[10px] font-bold px-2 py-0.5 rounded tracking-widest uppercase font-en shrink-0">중요</span>}
+                        {notice.isImportant && <span className="bg-[#dc2626] text-[10px] font-bold px-2 py-0.5 rounded tracking-widest uppercase shrink-0">중요</span>}
                         <h3 className="text-xl font-bold tracking-tight group-hover:text-white transition-colors">{notice.title}</h3>
                       </div>
                       <ChevronRight size={20} className={`text-white/20 transition-transform ${expandedNotice === notice.id ? 'rotate-90' : ''}`} />
@@ -176,7 +175,10 @@ const NoticeBoard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-8"
+            className={`grid gap-8 ${
+              stores.length === 1 ? 'max-w-xl mx-auto' : 
+              'grid-cols-1 md:grid-cols-2'
+            }`}
           >
             {stores.map((store) => (
               <div key={store.id} className="bg-[#1a1a1a] rounded-[40px] overflow-hidden border border-white/5 group">
@@ -185,6 +187,8 @@ const NoticeBoard = () => {
                     src={store.imageUrl || "https://picsum.photos/id/1031/800/600?grayscale"} 
                     alt={store.name} 
                     className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
                   />
                 </div>
                 <div className="p-10">
@@ -208,7 +212,7 @@ const NoticeBoard = () => {
                   </div>
                   <Link 
                     to="/reservation" 
-                    className="flex items-center justify-center gap-3 w-full py-5 border-2 border-white/10 text-white font-black rounded-none hover:bg-white hover:text-black transition-all tracking-[0.2em] uppercase text-sm font-en"
+                    className="flex items-center justify-center gap-3 w-full py-5 border-2 border-white/10 text-white font-black rounded-none hover:bg-white hover:text-black transition-all tracking-normal uppercase text-sm font-en"
                   >
                     Reservation <ChevronRight size={18} />
                   </Link>

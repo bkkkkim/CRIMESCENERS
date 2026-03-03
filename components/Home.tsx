@@ -125,8 +125,7 @@ const IntroSection = ({ images }: { images: string[] }) => (
           viewport={{ once: true }}
           className="text-[#b3b3b3] text-sm md:text-base opacity-80 mt-2 leading-relaxed"
         >
-          스릴러 매니아들이 설계한 몰입형 추리 게임 카페<br className="md:hidden" />
-          <span className="text-white font-bold">'크라임 씨너스'</span> 에 오신것을 환영합니다!
+          스릴러 매니아들이 설계한 몰입형 추리 게임 카페 '크라임 씨너스' 에 오신것을 환영합니다!
         </motion.p>
       </div>
       <div className="mobile-snap-container hide-scrollbar md:grid md:grid-cols-3 md:gap-8 items-start">
@@ -244,7 +243,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                       {isComingSoon && (
                         <div className="absolute inset-0 flex items-center justify-center z-20">
                           <div className="bg-black/80 backdrop-blur-md px-6 py-3 rounded-xl border border-white/20">
-                            <span className="text-xl font-bold tracking-[0.2em] text-white font-en">COMING SOON</span>
+                            <span className="text-xl font-bold tracking-normal text-white font-en">COMING SOON</span>
                           </div>
                         </div>
                       )}
@@ -253,9 +252,9 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                     
                     <div className="text-left">
                       <div className="flex items-center gap-2 mb-3 md:mb-4">
-                        <span className="bg-[#dc2626] text-[10px] font-bold px-2 py-1 rounded tracking-widest uppercase font-en">BEST</span>
+                        <span className="bg-[#dc2626] text-[10px] font-bold px-2 py-1 rounded tracking-normal uppercase font-en">BEST</span>
                         {theme.storeId && store && (
-                          <span className="text-white/40 text-xs font-mono uppercase tracking-widest">{store.name}</span>
+                          <span className="text-white/40 text-xs font-bold uppercase tracking-normal">{store.name}</span>
                         )}
                       </div>
                       <h3 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 tracking-tight line-clamp-1">{theme.title}</h3>
@@ -266,7 +265,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                           <span>1명</span>
                         </div>
                         
-                        <div className="flex flex-wrap gap-4 text-[10px] font-bold tracking-widest uppercase text-white/40">
+                        <div className="flex flex-wrap gap-4 text-[10px] font-bold tracking-normal uppercase text-white/40">
                           <div className="flex items-center gap-1.5">
                             <span>난이도</span>
                             <div className="flex gap-0.5">
@@ -288,11 +287,11 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                         <div className="flex flex-wrap gap-x-6 gap-y-3 text-xs md:text-sm text-white/60 font-medium pt-2 border-t border-white/5">
                           <div className="flex items-center gap-2">
                             <Clock size={14} className="text-white/20" />
-                            <span className="font-en">{theme.duration}분</span>
+                            <span className="font-bold">{theme.duration}분</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Users size={14} className="text-white/20" />
-                            <span className="font-en">{theme.minPlayers}-{theme.maxPlayers}명</span>
+                            <span className="font-bold">{theme.minPlayers}-{theme.maxPlayers}명</span>
                           </div>
                         </div>
                       </div>
@@ -391,7 +390,7 @@ const StoreSection = ({ stores }: { stores: Store[] }) => {
                   href={`https://map.naver.com/v5/search/${encodeURIComponent(selectedStore.address)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center justify-center px-4 py-2 border border-white/20 text-white font-bold rounded-none hover:bg-white hover:text-black transition-all tracking-tight uppercase text-[9px] font-en w-fit shrink-0"
+                  className="inline-flex items-center justify-center px-4 py-2 border border-white/20 text-white font-bold rounded-none hover:bg-white hover:text-black transition-all tracking-tight uppercase text-[9px] w-fit shrink-0"
                 >
                   네이버 지도로 보기
                 </a>

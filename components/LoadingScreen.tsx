@@ -11,22 +11,12 @@ interface LoadingScreenProps {
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ logoUrl }) => {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [useTextFallback, setUseTextFallback] = useState(false);
-  const [displayUrl, setDisplayUrl] = useState<string | null>(logoUrl || null);
+  const [displayUrl, setDisplayUrl] = useState<string | null>(logoUrl || '/logo.jpg');
 
   useEffect(() => {
     if (logoUrl) {
       setDisplayUrl(logoUrl);
-    } else {
-      // Fallback to internal fetch if no prop provided (though App should provide it)
-      const loadLogo = async () => {
-        try {
-          const settings = await dataService.getSettings();
-          setDisplayUrl(settings.logoUrl || '/logo.jpg');
-        } catch (error) {
-          setDisplayUrl('/logo.jpg');
-        }
-      };
-      loadLogo();
+      setUseTextFallback(false);
     }
   }, [logoUrl]);
 
