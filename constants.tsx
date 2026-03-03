@@ -5,7 +5,7 @@ export const THEMES: Theme[] = [
   {
     id: 'theme-1',
     title: '박수무당 살인사건',
-    posterUrl: 'https://ooeoox.cafe24.com/web/product/medium/202601/e6bfce224ee477630dbed4bd2b1b2b2b.png',
+    posterUrl: 'https://picsum.photos/seed/shaman/800/1200',
     synopsis: '신비로운 무당의 집에서 벌어진 참혹한 살인사건. 당신은 이 미스터리를 풀고 범인을 잡을 수 있을 것인가?',
     minPlayers: 4,
     maxPlayers: 5,
@@ -21,7 +21,7 @@ export const THEMES: Theme[] = [
   {
     id: 'theme-2',
     title: '미대생 살인사건',
-    posterUrl: 'https://ooeoox.cafe24.com/web/product/medium/202601/9b7b2f0d1a61388dbe9327e188e67cbc.png',
+    posterUrl: 'https://picsum.photos/seed/art/800/1200',
     synopsis: '화려한 예술의 이면에 숨겨진 어두운 진실. 미대 작업실에서 발견된 사체와 얽히고설킨 인물들.',
     minPlayers: 5,
     maxPlayers: 6,
@@ -43,7 +43,8 @@ export const STORES: Store[] = [
     phone: '02-123-4567',
     weekdayHours: '17:00~24:00',
     weekendHours: '10:00~24:00',
-    address: '서울특별시 강남구 테헤란로 123, B1'
+    address: '서울특별시 강남구 테헤란로 123, B1',
+    imageUrl: 'https://picsum.photos/seed/store1/800/600'
   }
 ];
 
@@ -51,17 +52,17 @@ export const INTRO_POINTS = [
   {
     title: '탄탄한 시나리오',
     desc: '씨네마광 공대박사의 탄탄한 시나리오',
-    img: '/intro1.jpg'
+    img: 'https://picsum.photos/seed/scenario/800/600'
   },
   {
     title: '몰입도 높은 현장',
     desc: '미대생 출신이 직접 연출한 크라임씬',
-    img: '/intro2.jpg'
+    img: 'https://picsum.photos/seed/scene/800/600'
   },
   {
     title: '다양한 롤플레잉',
     desc: '각기 다른 사연과 비밀을 가진 캐릭터들',
-    img: '/intro3.jpg'
+    img: 'https://picsum.photos/seed/roleplay/800/600'
   }
 ];
 
@@ -81,9 +82,9 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
     instagramUrl: '#',
     naverUrl: '#'
   },
-  logoUrl: '/logo.jpg',
-  faviconUrl: '/favicon.ico',
-  thumbnailUrl: '/thumbnail.jpg',
+  logoUrl: 'https://picsum.photos/seed/logo/400/200',
+  faviconUrl: 'https://picsum.photos/seed/favicon/32/32',
+  thumbnailUrl: 'https://picsum.photos/seed/thumb/1200/630',
   termsContent: `제1조 (목적)\n본 약관은 크라임씨너스(이하 "회사")가 제공하는 예약 서비스의 이용조건 및 절차에 관한 사항을 규정함을 목적으로 합니다...\n\n제2조 (예약 및 취소)\n1. 예약은 온라인 시스템을 통해 실시간으로 진행됩니다.\n2. 예약 취소는 방문 24시간 전까지 가능하며, 이후 취소 시 위약금이 발생할 수 있습니다.`,
   privacyContent: `1. 수집하는 개인정보 항목\n회사는 예약 서비스를 위해 성함, 연락처를 수집합니다.\n\n2. 개인정보의 수집 및 이용목적\n수집된 정보는 예약 확인, 서비스 안내, 본인 확인을 위해 사용됩니다.\n\n3. 개인정보의 보유 및 이용기간\n서비스 이용 목적 달성 후 해당 정보를 지체 없이 파기합니다.`,
   noticeTitle: '[필독] 크라임씨너스 이용 가이드 및 주의사항',
@@ -100,11 +101,11 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
     }
   },
   homeConfig: {
-    heroImageUrl: '/hero.jpg',
+    heroImageUrl: 'https://picsum.photos/seed/hero/1920/1080',
     introImages: [
-      '/intro1.jpg',
-      '/intro2.jpg',
-      '/intro3.jpg'
+      'https://picsum.photos/seed/intro1/800/600',
+      'https://picsum.photos/seed/intro2/800/600',
+      'https://picsum.photos/seed/intro3/800/600'
     ]
   }
 };

@@ -228,12 +228,18 @@ const Footer = () => {
 };
 
 const App = () => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Disable blocking loading
 
   useEffect(() => {
-    // Simulate initial load - reduced delay
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
+    // Background initialization
+    const init = async () => {
+      try {
+        await dataService.getSettings();
+      } catch (e) {
+        console.error("Init failed", e);
+      }
+    };
+    init();
   }, []);
 
   return (

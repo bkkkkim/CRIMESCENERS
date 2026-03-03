@@ -66,7 +66,7 @@ const LoadingScreen = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mt-12 text-center"
+          className="mt-6 text-center"
         >
           <p className="text-white/40 text-[10px] md:text-xs tracking-normal uppercase font-en animate-pulse">Investigating the scene...</p>
         </motion.div>

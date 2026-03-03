@@ -56,8 +56,18 @@ export const dataService = {
   },
 
   getThemes: async (): Promise<Theme[]> => {
-    // Return local themes directly as requested
-    return THEMES;
+    const cached = getCachedData(SITE_CONTENT_KEYS.THEMES);
+    if (cached) return cached;
+
+    const { data, error } = await supabase
+      .from('site_contents')
+      .select('value')
+      .eq('key', SITE_CONTENT_KEYS.THEMES)
+      .single();
+    
+    const result = (error || !data) ? THEMES : data.value as Theme[];
+    setCachedData(SITE_CONTENT_KEYS.THEMES, result);
+    return result;
   },
   saveThemes: async (themes: Theme[]) => {
     setCachedData(SITE_CONTENT_KEYS.THEMES, themes);
@@ -67,8 +77,18 @@ export const dataService = {
   },
 
   getNotices: async (): Promise<Notice[]> => {
-    // Return local notices directly as requested
-    return INITIAL_NOTICES;
+    const cached = getCachedData(SITE_CONTENT_KEYS.NOTICES);
+    if (cached) return cached;
+
+    const { data, error } = await supabase
+      .from('site_contents')
+      .select('value')
+      .eq('key', SITE_CONTENT_KEYS.NOTICES)
+      .single();
+    
+    const result = (error || !data) ? INITIAL_NOTICES : data.value as Notice[];
+    setCachedData(SITE_CONTENT_KEYS.NOTICES, result);
+    return result;
   },
   saveNotices: async (notices: Notice[]) => {
     setCachedData(SITE_CONTENT_KEYS.NOTICES, notices);
@@ -99,14 +119,59 @@ export const dataService = {
   },
 
   getStores: async (): Promise<Store[]> => {
-    // Return local stores directly as requested
-    return STORES;
+    const cached = getCachedData(SITE_CONTENT_KEYS.STORES);
+    if (cached) return cached;
+
+    const { data, error } = await supabase
+      .from('site_contents')
+      .select('value')
+      .eq('key', SITE_CONTENT_KEYS.STORES)
+      .single();
+    
+    const result = (error || !data) ? STORES : data.value as Store[];
+    setCachedData(SITE_CONTENT_KEYS.STORES, result);
+    return result;
   },
   saveStores: async (stores: Store[]) => {
     setCachedData(SITE_CONTENT_KEYS.STORES, stores);
     await supabase
       .from('site_contents')
       .upsert({ key: SITE_CONTENT_KEYS.STORES, value: stores }, { onConflict: 'key' });
+  },
+
+  // --- Storage ---
+  uploadImage: async (file: File | Blob, path: string): Promise<string> => {
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
+    const fullPath = `${path}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('images')
+      .upload(fullPath, file, {
+        contentType: 'image/webp',
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+      .from('images')
+      .getPublicUrl(fullPath);
+
+    return data.publicUrl;
+  },
+
+  deleteImage: async (url: string) => {
+    if (!url || !url.includes('gkkgprsflomawizioiao.supabase.co')) return;
+    
+    try {
+      const path = url.split('/storage/v1/object/public/images/')[1];
+      if (path) {
+        await supabase.storage.from('images').remove([path]);
+      }
+    } catch (error) {
+      console.error("Failed to delete image:", error);
+    }
   },
 
   // --- Reservations ---

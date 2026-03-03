@@ -89,25 +89,25 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, path: string, oldUrl: string | undefined, callback: (url: string) => void) => {
     const file = e.target.files?.[0];
     if (file) {
       try {
         // Compress image to WebP with 0.8 quality
         const compressedBlob = await compressImage(file, 0.8);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          callback(reader.result as string);
-        };
-        reader.readAsDataURL(compressedBlob);
+        
+        // Delete old image if exists
+        if (oldUrl) {
+          await dataService.deleteImage(oldUrl);
+        }
+
+        // Upload new image
+        const publicUrl = await dataService.uploadImage(compressedBlob, path);
+        callback(publicUrl);
+        setIsDirty(true);
       } catch (error) {
-        console.error("Image compression failed:", error);
-        // Fallback to original file if compression fails
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          callback(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+        console.error("Image upload failed:", error);
+        alert("이미지 업로드에 실패했습니다.");
       }
     }
   };
@@ -448,11 +448,10 @@ const AdminDashboard = () => {
                           <Upload size={24} className="mb-2" />
                           <span className="text-[10px]">이미지 업로드</span>
                           <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                            setIsDirty(true);
-                            handleFileUpload(e, (base64) => {
+                            handleFileUpload(e, 'themes', theme.posterUrl, (url) => {
                               setThemes(prev => {
                                 const updated = [...prev];
-                                updated[idx] = { ...updated[idx], posterUrl: base64 };
+                                updated[idx] = { ...updated[idx], posterUrl: url };
                                 return updated;
                               });
                             });
@@ -807,10 +806,9 @@ const AdminDashboard = () => {
                             <Upload size={24} className="mb-2" />
                             <span className="text-[10px]">이미지 업로드</span>
                             <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                              setIsDirty(true);
-                              handleFileUpload(e, (base64) => {
+                              handleFileUpload(e, 'stores', store.imageUrl, (url) => {
                                 const updated = [...stores];
-                                updated[idx].imageUrl = base64;
+                                updated[idx].imageUrl = url;
                                 setStores(updated);
                               });
                             }} />
@@ -858,9 +856,8 @@ const AdminDashboard = () => {
                         <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                           <Upload size={20} />
                           <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                            setIsDirty(true);
-                            handleFileUpload(e, (base64) => {
-                              setSettings(prev => ({ ...prev, logoUrl: base64 }));
+                            handleFileUpload(e, 'brand', settings.logoUrl, (url) => {
+                              setSettings(prev => ({ ...prev, logoUrl: url }));
                             });
                           }} />
                         </label>
@@ -873,9 +870,8 @@ const AdminDashboard = () => {
                         <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                           <Upload size={20} />
                           <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                            setIsDirty(true);
-                            handleFileUpload(e, (base64) => {
-                              setSettings(prev => ({ ...prev, faviconUrl: base64 }));
+                            handleFileUpload(e, 'brand', settings.faviconUrl, (url) => {
+                              setSettings(prev => ({ ...prev, faviconUrl: url }));
                             });
                           }} />
                         </label>
@@ -888,9 +884,8 @@ const AdminDashboard = () => {
                         <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                           <Upload size={20} />
                           <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                            setIsDirty(true);
-                            handleFileUpload(e, (base64) => {
-                              setSettings(prev => ({ ...prev, thumbnailUrl: base64 }));
+                            handleFileUpload(e, 'brand', settings.thumbnailUrl, (url) => {
+                              setSettings(prev => ({ ...prev, thumbnailUrl: url }));
                             });
                           }} />
                         </label>
@@ -909,9 +904,8 @@ const AdminDashboard = () => {
                         <Upload size={32} className="mb-2" />
                         <span>히어로 이미지 업로드</span>
                         <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                          setIsDirty(true);
-                          handleFileUpload(e, (base64) => {
-                            setSettings(prev => ({ ...prev, homeConfig: { ...prev.homeConfig, heroImageUrl: base64 } }));
+                          handleFileUpload(e, 'home', settings.homeConfig.heroImageUrl, (url) => {
+                            setSettings(prev => ({ ...prev, homeConfig: { ...prev.homeConfig, heroImageUrl: url } }));
                           });
                         }} />
                       </label>
@@ -926,11 +920,10 @@ const AdminDashboard = () => {
                           <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                             <Upload size={20} />
                             <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                              setIsDirty(true);
-                              handleFileUpload(e, (base64) => {
+                              handleFileUpload(e, 'home', url, (newUrl) => {
                                 setSettings(prev => {
                                   const updatedImages = [...prev.homeConfig.introImages];
-                                  updatedImages[i] = base64;
+                                  updatedImages[i] = newUrl;
                                   return { ...prev, homeConfig: { ...prev.homeConfig, introImages: updatedImages } };
                                 });
                               });

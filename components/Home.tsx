@@ -319,14 +319,14 @@ const StoreSection = ({ stores }: { stores: Store[] }) => {
               <a href={`tel:${selectedStore.phone}`} className="text-[#b3b3b3] text-xs md:text-sm opacity-60 font-en flex-grow hover:text-white transition-colors pl-2">{selectedStore.phone}</a>
             </div>
 
-            <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-6">
+            <div className="flex flex-row items-start gap-4 md:gap-6">
               <div className="flex items-center gap-3 md:gap-6 shrink-0 w-[100px] md:w-[140px]">
                 <div className="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
                   <MapPin className="text-white/40" size={16} />
                 </div>
-                <p className="font-bold text-white text-sm md:text-lg">위치 정보</p>
+                <p className="font-bold text-white text-sm md:text-lg whitespace-nowrap">위치 정보</p>
               </div>
-              <div className="flex flex-col gap-3 flex-grow w-full md:pt-3.5 pl-2">
+              <div className="flex flex-col gap-3 flex-grow w-full pt-2 md:pt-3.5 pl-2">
                 <p className="text-[#b3b3b3] text-xs md:text-sm opacity-60 leading-relaxed text-left">{selectedStore.address}</p>
                 <a 
                   href={`https://map.naver.com/v5/search/${encodeURIComponent(selectedStore.address)}`}
