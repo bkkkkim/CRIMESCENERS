@@ -48,7 +48,7 @@ const HeroBanner = ({ imageUrl }: { imageUrl: string }) => {
   return (
     <div className="relative w-full h-[600px] md:h-[800px] overflow-hidden flex items-center justify-center">
       <div className="absolute inset-0 z-0">
-        <motion.div 
+        <motion.img 
           initial={{ scale: 1, x: 0, y: 0 }}
           animate={{ 
             scale: [1, 1.1, 1.15, 1],
@@ -60,8 +60,11 @@ const HeroBanner = ({ imageUrl }: { imageUrl: string }) => {
             repeat: Infinity, 
             ease: "linear" 
           }}
-          className="w-full h-full bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url('${imageUrl}')` }}
+          src={imageUrl || "/hero.jpg"}
+          alt="Hero"
+          className="w-full h-full object-cover"
+          loading="eager"
+          referrerPolicy="no-referrer"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#121212]" />
         <div className="absolute inset-0 bg-black/40" />
@@ -134,6 +137,8 @@ const IntroSection = ({ images }: { images: string[] }) => (
                 src={images[i] || point.img} 
                 alt={point.title} 
                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
+                loading="lazy"
+                referrerPolicy="no-referrer"
               />
             </div>
             <div className="text-left flex-grow">
@@ -184,6 +189,8 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                     src={theme.posterUrl} 
                     alt={theme.title} 
                     className={`w-full h-full object-cover transition-transform duration-1000 ${isComingSoon ? 'grayscale opacity-50' : 'group-hover:scale-110'}`}
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
                   />
                   {isComingSoon && (
                     <div className="absolute inset-0 flex items-center justify-center z-20">
@@ -291,6 +298,7 @@ const StoreSection = ({ stores }: { stores: Store[] }) => {
             src={selectedStore.imageUrl || "https://picsum.photos/id/1031/800/600?grayscale"} 
             alt={selectedStore.name} 
             className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
+            loading="lazy"
             referrerPolicy="no-referrer"
           />
         </div>
@@ -354,6 +362,7 @@ const Home = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        // Parallel fetch for home data - will hit cache from App.tsx init
         const [s, t, st] = await Promise.all([
           dataService.getSettings(),
           dataService.getThemes(),
@@ -371,10 +380,11 @@ const Home = () => {
     loadData();
   }, []);
 
-  if (loading) return <LoadingScreen />;
+  // Remove full-screen loading to improve perceived speed
+  // if (loading) return <LoadingScreen />;
 
   return (
-    <div>
+    <div className={loading ? 'opacity-50 pointer-events-none' : 'opacity-100 transition-opacity duration-500'}>
       <HeroBanner imageUrl={settings.homeConfig.heroImageUrl} />
       <IntroSection images={settings.homeConfig.introImages} />
       <PopularThemes themes={themes} stores={stores} />

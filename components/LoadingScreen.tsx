@@ -4,27 +4,31 @@ import { motion } from 'framer-motion';
 import { dataService } from '../src/services/dataService';
 import { DEFAULT_ADMIN_SETTINGS } from '../constants';
 
-const LoadingScreen = () => {
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+interface LoadingScreenProps {
+  logoUrl?: string | null;
+}
+
+const LoadingScreen: React.FC<LoadingScreenProps> = ({ logoUrl }) => {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [useTextFallback, setUseTextFallback] = useState(false);
+  const [displayUrl, setDisplayUrl] = useState<string | null>(logoUrl || null);
 
   useEffect(() => {
-    const loadLogo = async () => {
-      try {
-        const settings = await dataService.getSettings();
-        if (settings.logoUrl && settings.logoUrl !== '/logo.jpg') {
-          setLogoUrl(settings.logoUrl);
-        } else {
-          setUseTextFallback(true);
+    if (logoUrl) {
+      setDisplayUrl(logoUrl);
+    } else {
+      // Fallback to internal fetch if no prop provided (though App should provide it)
+      const loadLogo = async () => {
+        try {
+          const settings = await dataService.getSettings();
+          setDisplayUrl(settings.logoUrl || '/logo.jpg');
+        } catch (error) {
+          setDisplayUrl('/logo.jpg');
         }
-      } catch (error) {
-        console.error("Failed to load logo in loading screen:", error);
-        setUseTextFallback(true);
-      }
-    };
-    loadLogo();
-  }, []);
+      };
+      loadLogo();
+    }
+  }, [logoUrl]);
 
   return (
     <motion.div 
@@ -36,39 +40,42 @@ const LoadingScreen = () => {
       <div className="relative flex flex-col items-center">
         <motion.div
           animate={{ 
-            opacity: [0.3, 1, 0.3],
+            opacity: [0.8, 1, 0.8],
           }}
           transition={{ 
-            duration: 2, 
+            duration: 1.5, 
             repeat: Infinity, 
             ease: "easeInOut" 
           }}
           className="relative z-10"
         >
-          {logoUrl && !useTextFallback ? (
+          {!useTextFallback && displayUrl ? (
             <img 
-              src={logoUrl} 
+              key={displayUrl}
+              src={displayUrl} 
               alt="CRIME SCENERS" 
-              className="h-16 md:h-24 w-auto object-contain" 
+              className="h-16 md:h-20 w-auto object-contain" 
               onLoad={() => setIsImageLoaded(true)}
               onError={() => {
                 setUseTextFallback(true);
               }}
+              loading="eager"
+              referrerPolicy="no-referrer"
             />
           ) : (
-            <span className="text-2xl md:text-4xl font-black tracking-tighter text-white font-en uppercase">
+            <span className="text-2xl md:text-3xl font-black tracking-tighter text-white font-en uppercase">
               Crime Sceners
             </span>
           )}
         </motion.div>
 
         <motion.div 
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mt-6 text-center"
+          transition={{ delay: 0.1 }}
+          className="mt-3 text-center"
         >
-          <p className="text-white/40 text-[10px] md:text-xs tracking-normal uppercase font-en animate-pulse">Investigating the scene...</p>
+          <p className="text-white/30 text-[8px] md:text-[9px] tracking-widest uppercase font-en animate-pulse">Investigating the scene...</p>
         </motion.div>
       </div>
     </motion.div>

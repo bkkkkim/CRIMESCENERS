@@ -134,6 +134,8 @@ const ThemeReservation = () => {
                   src={theme.posterUrl} 
                   alt={theme.title} 
                   className={`w-full h-full object-cover transition-transform duration-700 ${isComingSoon ? 'grayscale opacity-50' : 'group-hover:scale-110'}`}
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
                 />
                 {isComingSoon && (
                   <div className="absolute inset-0 flex items-center justify-center z-20">

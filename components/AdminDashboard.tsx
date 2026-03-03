@@ -71,9 +71,14 @@ const AdminDashboard = () => {
       ]);
       setIsDirty(false);
       alert('모든 변경사항이 Supabase DB에 즉시 반영되었습니다.');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to publish changes:", error);
-      alert("변경사항 반영에 실패했습니다.");
+      const msg = error.message || "";
+      if (msg.includes('row-level security policy')) {
+        alert("오류: Supabase DB 테이블(site_contents) 권한(RLS) 설정이 필요합니다.\n\n해결 방법:\n1. Supabase 대시보드 -> Table Editor -> site_contents 선택\n2. 상단 'RLS is enabled' 옆의 'Add policy' 클릭\n3. 'Enable read/write access for all' 또는 'Full access' 템플릿 선택\n4. Target Roles: 'anon' 선택\n5. Review -> Save 클릭 후 다시 시도해 주세요.");
+      } else {
+        alert("변경사항 반영에 실패했습니다. 네트워크 상태를 확인해 주세요.\n오류 내용: " + msg);
+      }
     } finally {
       setIsPublishing(false);
     }
@@ -105,9 +110,17 @@ const AdminDashboard = () => {
         const publicUrl = await dataService.uploadImage(compressedBlob, path);
         callback(publicUrl);
         setIsDirty(true);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Image upload failed:", error);
-        alert("이미지 업로드에 실패했습니다.");
+        const msg = error.message || "";
+        
+        if (msg.includes('Bucket not found')) {
+          alert("오류: Supabase Storage에 'images' 버킷이 없습니다.\n\n해결 방법:\n1. Supabase 대시보드 -> Storage 이동\n2. 'images'라는 이름의 New Bucket 생성\n3. 'Public bucket' 체크 활성화\n4. 저장 후 다시 시도해 주세요.");
+        } else if (msg.includes('row-level security policy')) {
+          alert("오류: Supabase Storage 권한(RLS) 설정이 필요합니다.\n\n해결 방법:\n1. Supabase 대시보드 -> Storage -> Policies 이동\n2. 'images' 버킷의 'Storage policies'에서 'New Policy' 클릭\n3. 'For full customization' 선택\n4. Policy Name: 'Allow Public Access'\n5. Allowed Operations: 'INSERT', 'SELECT', 'DELETE' 모두 체크\n6. Target Roles: 'anon' 선택\n7. Policy Definition: 입력창의 기존 내용을 모두 지우고 'true' 라고만 입력\n8. Review -> Save 클릭 후 다시 시도해 주세요.");
+        } else {
+          alert("이미지 업로드에 실패했습니다. 네트워크 상태나 파일 용량을 확인해 주세요.\n오류 내용: " + msg);
+        }
       }
     }
   };

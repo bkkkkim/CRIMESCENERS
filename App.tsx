@@ -28,24 +28,22 @@ const ScrollToTop = () => {
   return null;
 };
 
-const Header = () => {
+const Header = ({ settings }: { settings: AdminSettings }) => {
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [settings, setSettings] = useState<AdminSettings>(DEFAULT_ADMIN_SETTINGS);
+  const [logoError, setLogoError] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
-    
-    const loadSettings = async () => {
-      const saved = await dataService.getSettings();
-      setSettings(saved);
-    };
-    loadSettings();
-
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [location]);
+  }, []);
+
+  // Reset logo error when settings change
+  useEffect(() => {
+    setLogoError(false);
+  }, [settings.logoUrl]);
 
   const isHome = location.pathname === '/';
   const headerBg = isHome 
@@ -62,11 +60,17 @@ const Header = () => {
   return (
     <header className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 ${headerBg}`}>
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative z-[101]">
-        <Link to="/" className="h-10 flex items-center">
-          {settings.logoUrl && settings.logoUrl !== '/logo.jpg' ? (
-            <img src={settings.logoUrl} alt="CRIME SCENERS" className="h-full w-auto object-contain" />
+        <Link to="/" className="h-11 flex items-center">
+          {settings.logoUrl && !logoError ? (
+            <img 
+              key={settings.logoUrl}
+              src={settings.logoUrl} 
+              alt="CRIME SCENERS" 
+              className="h-full w-auto object-contain" 
+              onError={() => setLogoError(true)}
+            />
           ) : (
-            <span className="text-xl font-black tracking-tighter text-white font-en uppercase">
+            <span className="text-xl md:text-2xl font-black tracking-tighter text-white font-en uppercase">
               Crime Sceners
             </span>
           )}
@@ -103,44 +107,9 @@ const Header = () => {
   );
 };
 
-const Footer = () => {
-  const location = useLocation();
-  const [settings, setSettings] = useState<AdminSettings>(DEFAULT_ADMIN_SETTINGS);
+const Footer = ({ settings }: { settings: AdminSettings }) => {
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
-  const isAdminPage = location.pathname.startsWith('/admin');
-
-  useEffect(() => {
-    const loadSettings = async () => {
-      const saved = await dataService.getSettings();
-      setSettings(saved);
-
-      // Update Favicon
-      if (saved.faviconUrl) {
-        let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
-        if (!link) {
-          link = document.createElement('link');
-          link.rel = 'icon';
-          document.getElementsByTagName('head')[0].appendChild(link);
-        }
-        link.href = saved.faviconUrl;
-      }
-
-      // Update OG Image
-      if (saved.thumbnailUrl) {
-        let meta = document.querySelector("meta[property='og:image']") as HTMLMetaElement;
-        if (!meta) {
-          meta = document.createElement('meta');
-          meta.setAttribute('property', 'og:image');
-          document.getElementsByTagName('head')[0].appendChild(meta);
-        }
-        meta.content = saved.thumbnailUrl;
-      }
-    };
-    loadSettings();
-  }, [location]);
-
-  if (isAdminPage) return null;
 
   return (
     <footer className="bg-black border-t border-white/5 py-20 px-6">
@@ -228,15 +197,42 @@ const Footer = () => {
 };
 
 const App = () => {
-  const [loading, setLoading] = useState(false); // Disable blocking loading
+  const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<AdminSettings>(DEFAULT_ADMIN_SETTINGS);
 
   useEffect(() => {
-    // Background initialization
     const init = async () => {
       try {
-        await dataService.getSettings();
+        const saved = await dataService.getSettings();
+        setSettings(saved);
+
+        // Update Favicon
+        if (saved.faviconUrl) {
+          let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+          if (!link) {
+            link = document.createElement('link');
+            link.rel = 'icon';
+            document.getElementsByTagName('head')[0].appendChild(link);
+          }
+          link.href = saved.faviconUrl;
+        }
+
+        // Update OG Image
+        if (saved.thumbnailUrl) {
+          let meta = document.querySelector("meta[property='og:image']") as HTMLMetaElement;
+          if (!meta) {
+            meta = document.createElement('meta');
+            meta.setAttribute('property', 'og:image');
+            document.getElementsByTagName('head')[0].appendChild(meta);
+          }
+          meta.content = saved.thumbnailUrl;
+        }
+
+        await dataService.getThemes();
       } catch (e) {
         console.error("Init failed", e);
+      } finally {
+        setLoading(false);
       }
     };
     init();
@@ -244,35 +240,53 @@ const App = () => {
 
   return (
     <HashRouter>
-      <ScrollToTop />
-      <div className="min-h-screen flex flex-col bg-[#121212]">
-        <AnimatePresence mode="wait">
-          {loading && <LoadingScreen key="loading" />}
-        </AnimatePresence>
-        
-        <Header />
-        <Suspense fallback={<LoadingScreen />}>
-          <motion.main 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1 }}
-            className="flex-grow"
-          >
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/reservation" element={<ThemeReservation />} />
-              <Route path="/theme/:id" element={<ThemeDetail />} />
-              <Route path="/booking/:themeId/:date/:time" element={<BookingForm />} />
-              <Route path="/success" element={<BookingSuccess />} />
-              <Route path="/contact" element={<ContactForm />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/info" element={<NoticeBoard />} />
-            </Routes>
-          </motion.main>
-        </Suspense>
-        <Footer />
-      </div>
+      <AppContent loading={loading} settings={settings} setSettings={setSettings} />
     </HashRouter>
+  );
+};
+
+const AppContent = ({ loading, settings, setSettings }: { loading: boolean, settings: AdminSettings, setSettings: React.Dispatch<React.SetStateAction<AdminSettings>> }) => {
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith('/admin');
+
+  // Re-fetch settings on navigation to ensure sync
+  useEffect(() => {
+    const refreshSettings = async () => {
+      const saved = await dataService.getSettings();
+      setSettings(saved);
+    };
+    refreshSettings();
+  }, [location.pathname, setSettings]);
+
+  return (
+    <div className="min-h-screen flex flex-col bg-[#121212]">
+      <ScrollToTop />
+      <AnimatePresence mode="wait">
+        {loading && <LoadingScreen key="loading" logoUrl={settings.logoUrl} />}
+      </AnimatePresence>
+      
+      {!isAdminPage && <Header settings={settings} />}
+      <Suspense fallback={<LoadingScreen logoUrl={settings.logoUrl} />}>
+        <motion.main 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+          className="flex-grow"
+        >
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/reservation" element={<ThemeReservation />} />
+            <Route path="/theme/:id" element={<ThemeDetail />} />
+            <Route path="/booking/:themeId/:date/:time" element={<BookingForm />} />
+            <Route path="/success" element={<BookingSuccess />} />
+            <Route path="/contact" element={<ContactForm />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/info" element={<NoticeBoard />} />
+          </Routes>
+        </motion.main>
+      </Suspense>
+      {!isAdminPage && <Footer settings={settings} />}
+    </div>
   );
 };
 

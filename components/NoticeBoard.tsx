@@ -36,10 +36,11 @@ const NoticeBoard = () => {
     loadData();
   }, []);
 
-  if (loading) return <LoadingScreen />;
+  // Remove full-screen loading to improve perceived speed
+  // if (loading) return <LoadingScreen />;
 
   return (
-    <div className="pt-32 md:pt-48 pb-24 px-6 max-w-7xl mx-auto">
+    <div className={`pt-32 md:pt-48 pb-24 px-6 max-w-7xl mx-auto ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100 transition-opacity duration-500'}`}>
       <div className="text-center mb-8 md:mb-10">
         <h1 className="text-4xl md:text-6xl font-bold mb-4 uppercase tracking-tighter font-en">Information</h1>
         <p className="text-[#b3b3b3] opacity-60">크라임씬 이용 안내 및 매장 정보</p>

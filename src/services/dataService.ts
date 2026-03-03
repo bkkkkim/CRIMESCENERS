@@ -18,7 +18,7 @@ const SITE_CONTENT_KEYS = {
 
 // Simple in-memory cache
 const cache: Record<string, { data: any; timestamp: number }> = {};
-const CACHE_TTL = 30000; // 30 seconds
+const CACHE_TTL = 5000; // 5 seconds
 
 const getCachedData = (key: string) => {
   const cached = cache[key];
@@ -50,9 +50,10 @@ export const dataService = {
   },
   saveSettings: async (settings: AdminSettings) => {
     setCachedData(SITE_CONTENT_KEYS.SETTINGS, settings);
-    await supabase
+    const { error } = await supabase
       .from('site_contents')
       .upsert({ key: SITE_CONTENT_KEYS.SETTINGS, value: settings }, { onConflict: 'key' });
+    if (error) throw error;
   },
 
   getThemes: async (): Promise<Theme[]> => {
@@ -71,9 +72,10 @@ export const dataService = {
   },
   saveThemes: async (themes: Theme[]) => {
     setCachedData(SITE_CONTENT_KEYS.THEMES, themes);
-    await supabase
+    const { error } = await supabase
       .from('site_contents')
       .upsert({ key: SITE_CONTENT_KEYS.THEMES, value: themes }, { onConflict: 'key' });
+    if (error) throw error;
   },
 
   getNotices: async (): Promise<Notice[]> => {
@@ -92,9 +94,10 @@ export const dataService = {
   },
   saveNotices: async (notices: Notice[]) => {
     setCachedData(SITE_CONTENT_KEYS.NOTICES, notices);
-    await supabase
+    const { error } = await supabase
       .from('site_contents')
       .upsert({ key: SITE_CONTENT_KEYS.NOTICES, value: notices }, { onConflict: 'key' });
+    if (error) throw error;
   },
 
   getClosedSlots: async (): Promise<ClosedSlot[]> => {
@@ -113,9 +116,10 @@ export const dataService = {
   },
   saveClosedSlots: async (slots: ClosedSlot[]) => {
     setCachedData(SITE_CONTENT_KEYS.CLOSED_SLOTS, slots);
-    await supabase
+    const { error } = await supabase
       .from('site_contents')
       .upsert({ key: SITE_CONTENT_KEYS.CLOSED_SLOTS, value: slots }, { onConflict: 'key' });
+    if (error) throw error;
   },
 
   getStores: async (): Promise<Store[]> => {
@@ -134,9 +138,10 @@ export const dataService = {
   },
   saveStores: async (stores: Store[]) => {
     setCachedData(SITE_CONTENT_KEYS.STORES, stores);
-    await supabase
+    const { error } = await supabase
       .from('site_contents')
       .upsert({ key: SITE_CONTENT_KEYS.STORES, value: stores }, { onConflict: 'key' });
+    if (error) throw error;
   },
 
   // --- Storage ---
