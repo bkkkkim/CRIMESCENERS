@@ -606,6 +606,26 @@ const AdminDashboard = () => {
                             }} />
                         </div>
                       </div>
+
+                      <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/5">
+                        <input 
+                          type="checkbox" 
+                          id={`showOnMain-${theme.id}`}
+                          className="w-5 h-5 rounded border-white/10 bg-black text-white focus:ring-0"
+                          checked={theme.showOnMain ?? true}
+                          onChange={e => {
+                            setThemes(prev => {
+                              const updated = [...prev];
+                              updated[idx] = { ...updated[idx], showOnMain: e.target.checked };
+                              setIsDirty(true);
+                              return updated;
+                            });
+                          }}
+                        />
+                        <label htmlFor={`showOnMain-${theme.id}`} className="text-sm font-bold cursor-pointer">
+                          메인 페이지에 진열 (체크 시 메인 화면 테마 리스트에 노출됩니다)
+                        </label>
+                      </div>
                       <div>
                         <label className="text-xs text-white/40 mb-1 block">시간 슬롯 설정 (쉼표 구분)</label>
                         

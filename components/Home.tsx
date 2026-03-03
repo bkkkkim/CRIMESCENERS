@@ -155,105 +155,156 @@ const IntroSection = ({ images }: { images: string[] }) => (
 );
 
 const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] }) => {
-  const displayThemes = themes.slice(0, 2);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const displayThemes = themes.filter(t => t.showOnMain !== false);
+  
+  const nextSlide = () => {
+    if (currentIndex < displayThemes.length - 2) {
+      setCurrentIndex(prev => prev + 1);
+    }
+  };
+
+  const prevSlide = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1);
+    }
+  };
+
   return (
-    <section className="py-16 md:py-24 bg-black/30 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 md:px-6">
+    <section className="relative py-16 md:py-24 bg-black/30 overflow-hidden">
+      {/* Spotlight Effect */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none z-0 overflow-hidden">
+        <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[150%] h-[140%] bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.08)_0%,transparent_50%)]" />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6">
         <div className="text-center mb-10 md:mb-16">
-          <h2 className="text-4xl md:text-6xl font-bold mb-3 md:mb-4 uppercase tracking-tighter font-en">BEST SCENARIOS</h2>
+          <h2 className="text-3xl md:text-5xl font-bold mb-3 md:mb-4 uppercase tracking-tighter font-en">BEST SCENARIOS</h2>
           <p className="text-[#d1d1d1] text-sm md:text-xl opacity-60">지금 가장 핫한 시나리오</p>
         </div>
 
-        <div className="mobile-snap-container hide-scrollbar md:grid md:grid-cols-2 md:gap-8 mb-10 md:mb-16">
-          {displayThemes.map((theme) => {
-            const store = stores.find(s => s.id === theme.storeId);
-            const now = new Date();
-            const startDate = theme.startDate ? new Date(theme.startDate) : null;
-            const endDate = theme.endDate ? new Date(theme.endDate) : null;
-            
-            now.setHours(0, 0, 0, 0);
-            if (startDate) startDate.setHours(0, 0, 0, 0);
-            if (endDate) endDate.setHours(0, 0, 0, 0);
-
-            const isComingSoon = (startDate && now < startDate) || (endDate && now > endDate);
-
-            return (
-              <Link 
-                key={theme.id} 
-                to={isComingSoon ? '#' : `/theme/${theme.id}`}
-                className={`mobile-snap-item-1-5 group block ${isComingSoon ? 'cursor-default' : ''}`}
-                onClick={(e) => isComingSoon && e.preventDefault()}
+        <div className="relative group">
+          {/* PC Navigation Arrows */}
+          {displayThemes.length > 2 && (
+            <>
+              <button 
+                onClick={prevSlide}
+                disabled={currentIndex === 0}
+                className={`hidden md:flex absolute -left-16 top-1/2 -translate-y-1/2 z-30 w-12 h-12 items-center justify-center rounded-full border border-white/10 bg-black/50 backdrop-blur-sm transition-all ${currentIndex === 0 ? 'opacity-0 pointer-events-none' : 'hover:bg-white hover:text-black'}`}
               >
-                <div className="relative aspect-[3/4] overflow-hidden rounded-[32px] md:rounded-[40px] mb-6 md:mb-8 shadow-2xl border border-white/5">
-                  <img 
-                    src={theme.posterUrl} 
-                    alt={theme.title} 
-                    className={`w-full h-full object-cover transition-transform duration-1000 ${isComingSoon ? 'grayscale opacity-50' : 'group-hover:scale-110'}`}
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                  />
-                  {isComingSoon && (
-                    <div className="absolute inset-0 flex items-center justify-center z-20">
-                      <div className="bg-black/80 backdrop-blur-md px-6 py-3 rounded-xl border border-white/20">
-                        <span className="text-xl font-bold tracking-[0.2em] text-white font-en">COMING SOON</span>
-                      </div>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
-                </div>
+                <ChevronDown className="rotate-90" size={24} />
+              </button>
+              <button 
+                onClick={nextSlide}
+                disabled={currentIndex >= displayThemes.length - 2}
+                className={`hidden md:flex absolute -right-16 top-1/2 -translate-y-1/2 z-30 w-12 h-12 items-center justify-center rounded-full border border-white/10 bg-black/50 backdrop-blur-sm transition-all ${currentIndex >= displayThemes.length - 2 ? 'opacity-0 pointer-events-none' : 'hover:bg-white hover:text-black'}`}
+              >
+                <ChevronDown className="-rotate-90" size={24} />
+              </button>
+            </>
+          )}
+
+          <div className={`mobile-snap-container hide-scrollbar ${displayThemes.length < 3 ? 'flex justify-center' : 'md:overflow-visible'}`}>
+            <motion.div 
+              className="flex gap-6 md:gap-8"
+              animate={displayThemes.length > 2 ? { x: `calc(-${currentIndex * 50}% - ${currentIndex * 16}px)` } : {}}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              style={{ 
+                width: '100%',
+                display: 'flex',
+              }}
+            >
+              {displayThemes.map((theme) => {
+                const store = stores.find(s => s.id === theme.storeId);
+                const now = new Date();
+                const startDate = theme.startDate ? new Date(theme.startDate) : null;
+                const endDate = theme.endDate ? new Date(theme.endDate) : null;
                 
-                <div className="text-left">
-                  <div className="flex items-center gap-2 mb-3 md:mb-4">
-                    <span className="bg-[#dc2626] text-[10px] font-bold px-2 py-1 rounded tracking-widest uppercase font-en">BEST</span>
-                    {theme.storeId && store && (
-                      <span className="text-white/40 text-xs font-mono uppercase tracking-widest">{store.name}</span>
-                    )}
-                  </div>
-                  <h3 className="text-xl md:text-3xl font-bold mb-4 md:mb-6 tracking-tight">{theme.title}</h3>
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-2 text-white/60 text-sm font-bold">
-                      <span>{theme.price.toLocaleString()}원</span>
-                      <span className="text-white/20">|</span>
-                      <span>1명</span>
+                now.setHours(0, 0, 0, 0);
+                if (startDate) startDate.setHours(0, 0, 0, 0);
+                if (endDate) endDate.setHours(0, 0, 0, 0);
+
+                const isComingSoon = (startDate && now < startDate) || (endDate && now > endDate);
+
+                return (
+                  <Link 
+                    key={theme.id} 
+                    to={isComingSoon ? '#' : `/theme/${theme.id}`}
+                    className={`mobile-snap-item-1-5 md:w-[calc(50%-16px)] group block shrink-0 ${isComingSoon ? 'cursor-default' : ''}`}
+                    onClick={(e) => isComingSoon && e.preventDefault()}
+                  >
+                    <div className="relative aspect-[3/4] overflow-hidden rounded-[32px] md:rounded-[40px] mb-6 md:mb-8 shadow-2xl border border-white/5">
+                      <img 
+                        src={theme.posterUrl} 
+                        alt={theme.title} 
+                        className={`w-full h-full object-cover transition-transform duration-1000 ${isComingSoon ? 'grayscale opacity-50' : 'group-hover:scale-110'}`}
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                      />
+                      {isComingSoon && (
+                        <div className="absolute inset-0 flex items-center justify-center z-20">
+                          <div className="bg-black/80 backdrop-blur-md px-6 py-3 rounded-xl border border-white/20">
+                            <span className="text-xl font-bold tracking-[0.2em] text-white font-en">COMING SOON</span>
+                          </div>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
                     </div>
                     
-                    <div className="flex flex-wrap gap-4 text-[10px] font-bold tracking-widest uppercase text-white/40">
-                      <div className="flex items-center gap-1.5">
-                        <span>난이도</span>
-                        <div className="flex gap-0.5">
-                          {[...Array(5)].map((_, i) => (
-                            <div key={i} className={`w-2 h-2 rounded-full ${i < theme.difficulty ? 'bg-white' : 'bg-white/10'}`} />
-                          ))}
-                        </div>
+                    <div className="text-left">
+                      <div className="flex items-center gap-2 mb-3 md:mb-4">
+                        <span className="bg-[#dc2626] text-[10px] font-bold px-2 py-1 rounded tracking-widest uppercase font-en">BEST</span>
+                        {theme.storeId && store && (
+                          <span className="text-white/40 text-xs font-mono uppercase tracking-widest">{store.name}</span>
+                        )}
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <span>공포도</span>
-                        <div className="flex gap-0.5">
-                          {[...Array(5)].map((_, i) => (
-                            <div key={i} className={`w-2 h-2 rounded-full ${i < theme.fearLevel ? 'bg-[#dc2626]' : 'bg-white/10'}`} />
-                          ))}
+                      <h3 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 tracking-tight line-clamp-1">{theme.title}</h3>
+                      <div className="flex flex-col gap-4">
+                        <div className="flex items-center gap-2 text-white/60 text-sm font-bold">
+                          <span>{theme.price.toLocaleString()}원</span>
+                          <span className="text-white/20">|</span>
+                          <span>1명</span>
                         </div>
-                      </div>
-                    </div>
+                        
+                        <div className="flex flex-wrap gap-4 text-[10px] font-bold tracking-widest uppercase text-white/40">
+                          <div className="flex items-center gap-1.5">
+                            <span>난이도</span>
+                            <div className="flex gap-0.5">
+                              {[...Array(5)].map((_, i) => (
+                                <div key={i} className={`w-2 h-2 rounded-full ${i < theme.difficulty ? 'bg-white' : 'bg-white/10'}`} />
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span>공포도</span>
+                            <div className="flex gap-0.5">
+                              {[...Array(5)].map((_, i) => (
+                                <div key={i} className={`w-2 h-2 rounded-full ${i < theme.fearLevel ? 'bg-[#dc2626]' : 'bg-white/10'}`} />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
 
-                    <div className="flex flex-wrap gap-x-6 gap-y-3 text-xs md:text-sm text-white/60 font-medium pt-2 border-t border-white/5">
-                      <div className="flex items-center gap-2">
-                        <Clock size={14} className="text-white/20" />
-                        <span className="font-en">{theme.duration}분</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Users size={14} className="text-white/20" />
-                        <span className="font-en">{theme.minPlayers}-{theme.maxPlayers}명</span>
+                        <div className="flex flex-wrap gap-x-6 gap-y-3 text-xs md:text-sm text-white/60 font-medium pt-2 border-t border-white/5">
+                          <div className="flex items-center gap-2">
+                            <Clock size={14} className="text-white/20" />
+                            <span className="font-en">{theme.duration}분</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Users size={14} className="text-white/20" />
+                            <span className="font-en">{theme.minPlayers}-{theme.maxPlayers}명</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
+                  </Link>
+                );
+              })}
+            </motion.div>
+          </div>
         </div>
 
-        <div className="flex justify-center">
+        <div className="flex justify-center mt-12 md:mt-20">
           <Link to="/reservation" className="group text-white font-black flex items-center gap-3 hover:opacity-70 transition-all border border-white/40 px-10 md:px-14 py-4 md:py-6 rounded-full text-sm md:text-base tracking-normal font-en">
             VIEW ALL SCENARIOS <ChevronRight size={22} className="group-hover:translate-x-2 transition-transform" />
           </Link>
@@ -272,7 +323,7 @@ const StoreSection = ({ stores }: { stores: Store[] }) => {
   return (
     <section className="py-16 md:py-24 px-4 md:px-6 max-w-7xl mx-auto">
       <div className="text-center mb-6 md:mb-8">
-        <h2 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter font-en mb-3 md:mb-4">Find Us</h2>
+        <h2 className="text-3xl md:text-5xl font-bold uppercase tracking-tighter font-en mb-3 md:mb-4">Find Us</h2>
         <p className="text-[#d1d1d1] text-sm md:text-base opacity-60">가까운 매장을 선택하여 정보를 확인하세요.</p>
       </div>
 

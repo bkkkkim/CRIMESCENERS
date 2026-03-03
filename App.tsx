@@ -114,8 +114,8 @@ const Footer = ({ settings }: { settings: AdminSettings }) => {
   return (
     <footer className="bg-black border-t border-white/5 py-20 px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-16">
-          <div className="space-y-8 max-w-md">
+        <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-12">
+          <div className="space-y-4 max-w-md">
             <div className="font-bold text-white uppercase tracking-tight text-xl font-en">
               CRIME SCENERS
             </div>
@@ -126,11 +126,11 @@ const Footer = ({ settings }: { settings: AdminSettings }) => {
                 <p>연락처: {settings.managerPhone}</p>
                 <p>이메일: {settings.managerEmail}</p>
               </div>
-              <p className="pt-4 opacity-30 text-[10px] tracking-widest uppercase font-en">© 2026 CRIME SCENERS. ALL RIGHTS RESERVED.</p>
+              <p className="pt-2 opacity-30 text-[10px] tracking-widest uppercase font-en">© 2026 CRIME SCENERS. ALL RIGHTS RESERVED.</p>
             </div>
           </div>
 
-          <div className="flex flex-col items-start md:items-end gap-8">
+          <div className="flex flex-col items-start md:items-end gap-6 pt-1">
             <div className="flex items-center space-x-6">
               {settings.businessInfo.instagramUrl && (
                 <a href={settings.businessInfo.instagramUrl} target="_blank" rel="noreferrer" className="text-white/40 hover:text-white transition-colors">

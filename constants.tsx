@@ -16,7 +16,8 @@ export const THEMES: Theme[] = [
     storeId: 'store-1',
     customSlots: ['10:00', '12:30', '15:00', '17:30', '20:00'],
     weekdaySlots: ['20:00'],
-    useSeparateWeekdaySlots: true
+    useSeparateWeekdaySlots: true,
+    showOnMain: true
   },
   {
     id: 'theme-2',
@@ -32,7 +33,8 @@ export const THEMES: Theme[] = [
     storeId: 'store-1',
     customSlots: ['10:30', '13:00', '15:30', '18:00', '20:30'],
     weekdaySlots: ['20:00'],
-    useSeparateWeekdaySlots: true
+    useSeparateWeekdaySlots: true,
+    showOnMain: true
   }
 ];
 

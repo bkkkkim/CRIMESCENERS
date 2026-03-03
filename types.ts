@@ -16,6 +16,7 @@ export interface Theme {
   storeId?: string;
   startDate?: string;
   endDate?: string;
+  showOnMain?: boolean;
 }
 
 export interface Store {
