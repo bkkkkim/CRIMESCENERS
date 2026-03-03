@@ -6,6 +6,7 @@ import { Clock, Phone, MapPin, ChevronRight, Users, ChevronDown } from 'lucide-r
 import { Theme, AdminSettings, Store } from '../types';
 import { motion } from 'framer-motion';
 import { dataService } from '../src/services/dataService';
+import LoadingScreen from './LoadingScreen';
 
 const TypingTitle = () => {
   const text = "CRIME SCENERS?";
@@ -36,7 +37,7 @@ const TypingTitle = () => {
   }, [index, isDeleting]);
 
   return (
-    <h2 className="text-3xl md:text-5xl font-bold mb-10 md:mb-16 text-center tracking-tighter h-10 font-en uppercase">
+    <h2 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 text-center tracking-tighter h-10 font-en uppercase">
       {displayText}
       <span className="animate-pulse">|</span>
     </h2>
@@ -48,15 +49,16 @@ const HeroBanner = ({ imageUrl }: { imageUrl: string }) => {
     <div className="relative w-full h-[600px] md:h-[800px] overflow-hidden flex items-center justify-center">
       <div className="absolute inset-0 z-0">
         <motion.div 
-          initial={{ scale: 1.1 }}
+          initial={{ scale: 1, x: 0, y: 0 }}
           animate={{ 
-            scale: [1.1, 1.3, 1.1],
-            rotate: [0, 2, -2, 0]
+            scale: [1, 1.1, 1.15, 1],
+            x: [0, 20, -20, 0],
+            y: [0, -10, 10, 0]
           }}
           transition={{ 
-            duration: 12, 
+            duration: 20, 
             repeat: Infinity, 
-            ease: "easeInOut" 
+            ease: "linear" 
           }}
           className="w-full h-full bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url('${imageUrl}')` }}
@@ -89,7 +91,7 @@ const HeroBanner = ({ imageUrl }: { imageUrl: string }) => {
         >
             <Link 
               to="/reservation" 
-              className="inline-block px-10 md:px-12 py-4 md:py-5 border border-white/20 text-white font-black rounded-none hover:bg-white hover:text-black transition-all transform hover:scale-105 tracking-normal uppercase text-sm font-en"
+              className="inline-block px-10 md:px-12 py-4 md:py-5 border border-white/40 text-white font-black rounded-none hover:bg-white hover:text-black transition-all transform hover:scale-105 tracking-normal uppercase text-sm font-en"
             >
               지금 예약하기
             </Link>
@@ -106,15 +108,14 @@ const HeroBanner = ({ imageUrl }: { imageUrl: string }) => {
           repeatType: "reverse",
           ease: "easeInOut"
         }}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center"
+        className="absolute bottom-12 left-0 right-0 z-10 flex flex-col items-center"
       >
         <motion.div 
-          animate={{ y: [0, 10, 0] }}
+          animate={{ y: [0, 15, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           className="flex flex-col items-center gap-1"
         >
-          <div className="w-[1px] h-12 bg-gradient-to-b from-white/40 to-transparent" />
-          <ChevronDown size={16} className="text-white/40" />
+          <ChevronDown size={64} className="text-white/60 stroke-[1.5px]" />
         </motion.div>
       </motion.div>
     </div>
@@ -124,7 +125,7 @@ const HeroBanner = ({ imageUrl }: { imageUrl: string }) => {
 const IntroSection = ({ images }: { images: string[] }) => (
   <section className="py-16 md:py-24 px-4 md:px-6 bg-[#121212]">
     <div className="max-w-7xl mx-auto">
-      <div className="text-center mb-8 md:mb-10">
+      <div className="text-center mb-10 md:mb-16">
         <TypingTitle />
         <motion.p 
           initial={{ opacity: 0, y: 10 }}
@@ -212,26 +213,42 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                       <span className="text-white/40 text-xs font-mono uppercase tracking-widest">{store.name}</span>
                     )}
                   </div>
-                  <h3 className="text-xl md:text-4xl font-bold mb-4 md:mb-6 tracking-tight">{theme.title}</h3>
-                  <div className="flex flex-wrap gap-x-6 gap-y-3 text-xs md:text-sm text-white/60 font-medium">
-                    <div className="flex items-center gap-2">
-                      <span className="text-white/20 uppercase text-[10px] font-bold tracking-widest">난이도</span>
-                      <div className="flex gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <div key={i} className={`w-3 h-1 rounded-full ${i < theme.difficulty ? 'bg-white' : 'bg-white/10'}`} />
-                        ))}
+                  <h3 className="text-xl md:text-3xl font-bold mb-4 md:mb-6 tracking-tight">{theme.title}</h3>
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-2 text-white/60 text-sm font-bold">
+                      <span>{theme.price.toLocaleString()}원</span>
+                      <span className="text-white/20">|</span>
+                      <span>1명</span>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-4 text-[10px] font-bold tracking-widest uppercase text-white/40">
+                      <div className="flex items-center gap-1.5">
+                        <span>난이도</span>
+                        <div className="flex gap-0.5">
+                          {[...Array(5)].map((_, i) => (
+                            <div key={i} className={`w-2 h-2 rounded-full ${i < theme.difficulty ? 'bg-white' : 'bg-white/10'}`} />
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span>공포도</span>
+                        <div className="flex gap-0.5">
+                          {[...Array(5)].map((_, i) => (
+                            <div key={i} className={`w-2 h-2 rounded-full ${i < theme.fearLevel ? 'bg-[#dc2626]' : 'bg-white/10'}`} />
+                          ))}
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Clock size={14} className="text-white/20" />
-                      <span className="font-en">{theme.duration}분</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users size={14} className="text-white/20" />
-                      <span className="font-en">{theme.minPlayers}-{theme.maxPlayers}명</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-en text-white font-bold">{theme.price.toLocaleString()}원 / 1명</span>
+
+                    <div className="flex flex-wrap gap-x-6 gap-y-3 text-xs md:text-sm text-white/60 font-medium pt-2 border-t border-white/5">
+                      <div className="flex items-center gap-2">
+                        <Clock size={14} className="text-white/20" />
+                        <span className="font-en">{theme.duration}분</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Users size={14} className="text-white/20" />
+                        <span className="font-en">{theme.minPlayers}-{theme.maxPlayers}명</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -241,7 +258,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
         </div>
 
         <div className="flex justify-center">
-          <Link to="/reservation" className="group text-white font-black flex items-center gap-3 hover:opacity-70 transition-all border border-white/10 px-10 md:px-14 py-4 md:py-6 rounded-full text-sm md:text-base tracking-normal font-en">
+          <Link to="/reservation" className="group text-white font-black flex items-center gap-3 hover:opacity-70 transition-all border border-white/40 px-10 md:px-14 py-4 md:py-6 rounded-full text-sm md:text-base tracking-normal font-en">
             VIEW ALL SCENARIOS <ChevronRight size={22} className="group-hover:translate-x-2 transition-transform" />
           </Link>
         </div>
@@ -290,41 +307,40 @@ const StoreSection = ({ stores }: { stores: Store[] }) => {
         </div>
         <div className="flex flex-col items-start text-left">
           <div className="space-y-6 md:space-y-8 w-full">
-            <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-6">
-              <div className="flex items-start gap-4 md:gap-6 shrink-0">
+            <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-6">
+              <div className="flex items-start gap-4 md:gap-6 shrink-0 md:min-w-[120px]">
                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
                   <Clock className="text-white/40" size={20} />
                 </div>
-                <p className="font-bold text-white text-base md:text-lg pt-2 md:pt-3 min-w-[80px]">운영시간</p>
+                <p className="font-bold text-white text-base md:text-lg pt-2 md:pt-3">운영시간</p>
               </div>
-              <div className="text-[#b3b3b3] text-xs md:text-sm space-y-1 opacity-60 pt-0 md:pt-3.5 pl-14 md:pl-0">
-                <p>평일: {selectedStore.weekdayHours}</p>
-                <p>주말: {selectedStore.weekendHours}</p>
+              <div className="text-[#b3b3b3] text-xs md:text-sm space-y-1 opacity-60 pt-0 md:pt-3.5 flex-grow">
+                <p>평일: {selectedStore.weekdayHours} / 주말: {selectedStore.weekendHours}</p>
               </div>
             </div>
-            <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-6">
-              <div className="flex items-start gap-4 md:gap-6 shrink-0">
+            <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-6">
+              <div className="flex items-start gap-4 md:gap-6 shrink-0 md:min-w-[120px]">
                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
                   <Phone className="text-white/40" size={20} />
                 </div>
-                <p className="font-bold text-white text-base md:text-lg pt-2 md:pt-3 min-w-[80px]">연락처</p>
+                <p className="font-bold text-white text-base md:text-lg pt-2 md:pt-3">연락처</p>
               </div>
-              <p className="text-[#b3b3b3] text-xs md:text-sm opacity-60 font-en pt-0 md:pt-3.5 pl-14 md:pl-0">{selectedStore.phone}</p>
+              <a href={`tel:${selectedStore.phone}`} className="text-[#b3b3b3] text-xs md:text-sm opacity-60 font-en pt-0 md:pt-3.5 flex-grow hover:text-white transition-colors">{selectedStore.phone}</a>
             </div>
-            <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-6">
-              <div className="flex items-start gap-4 md:gap-6 shrink-0">
+            <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-6">
+              <div className="flex items-start gap-4 md:gap-6 shrink-0 md:min-w-[120px]">
                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
                   <MapPin className="text-white/40" size={20} />
                 </div>
-                <p className="font-bold text-white text-base md:text-lg pt-2 md:pt-3 min-w-[80px]">위치 정보</p>
+                <p className="font-bold text-white text-base md:text-lg pt-2 md:pt-3">위치 정보</p>
               </div>
-              <div className="flex flex-col gap-3 pt-0 md:pt-3.5 pl-14 md:pl-0">
-                <p className="text-[#b3b3b3] text-xs md:text-sm opacity-60 leading-relaxed">{selectedStore.address}</p>
+              <div className="flex flex-col md:flex-row md:items-center gap-3 pt-0 md:pt-3.5 flex-grow w-full">
+                <p className="text-[#b3b3b3] text-xs md:text-sm opacity-60 leading-relaxed flex-grow">{selectedStore.address}</p>
                 <a 
                   href={`https://map.naver.com/v5/search/${encodeURIComponent(selectedStore.address)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center justify-center px-6 py-3 border border-white/20 text-white font-bold rounded-none hover:bg-white hover:text-black transition-all tracking-tight uppercase text-[10px] font-en w-fit"
+                  className="inline-flex items-center justify-center px-4 py-2 border border-white/20 text-white font-bold rounded-none hover:bg-white hover:text-black transition-all tracking-tight uppercase text-[9px] font-en w-fit shrink-0"
                 >
                   네이버 지도로 보기
                 </a>
@@ -363,7 +379,7 @@ const Home = () => {
     loadData();
   }, []);
 
-  if (loading) return <div className="pt-32 text-center">Loading...</div>;
+  if (loading) return <LoadingScreen />;
 
   return (
     <div>

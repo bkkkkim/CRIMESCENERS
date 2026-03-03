@@ -6,6 +6,7 @@ import { isWeekendOrHoliday } from '../src/utils/holiday';
 import { Calendar as CalendarIcon, Clock, Users, ArrowLeft, ChevronLeft, ChevronRight, MapPin, X } from 'lucide-react';
 import { AdminSettings, Theme, ClosedSlot, BookingData, Store } from '../types';
 import { dataService } from '../src/services/dataService';
+import LoadingScreen from './LoadingScreen';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ThemeDetail = () => {
@@ -15,6 +16,7 @@ const ThemeDetail = () => {
   const [closedSlots, setClosedSlots] = useState<ClosedSlot[]>([]);
   const [bookings, setBookings] = useState<BookingData[]>([]);
   const [stores, setStores] = useState<Store[]>(STORES);
+  const [loading, setLoading] = useState(true);
   
   const [showStoreInfo, setShowStoreInfo] = useState(false);
   
@@ -42,12 +44,15 @@ const ThemeDetail = () => {
         if (found) setTheme(found);
       } catch (error) {
         console.error("Failed to load theme detail data:", error);
+      } finally {
+        setLoading(false);
       }
     };
     loadData();
   }, [id]);
 
-  if (!theme) return <div className="pt-32 text-center">테마를 찾을 수 없습니다.</div>;
+  if (loading) return <LoadingScreen />;
+  if (!theme) return null;
 
   const renderCalendar = () => {
     const year = currentMonth.getFullYear();

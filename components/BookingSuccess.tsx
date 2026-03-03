@@ -26,7 +26,7 @@ const BookingSuccess = () => {
         <div className="inline-flex items-center justify-center w-20 h-20 bg-green-500/10 rounded-full mb-6">
           <CheckCircle2 size={48} className="text-green-500" />
         </div>
-        <h1 className="text-3xl font-bold mb-4">예약이 완료되었습니다!</h1>
+        <h1 className="text-2xl font-bold mb-4">예약이 완료되었습니다!</h1>
         <p className="text-[#b3b3b3] text-base leading-relaxed">
           {name}님의 소중한 예약이 정상적으로 접수되었습니다.<br />
           입력하신 번호({phone})로 예약 확정 메시지가 발송되었습니다.
@@ -42,6 +42,14 @@ const BookingSuccess = () => {
           <div className="flex justify-between items-start">
             <span className="text-[#b3b3b3]">선택 시나리오</span>
             <span className="font-bold text-white text-right">{theme.title}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-[#b3b3b3]">예약자 성함</span>
+            <span className="font-bold text-white">{name}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-[#b3b3b3]">연락처</span>
+            <span className="font-bold text-white">{phone}</span>
           </div>
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2 text-[#b3b3b3]">
@@ -95,7 +103,7 @@ const BookingSuccess = () => {
             to="/reservation" 
             className="flex items-center justify-center py-4 bg-white text-black rounded-xl font-bold hover:bg-neutral-200 transition-all gap-2"
         >
-            추가 시나리오 예약 <ArrowRight size={20} />
+            추가 예약하기 <ArrowRight size={20} />
         </Link>
       </div>
     </div>

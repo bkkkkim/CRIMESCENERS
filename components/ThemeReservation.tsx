@@ -5,6 +5,7 @@ import { THEMES, STORES } from '../constants';
 import { ChevronRight, Users, Clock, MapPin, Filter, ArrowUpDown } from 'lucide-react';
 import { Theme, Store } from '../types';
 import { dataService } from '../src/services/dataService';
+import LoadingScreen from './LoadingScreen';
 
 const ThemeReservation = () => {
   const [themes, setThemes] = useState<Theme[]>(THEMES);
@@ -62,7 +63,7 @@ const ThemeReservation = () => {
     return result;
   }, [themes, selectedStoreId, sortBy]);
 
-  if (loading) return <div className="pt-32 text-center">Loading...</div>;
+  if (loading) return <LoadingScreen />;
 
   return (
     <div className="pt-32 pb-24 px-4 md:px-6 max-w-7xl mx-auto">
@@ -147,9 +148,9 @@ const ThemeReservation = () => {
                   </div>
                 )}
                 {!isComingSoon && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-8">
-                    <span className="text-white font-bold flex items-center gap-2">
-                      예약하기 <ChevronRight size={18} />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+                    <span className="text-white font-black text-xl tracking-[0.2em] uppercase font-en">
+                      예약하기
                     </span>
                   </div>
                 )}
@@ -197,14 +198,6 @@ const ThemeReservation = () => {
                     <Clock size={14} /> {theme.duration}분
                   </span>
                 </div>
-                {!isComingSoon && (
-                  <Link 
-                    to={`/theme/${theme.id}`}
-                    className="flex items-center gap-1 text-xs font-bold text-white hover:text-[#dc2626] transition-colors uppercase font-en tracking-tight group/btn"
-                  >
-                    예약하기 <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
-                  </Link>
-                )}
               </div>
             </div>
           </div>

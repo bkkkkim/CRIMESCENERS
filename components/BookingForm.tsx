@@ -5,6 +5,7 @@ import { THEMES, DEFAULT_ADMIN_SETTINGS } from '../constants';
 import { ChevronLeft, CheckCircle2, Copy, Check } from 'lucide-react';
 import { Theme, AdminSettings, BookingData } from '../types';
 import { dataService } from '../src/services/dataService';
+import LoadingScreen from './LoadingScreen';
 
 const BookingForm = () => {
   const { themeId, date, time } = useParams();
@@ -25,6 +26,7 @@ const BookingForm = () => {
 
   const [agreed, setAgreed] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -33,7 +35,7 @@ const BookingForm = () => {
         const [savedSettings, themeList, savedBookings] = await Promise.all([
           dataService.getSettings(),
           dataService.getThemes(),
-          dataService.getBookings()
+          dataService.getBookingsBySlot(themeId!, date!, time!)
         ]);
 
         setSettings(savedSettings);
@@ -42,26 +44,24 @@ const BookingForm = () => {
         const found = themeList.find((t: Theme) => t.id === themeId);
         if (found) {
           setTheme(found);
-          // Don't default to minPlayers if it exceeds remaining capacity
-          const existing = savedBookings.filter(b => b.themeId === themeId && b.date === date && b.time === time && b.status !== 'cancelled');
-          const booked = existing.reduce((sum, b) => sum + b.participantCount, 0);
-          const remaining = found.maxPlayers - booked;
+          const booked = savedBookings.reduce((sum, b) => sum + b.participantCount, 0);
           
-          // If there are existing bookings, we allow booking any number up to remaining capacity
-          // If it's a fresh slot, we default to minPlayers
           if (booked > 0) {
-            setFormData(prev => ({ ...prev, participants: 0 })); // Force selection
+            setFormData(prev => ({ ...prev, participants: 0 }));
           } else {
             setFormData(prev => ({ ...prev, participants: found.minPlayers }));
           }
         }
       } catch (error) {
         console.error("Failed to load booking form data:", error);
+      } finally {
+        setIsInitialLoading(false);
       }
     };
     loadData();
-  }, [themeId]);
+  }, [themeId, date, time]);
 
+  if (isInitialLoading) return <LoadingScreen />;
   if (!theme) return null;
 
   const existingBookings = bookings.filter(b => b.themeId === themeId && b.date === date && b.time === time && b.status !== 'cancelled');

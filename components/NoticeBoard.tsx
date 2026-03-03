@@ -6,6 +6,7 @@ import { Notice, Store, AdminSettings } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Phone, Clock, ChevronRight, Info, Gamepad2, X } from 'lucide-react';
 import { DEFAULT_ADMIN_SETTINGS } from '../constants';
+import LoadingScreen from './LoadingScreen';
 
 const NoticeBoard = () => {
   const [notices, setNotices] = useState<Notice[]>([]);
@@ -13,25 +14,34 @@ const NoticeBoard = () => {
   const [settings, setSettings] = useState<AdminSettings>(DEFAULT_ADMIN_SETTINGS);
   const [activeTab, setActiveTab] = useState<'method' | 'stores'>('method');
   const [expandedNotice, setExpandedNotice] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
-      const [noticeList, storeList, savedSettings] = await Promise.all([
-        dataService.getNotices(),
-        dataService.getStores(),
-        dataService.getSettings()
-      ]);
-      setNotices(noticeList);
-      setStores(storeList);
-      setSettings(savedSettings);
+      try {
+        const [noticeList, storeList, savedSettings] = await Promise.all([
+          dataService.getNotices(),
+          dataService.getStores(),
+          dataService.getSettings()
+        ]);
+        setNotices(noticeList);
+        setStores(storeList);
+        setSettings(savedSettings);
+      } catch (error) {
+        console.error("Failed to load info data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
     loadData();
   }, []);
 
+  if (loading) return <LoadingScreen />;
+
   return (
     <div className="pt-32 md:pt-48 pb-24 px-6 max-w-7xl mx-auto">
-      <div className="text-center mb-10 md:mb-12">
-        <h1 className="text-4xl md:text-6xl font-bold mb-6 uppercase tracking-tighter font-en">Information</h1>
+      <div className="text-center mb-8 md:mb-10">
+        <h1 className="text-4xl md:text-6xl font-bold mb-4 uppercase tracking-tighter font-en">Information</h1>
         <p className="text-[#b3b3b3] opacity-60">크라임씬 이용 안내 및 매장 정보</p>
       </div>
 
@@ -121,7 +131,7 @@ const NoticeBoard = () => {
                           exit={{ height: 0, opacity: 0 }}
                           className="px-8 pb-8"
                         >
-                          <p className="text-[#b3b3b3] text-sm leading-relaxed opacity-60 whitespace-pre-wrap border-t border-white/5 pt-6">{settings.noticeContent}</p>
+                          <p className="text-white/80 text-sm leading-relaxed whitespace-pre-wrap border-t border-white/5 pt-6">{settings.noticeContent}</p>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -148,7 +158,7 @@ const NoticeBoard = () => {
                           exit={{ height: 0, opacity: 0 }}
                           className="px-8 pb-8"
                         >
-                          <p className="text-[#b3b3b3] text-sm leading-relaxed opacity-60 whitespace-pre-wrap border-t border-white/5 pt-6">{notice.content}</p>
+                          <p className="text-white/80 text-sm leading-relaxed whitespace-pre-wrap border-t border-white/5 pt-6">{notice.content}</p>
                         </motion.div>
                       )}
                     </AnimatePresence>

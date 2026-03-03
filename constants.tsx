@@ -5,7 +5,7 @@ export const THEMES: Theme[] = [
   {
     id: 'theme-1',
     title: '박수무당 살인사건',
-    posterUrl: 'https://ooeoox.cafe24.com/web/product/medium/202601/e6bfce224ee477630dbed4bd2b1b2b2b.png',
+    posterUrl: '/images/themes/theme-1.png',
     synopsis: '신비로운 무당의 집에서 벌어진 참혹한 살인사건. 당신은 이 미스터리를 풀고 범인을 잡을 수 있을 것인가?',
     minPlayers: 4,
     maxPlayers: 5,
@@ -18,7 +18,7 @@ export const THEMES: Theme[] = [
   {
     id: 'theme-2',
     title: '미대생 살인사건',
-    posterUrl: 'https://ooeoox.cafe24.com/web/product/medium/202601/9b7b2f0d1a61388dbe9327e188e67cbc.png',
+    posterUrl: '/images/themes/theme-2.png',
     synopsis: '화려한 예술의 이면에 숨겨진 어두운 진실. 미대 작업실에서 발견된 사체와 얽히고설킨 인물들.',
     minPlayers: 5,
     maxPlayers: 6,
@@ -45,17 +45,17 @@ export const INTRO_POINTS = [
   {
     title: '탄탄한 시나리오',
     desc: '씨네마광 공대박사의 탄탄한 시나리오',
-    img: 'https://ooeoox.cafe24.com/web/upload/ezst/image/ez-image-contents-1bh0f5q-1-0v6vr7s-3.jpg?v=1769305545109'
+    img: '/intro1.jpg'
   },
   {
     title: '몰입도 높은 현장',
     desc: '미대생 출신이 직접 연출한 크라임씬',
-    img: 'https://ooeoox.cafe24.com/web/upload/ezst/image/ez-image-contents-1bh0f5q-1-1uxqr3y-3.jpg?v=1769305966630'
+    img: '/intro2.jpg'
   },
   {
     title: '다양한 롤플레잉',
     desc: '각기 다른 사연과 비밀을 가진 캐릭터들',
-    img: 'https://ooeoox.cafe24.com/web/upload/ezst/image/ez-image-contents-1bh0f5q-1-1x1ez8b-3.jpg?v=1769305993215'
+    img: '/intro3.jpg'
   }
 ];
 
@@ -75,9 +75,9 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
     instagramUrl: '#',
     naverUrl: '#'
   },
-  logoUrl: 'https://ooeoox.cafe24.com/web/upload/category/logo/v2_e3568ec7d04031b1b19098dd3c4bda3b_CxpxDUUtZ4_top.jpg',
-  faviconUrl: '',
-  thumbnailUrl: '',
+  logoUrl: '/logo.png',
+  faviconUrl: '/favicon.ico',
+  thumbnailUrl: '/thumbnail.jpg',
   termsContent: `제1조 (목적)\n본 약관은 크라임씨너스(이하 "회사")가 제공하는 예약 서비스의 이용조건 및 절차에 관한 사항을 규정함을 목적으로 합니다...\n\n제2조 (예약 및 취소)\n1. 예약은 온라인 시스템을 통해 실시간으로 진행됩니다.\n2. 예약 취소는 방문 24시간 전까지 가능하며, 이후 취소 시 위약금이 발생할 수 있습니다.`,
   privacyContent: `1. 수집하는 개인정보 항목\n회사는 예약 서비스를 위해 성함, 연락처를 수집합니다.\n\n2. 개인정보의 수집 및 이용목적\n수집된 정보는 예약 확인, 서비스 안내, 본인 확인을 위해 사용됩니다.\n\n3. 개인정보의 보유 및 이용기간\n서비스 이용 목적 달성 후 해당 정보를 지체 없이 파기합니다.`,
   noticeTitle: '[필독] 크라임씨너스 이용 가이드 및 주의사항',
@@ -94,11 +94,11 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
     }
   },
   homeConfig: {
-    heroImageUrl: 'https://ooeoox.cafe24.com/web/upload/ezst/image/ez-image-contents-1yp4ye0-1-13ua06l-3.jpg',
+    heroImageUrl: '/hero.jpg',
     introImages: [
-      'https://ooeoox.cafe24.com/web/upload/ezst/image/ez-image-contents-1bh0f5q-1-0v6vr7s-3.jpg?v=1769305545109',
-      'https://ooeoox.cafe24.com/web/upload/ezst/image/ez-image-contents-1bh0f5q-1-1uxqr3y-3.jpg?v=1769305966630',
-      'https://ooeoox.cafe24.com/web/upload/ezst/image/ez-image-contents-1bh0f5q-1-1x1ez8b-3.jpg?v=1769305993215'
+      '/intro1.jpg',
+      '/intro2.jpg',
+      '/intro3.jpg'
     ]
   }
 };

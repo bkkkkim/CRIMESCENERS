@@ -23,7 +23,11 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchDate, setSearchDate] = useState('');
+  const [searchEndDate, setSearchEndDate] = useState('');
   const [searchTheme, setSearchTheme] = useState('');
+  const [sortOrder, setSortOrder] = useState<'createdAt' | 'gameDate'>('createdAt');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   useEffect(() => {
     const loadData = async () => {
@@ -154,15 +158,33 @@ const AdminDashboard = () => {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                   <h2 className="text-2xl font-bold">실시간 예약 현황</h2>
                   <div className="flex flex-wrap gap-2 w-full md:w-auto">
-                    <input 
-                      type="date" 
-                      value={searchDate}
-                      onChange={(e) => setSearchDate(e.target.value)}
+                    <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-2">
+                      <span className="text-[10px] text-white/40 uppercase font-bold">기간</span>
+                      <input 
+                        type="date" 
+                        value={searchDate}
+                        onChange={(e) => { setSearchDate(e.target.value); setCurrentPage(1); }}
+                        className="bg-transparent text-white text-xs p-2 outline-none focus:text-white"
+                      />
+                      <span className="text-white/20">~</span>
+                      <input 
+                        type="date" 
+                        value={searchEndDate}
+                        onChange={(e) => { setSearchEndDate(e.target.value); setCurrentPage(1); }}
+                        className="bg-transparent text-white text-xs p-2 outline-none focus:text-white"
+                      />
+                    </div>
+                    <select 
+                      value={sortOrder}
+                      onChange={(e) => { setSortOrder(e.target.value as any); setCurrentPage(1); }}
                       className="bg-white/5 border border-white/10 text-white text-xs rounded-lg p-2 outline-none focus:border-white/30"
-                    />
+                    >
+                      <option value="createdAt">신청일순</option>
+                      <option value="gameDate">게임일순</option>
+                    </select>
                     <select 
                       value={searchTheme}
-                      onChange={(e) => setSearchTheme(e.target.value)}
+                      onChange={(e) => { setSearchTheme(e.target.value); setCurrentPage(1); }}
                       className="bg-white/5 border border-white/10 text-white text-xs rounded-lg p-2 outline-none focus:border-white/30"
                     >
                       <option value="">모든 테마</option>
@@ -174,7 +196,7 @@ const AdminDashboard = () => {
                       type="text" 
                       placeholder="예약자명/연락처 검색"
                       value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                       className="bg-white/5 border border-white/10 text-white text-xs rounded-lg p-2 outline-none focus:border-white/30 flex-grow md:w-48"
                     />
                   </div>
@@ -184,59 +206,99 @@ const AdminDashboard = () => {
                     접수된 예약 내역이 없습니다.
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {[...bookings]
-                      .filter(b => {
-                        const matchesSearch = b.userName.includes(searchTerm) || b.userPhone.includes(searchTerm);
-                        const matchesDate = searchDate ? b.date === searchDate : true;
-                        const matchesTheme = searchTheme ? b.themeTitle === searchTheme : true;
-                        return matchesSearch && matchesDate && matchesTheme;
-                      })
-                      .reverse()
-                      .map((booking) => (
-                      <div key={booking.id} className={`bg-[#1a1a1a] p-6 rounded-2xl border border-white/5 flex flex-col gap-6 transition-opacity ${booking.status === 'cancelled' ? 'opacity-40 grayscale' : ''}`}>
-                        <div className="flex flex-col md:flex-row justify-between gap-6">
-                          <div className="flex gap-6">
-                            <div className="w-20 h-24 rounded-lg overflow-hidden shrink-0 border border-white/10">
-                              <img src={booking.themePoster} className="w-full h-full object-cover" />
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2 mb-1">
-                                 <span className="text-sm font-bold text-white/60">{booking.date} {booking.time}</span>
-                                 {booking.status === 'cancelled' && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded">예약 취소</span>}
-                                 {booking.status === 'paid' && <span className="bg-green-500 text-white text-[10px] px-2 py-0.5 rounded">결제 완료</span>}
-                                 {booking.status === 'confirmed' && <span className="bg-blue-500 text-white text-[10px] px-2 py-0.5 rounded">예약 완료</span>}
-                                 {booking.isCloseRequested && <span className="bg-[#dc2626] text-white text-[10px] font-bold px-2 py-0.5 rounded animate-pulse">마감 요청됨</span>}
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      {(() => {
+                        const filtered = bookings.filter(b => {
+                          const matchesSearch = b.userName.includes(searchTerm) || b.userPhone.includes(searchTerm);
+                          const matchesStartDate = searchDate ? b.date >= searchDate : true;
+                          const matchesEndDate = searchEndDate ? b.date <= searchEndDate : true;
+                          const matchesTheme = searchTheme ? b.themeTitle === searchTheme : true;
+                          return matchesSearch && matchesStartDate && matchesEndDate && matchesTheme;
+                        });
+
+                        const sorted = [...filtered].sort((a, b) => {
+                          if (sortOrder === 'createdAt') {
+                            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                          } else {
+                            const dateA = new Date(`${a.date} ${a.time}`).getTime();
+                            const dateB = new Date(`${b.date} ${b.time}`).getTime();
+                            return dateB - dateA;
+                          }
+                        });
+
+                        const totalPages = Math.ceil(sorted.length / itemsPerPage);
+                        const paged = sorted.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+                        return (
+                          <>
+                            {paged.map((booking) => (
+                              <div key={booking.id} className={`bg-[#1a1a1a] p-6 rounded-2xl border border-white/5 flex flex-col gap-6 transition-opacity ${booking.status === 'cancelled' ? 'opacity-40 grayscale' : ''}`}>
+                                <div className="flex flex-col md:flex-row justify-between gap-6">
+                                  <div className="flex gap-6">
+                                    <div className="w-20 h-24 rounded-lg overflow-hidden shrink-0 border border-white/10">
+                                      <img src={booking.themePoster} className="w-full h-full object-cover" />
+                                    </div>
+                                    <div>
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-sm font-bold text-white/60">{booking.date} {booking.time}</span>
+                                        {booking.status === 'cancelled' && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded">예약 취소</span>}
+                                        {booking.status === 'paid' && <span className="bg-green-500 text-white text-[10px] px-2 py-0.5 rounded">결제 완료</span>}
+                                        {booking.status === 'confirmed' && <span className="bg-blue-500 text-white text-[10px] px-2 py-0.5 rounded">예약 완료</span>}
+                                        {booking.isCloseRequested && <span className="bg-[#dc2626] text-white text-[10px] font-bold px-2 py-0.5 rounded animate-pulse">마감 요청됨</span>}
+                                      </div>
+                                      <h3 className="text-xl font-bold mb-2">{booking.themeTitle}</h3>
+                                      <div className="flex flex-wrap gap-4 text-sm text-white/40">
+                                        <span className="flex items-center gap-1"><User size={14}/> {booking.userName}</span>
+                                        <span className="flex items-center gap-1"><Phone size={14}/> {booking.userPhone}</span>
+                                        <span className="flex items-center gap-1"><Users size={14}/> {booking.participantCount}명</span>
+                                        <span className="flex items-center gap-1"><CreditCard size={14}/> {booking.paymentMethod === 'bank-transfer' ? '계좌이체' : '현장결제'}</span>
+                                      </div>
+                                      <div className="mt-3 pt-3 border-t border-white/5 flex items-center gap-2 text-[10px] text-white/20 uppercase tracking-widest font-mono">
+                                        <Clock size={10} /> 신청일시: {new Date(booking.createdAt).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <select 
+                                      value={booking.status}
+                                      onChange={(e) => handleUpdateBookingStatus(booking.id, e.target.value as any)}
+                                      className="bg-black border border-white/10 text-white text-sm rounded-lg p-2 outline-none"
+                                    >
+                                      <option value="confirmed">예약 완료</option>
+                                      <option value="paid">결제 완료</option>
+                                      <option value="cancelled">예약 취소</option>
+                                    </select>
+                                  </div>
+                                </div>
+                                {(booking.notes || booking.isCloseRequested) && (
+                                  <div className="p-4 bg-black/40 rounded-xl border border-white/5">
+                                    {booking.isCloseRequested && <p className="text-xs text-red-500 font-bold mb-2">⚠️ 마감 요청: 이 팀 외 추가 인원을 받지 않기를 원함</p>}
+                                    {booking.notes && <p className="text-sm text-white/60 italic">"{booking.notes}"</p>}
+                                  </div>
+                                )}
                               </div>
-                              <h3 className="text-xl font-bold mb-2">{booking.themeTitle}</h3>
-                              <div className="flex flex-wrap gap-4 text-sm text-white/40">
-                                 <span className="flex items-center gap-1"><User size={14}/> {booking.userName}</span>
-                                 <span className="flex items-center gap-1"><Phone size={14}/> {booking.userPhone}</span>
-                                 <span className="flex items-center gap-1"><Users size={14}/> {booking.participantCount}명</span>
-                                 <span className="flex items-center gap-1"><CreditCard size={14}/> {booking.paymentMethod === 'bank-transfer' ? '계좌이체' : '현장결제'}</span>
+                            ))}
+
+                            {totalPages > 1 && (
+                              <div className="flex justify-center gap-2 pt-8">
+                                {[...Array(totalPages)].map((_, i) => (
+                                  <button
+                                    key={i}
+                                    onClick={() => setCurrentPage(i + 1)}
+                                    className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                                      currentPage === i + 1 ? 'bg-white text-black' : 'bg-white/5 text-white/40 hover:bg-white/10'
+                                    }`}
+                                  >
+                                    {i + 1}
+                                  </button>
+                                ))}
                               </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <select 
-                              value={booking.status}
-                              onChange={(e) => handleUpdateBookingStatus(booking.id, e.target.value as any)}
-                              className="bg-black border border-white/10 text-white text-sm rounded-lg p-2 outline-none"
-                            >
-                              <option value="confirmed">예약 완료</option>
-                              <option value="paid">결제 완료</option>
-                              <option value="cancelled">예약 취소</option>
-                            </select>
-                          </div>
-                        </div>
-                        {(booking.notes || booking.isCloseRequested) && (
-                          <div className="p-4 bg-black/40 rounded-xl border border-white/5">
-                            {booking.isCloseRequested && <p className="text-xs text-red-500 font-bold mb-2">⚠️ 마감 요청: 이 팀 외 추가 인원을 받지 않기를 원함</p>}
-                            {booking.notes && <p className="text-sm text-white/60 italic">"{booking.notes}"</p>}
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
                   </div>
                 )}
               </div>
@@ -834,6 +896,7 @@ const AdminDashboard = () => {
                                 updatedImages[i] = base64;
                                 return { ...prev, homeConfig: { ...prev.homeConfig, introImages: updatedImages } };
                               });
+                              setIsDirty(true);
                             })} />
                           </label>
                         </div>

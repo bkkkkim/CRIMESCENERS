@@ -16,83 +16,94 @@ const SITE_CONTENT_KEYS = {
   STORES: 'stores',
 };
 
+// Simple in-memory cache
+const cache: Record<string, { data: any; timestamp: number }> = {};
+const CACHE_TTL = 30000; // 30 seconds
+
+const getCachedData = (key: string) => {
+  const cached = cache[key];
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+  return null;
+};
+
+const setCachedData = (key: string, data: any) => {
+  cache[key] = { data, timestamp: Date.now() };
+};
+
 export const dataService = {
   // --- Site Contents (Settings, Themes, etc.) ---
   getSettings: async (): Promise<AdminSettings> => {
+    const cached = getCachedData(SITE_CONTENT_KEYS.SETTINGS);
+    if (cached) return cached;
+
     const { data, error } = await supabase
       .from('site_contents')
       .select('value')
       .eq('key', SITE_CONTENT_KEYS.SETTINGS)
       .single();
     
-    if (error || !data) return DEFAULT_ADMIN_SETTINGS;
-    return data.value as AdminSettings;
+    const result = (error || !data) ? DEFAULT_ADMIN_SETTINGS : data.value as AdminSettings;
+    setCachedData(SITE_CONTENT_KEYS.SETTINGS, result);
+    return result;
   },
   saveSettings: async (settings: AdminSettings) => {
+    setCachedData(SITE_CONTENT_KEYS.SETTINGS, settings);
     await supabase
       .from('site_contents')
       .upsert({ key: SITE_CONTENT_KEYS.SETTINGS, value: settings }, { onConflict: 'key' });
   },
 
   getThemes: async (): Promise<Theme[]> => {
-    const { data, error } = await supabase
-      .from('site_contents')
-      .select('value')
-      .eq('key', SITE_CONTENT_KEYS.THEMES)
-      .single();
-    
-    if (error || !data) return THEMES;
-    return data.value as Theme[];
+    // Return local themes directly as requested
+    return THEMES;
   },
   saveThemes: async (themes: Theme[]) => {
+    setCachedData(SITE_CONTENT_KEYS.THEMES, themes);
     await supabase
       .from('site_contents')
       .upsert({ key: SITE_CONTENT_KEYS.THEMES, value: themes }, { onConflict: 'key' });
   },
 
   getNotices: async (): Promise<Notice[]> => {
-    const { data, error } = await supabase
-      .from('site_contents')
-      .select('value')
-      .eq('key', SITE_CONTENT_KEYS.NOTICES)
-      .single();
-    
-    if (error || !data) return INITIAL_NOTICES;
-    return data.value as Notice[];
+    // Return local notices directly as requested
+    return INITIAL_NOTICES;
   },
   saveNotices: async (notices: Notice[]) => {
+    setCachedData(SITE_CONTENT_KEYS.NOTICES, notices);
     await supabase
       .from('site_contents')
       .upsert({ key: SITE_CONTENT_KEYS.NOTICES, value: notices }, { onConflict: 'key' });
   },
 
   getClosedSlots: async (): Promise<ClosedSlot[]> => {
+    const cached = getCachedData(SITE_CONTENT_KEYS.CLOSED_SLOTS);
+    if (cached) return cached;
+
     const { data, error } = await supabase
       .from('site_contents')
       .select('value')
       .eq('key', SITE_CONTENT_KEYS.CLOSED_SLOTS)
       .single();
     
-    if (error || !data) return [];
-    return data.value as ClosedSlot[];
+    const result = (error || !data) ? [] : data.value as ClosedSlot[];
+    setCachedData(SITE_CONTENT_KEYS.CLOSED_SLOTS, result);
+    return result;
   },
   saveClosedSlots: async (slots: ClosedSlot[]) => {
+    setCachedData(SITE_CONTENT_KEYS.CLOSED_SLOTS, slots);
     await supabase
       .from('site_contents')
       .upsert({ key: SITE_CONTENT_KEYS.CLOSED_SLOTS, value: slots }, { onConflict: 'key' });
   },
 
   getStores: async (): Promise<Store[]> => {
-    const { data, error } = await supabase
-      .from('site_contents')
-      .select('value')
-      .eq('key', SITE_CONTENT_KEYS.STORES)
-      .single();
-    
-    if (error || !data) return STORES;
-    return data.value as Store[];
+    // Return local stores directly as requested
+    return STORES;
   },
   saveStores: async (stores: Store[]) => {
+    setCachedData(SITE_CONTENT_KEYS.STORES, stores);
     await supabase
       .from('site_contents')
       .upsert({ key: SITE_CONTENT_KEYS.STORES, value: stores }, { onConflict: 'key' });
@@ -104,6 +115,28 @@ export const dataService = {
       .from('reservations')
       .select('*')
       .order('createdAt', { ascending: false });
+    
+    if (error) return [];
+    return data as BookingData[];
+  },
+  getBookingsBySlot: async (themeId: string, date: string, time: string): Promise<BookingData[]> => {
+    const { data, error } = await supabase
+      .from('reservations')
+      .select('*')
+      .eq('themeId', themeId)
+      .eq('date', date)
+      .eq('time', time)
+      .neq('status', 'cancelled');
+    
+    if (error) return [];
+    return data as BookingData[];
+  },
+  getBookingsByTheme: async (themeId: string): Promise<BookingData[]> => {
+    const { data, error } = await supabase
+      .from('reservations')
+      .select('*')
+      .eq('themeId', themeId)
+      .neq('status', 'cancelled');
     
     if (error) return [];
     return data as BookingData[];

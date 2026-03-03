@@ -5,15 +5,7 @@ import { dataService } from '../src/services/dataService';
 import { DEFAULT_ADMIN_SETTINGS } from '../constants';
 
 const LoadingScreen = () => {
-  const [logoUrl, setLogoUrl] = useState(DEFAULT_ADMIN_SETTINGS.logoUrl);
-
-  useEffect(() => {
-    const loadSettings = async () => {
-      const settings = await dataService.getSettings();
-      if (settings.logoUrl) setLogoUrl(settings.logoUrl);
-    };
-    loadSettings();
-  }, []);
+  const logoUrl = '/logo.png'; // Use static path directly for immediate rendering
 
   return (
     <motion.div 
@@ -29,7 +21,14 @@ const LoadingScreen = () => {
           transition={{ duration: 1, ease: "easeOut" }}
           className="relative z-10"
         >
-          <img src={logoUrl} alt="CRIME SCENERS" className="h-16 md:h-24 w-auto object-contain" />
+          <img 
+            src={logoUrl} 
+            alt="CRIME SCENERS" 
+            className="h-16 md:h-24 w-auto object-contain" 
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = "https://i.imgur.com/G5ZkX1n.png";
+            }}
+          />
         </motion.div>
       </div>
       

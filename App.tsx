@@ -1,20 +1,22 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Menu, X, Instagram, Youtube, Settings, Globe, Shield, FileText } from 'lucide-react';
 import { DEFAULT_ADMIN_SETTINGS } from './constants';
 import { AdminSettings } from './types';
 import { dataService } from './src/services/dataService';
 import { AnimatePresence, motion } from 'framer-motion';
-import Home from './components/Home';
-import ThemeReservation from './components/ThemeReservation';
-import ThemeDetail from './components/ThemeDetail';
-import BookingForm from './components/BookingForm';
-import BookingSuccess from './components/BookingSuccess';
-import ContactForm from './components/ContactForm';
-import AdminDashboard from './components/AdminDashboard';
-import NoticeBoard from './components/NoticeBoard';
 import LoadingScreen from './components/LoadingScreen';
+
+// Lazy load components
+const Home = lazy(() => import('./components/Home'));
+const ThemeReservation = lazy(() => import('./components/ThemeReservation'));
+const ThemeDetail = lazy(() => import('./components/ThemeDetail'));
+const BookingForm = lazy(() => import('./components/BookingForm'));
+const BookingSuccess = lazy(() => import('./components/BookingSuccess'));
+const ContactForm = lazy(() => import('./components/ContactForm'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+const NoticeBoard = lazy(() => import('./components/NoticeBoard'));
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -237,23 +239,25 @@ const App = () => {
         </AnimatePresence>
         
         <Header />
-        <motion.main 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1.5 }}
-          className="flex-grow"
-        >
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/reservation" element={<ThemeReservation />} />
-            <Route path="/theme/:id" element={<ThemeDetail />} />
-            <Route path="/booking/:themeId/:date/:time" element={<BookingForm />} />
-            <Route path="/success" element={<BookingSuccess />} />
-            <Route path="/contact" element={<ContactForm />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/info" element={<NoticeBoard />} />
-          </Routes>
-        </motion.main>
+        <Suspense fallback={<LoadingScreen />}>
+          <motion.main 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1 }}
+            className="flex-grow"
+          >
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/reservation" element={<ThemeReservation />} />
+              <Route path="/theme/:id" element={<ThemeDetail />} />
+              <Route path="/booking/:themeId/:date/:time" element={<BookingForm />} />
+              <Route path="/success" element={<BookingSuccess />} />
+              <Route path="/contact" element={<ContactForm />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/info" element={<NoticeBoard />} />
+            </Routes>
+          </motion.main>
+        </Suspense>
         <Footer />
       </div>
     </HashRouter>
