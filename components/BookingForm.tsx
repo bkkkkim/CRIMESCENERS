@@ -32,16 +32,19 @@ const BookingForm = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [savedSettings, themeList, savedBookings] = await Promise.all([
+        // Fetch settings and bookings in parallel
+        const [savedSettings, savedBookings] = await Promise.all([
           dataService.getSettings(),
-          dataService.getThemes(),
           dataService.getBookingsBySlot(themeId!, date!, time!)
         ]);
 
         setSettings(savedSettings);
         setBookings(savedBookings);
 
+        // Get theme from local THEMES (very fast)
+        const themeList = await dataService.getThemes();
         const found = themeList.find((t: Theme) => t.id === themeId);
+        
         if (found) {
           setTheme(found);
           const booked = savedBookings.reduce((sum, b) => sum + b.participantCount, 0);
@@ -145,13 +148,21 @@ const BookingForm = () => {
       alert(`예약 신청 정보를 확인해주세요\n\n필수 입력 항목: ${missing.join(', ')}`);
       return false;
     }
+
+    // Phone validation: minimum 11 digits
+    const phoneDigits = formData.phone.replace(/[^0-9]/g, '');
+    if (phoneDigits.length < 11) {
+      alert('휴대폰 번호를 정확히 입력해주세요. (최소 11자리 숫자가 필요합니다)');
+      return false;
+    }
+
     return true;
   };
 
   return (
     <div className="pt-24 md:pt-32 pb-24 px-0 md:px-6 max-w-3xl mx-auto">
       <div className="px-6 md:px-0">
-        <Link to={`/theme/${themeId}`} className="inline-flex items-center text-[#b3b3b3] hover:text-white mb-8 gap-1 text-sm font-bold tracking-widest uppercase">
+        <Link to={`/theme/${themeId}`} className="inline-flex items-center text-[#b3b3b3] hover:text-white mb-8 gap-1 text-sm font-bold tracking-normal uppercase">
           <ChevronLeft size={16} /> Back to Scenarios
         </Link>
       </div>

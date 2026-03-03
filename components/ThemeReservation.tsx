@@ -148,8 +148,8 @@ const ThemeReservation = () => {
                   </div>
                 )}
                 {!isComingSoon && (
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
-                    <span className="text-white font-black text-xl tracking-[0.2em] uppercase font-en">
+                  <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center z-10">
+                    <span className="text-white font-black text-xl tracking-normal uppercase font-en border-b-2 border-white pb-1">
                       예약하기
                     </span>
                   </div>

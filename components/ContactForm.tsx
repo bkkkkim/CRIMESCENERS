@@ -17,9 +17,21 @@ const ContactForm = () => {
     e.preventDefault();
     if (!form.agreed) return alert('개인정보 수집 동의가 필요합니다.');
     
+    // Email validation: @ and . in domain
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      return alert('올바른 이메일 주소를 입력해주세요. (예: example@domain.com)');
+    }
+
+    // Phone validation: digits only, minimum 11 characters
+    const phoneDigits = form.phone.replace(/[^0-9]/g, '');
+    if (phoneDigits.length < 11) {
+      return alert('휴대폰 번호를 정확히 입력해주세요. (최소 11자리 숫자가 필요합니다)');
+    }
+    
     try {
       await dataService.addInquiry({
-        author: `${form.title} (${form.email} / ${form.phone})`,
+        author: `${form.title} (${form.email} / ${phoneDigits})`,
         content: form.content
       });
       setSubmitted(true);

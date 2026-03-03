@@ -63,7 +63,13 @@ const Header = () => {
     <header className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 ${headerBg}`}>
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative z-[101]">
         <Link to="/" className="h-10 flex items-center">
-          <img src={settings.logoUrl || "https://i.imgur.com/G5ZkX1n.png"} alt="CRIME SCENERS" className="h-full w-auto object-contain" />
+          {settings.logoUrl && settings.logoUrl !== '/logo.jpg' ? (
+            <img src={settings.logoUrl} alt="CRIME SCENERS" className="h-full w-auto object-contain" />
+          ) : (
+            <span className="text-xl font-black tracking-tighter text-white font-en uppercase">
+              Crime Sceners
+            </span>
+          )}
         </Link>
         <nav className="hidden md:flex space-x-10">
           {navItems.map((item) => (
@@ -225,8 +231,8 @@ const App = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate initial load
-    const timer = setTimeout(() => setLoading(false), 2000);
+    // Simulate initial load - reduced delay
+    const timer = setTimeout(() => setLoading(false), 800);
     return () => clearTimeout(timer);
   }, []);
 

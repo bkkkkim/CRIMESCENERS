@@ -98,26 +98,15 @@ const HeroBanner = ({ imageUrl }: { imageUrl: string }) => {
         </motion.div>
       </div>
 
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 10 }}
-        transition={{ 
-          delay: 1.2, 
-          duration: 1.5, 
-          repeat: Infinity, 
-          repeatType: "reverse",
-          ease: "easeInOut"
-        }}
-        className="absolute bottom-12 left-0 right-0 z-10 flex flex-col items-center"
-      >
-        <motion.div 
+      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-4">
+        <motion.div
           animate={{ y: [0, 15, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          className="flex flex-col items-center gap-1"
+          className="flex items-center justify-center"
         >
-          <ChevronDown size={64} className="text-white/60 stroke-[1.5px]" />
+          <ChevronDown size={48} strokeWidth={1} className="text-white/40" />
         </motion.div>
-      </motion.div>
+      </div>
     </div>
   );
 };
@@ -307,35 +296,38 @@ const StoreSection = ({ stores }: { stores: Store[] }) => {
         </div>
         <div className="flex flex-col items-start text-left">
           <div className="space-y-6 md:space-y-8 w-full">
-            <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-6">
-              <div className="flex items-start gap-4 md:gap-6 shrink-0 md:min-w-[120px]">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
-                  <Clock className="text-white/40" size={20} />
+            <div className="flex flex-row items-start gap-4 md:gap-6 border-b border-white/5 pb-6 md:pb-8">
+              <div className="flex items-center gap-3 md:gap-6 shrink-0 w-[100px] md:w-[140px]">
+                <div className="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
+                  <Clock className="text-white/40" size={16} />
                 </div>
-                <p className="font-bold text-white text-base md:text-lg pt-2 md:pt-3">운영시간</p>
+                <p className="font-bold text-white text-sm md:text-lg">운영시간</p>
               </div>
-              <div className="text-[#b3b3b3] text-xs md:text-sm space-y-1 opacity-60 pt-0 md:pt-3.5 flex-grow">
-                <p>평일: {selectedStore.weekdayHours} / 주말: {selectedStore.weekendHours}</p>
+              <div className="text-[#b3b3b3] text-xs md:text-sm space-y-1 opacity-60 flex-grow pt-2 md:pt-3.5 pl-2">
+                <p>평일: {selectedStore.weekdayHours}</p>
+                <p>주말: {selectedStore.weekendHours}</p>
               </div>
             </div>
-            <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-6">
-              <div className="flex items-start gap-4 md:gap-6 shrink-0 md:min-w-[120px]">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
-                  <Phone className="text-white/40" size={20} />
+
+            <div className="flex flex-row items-center gap-4 md:gap-6 border-b border-white/5 pb-6 md:pb-8">
+              <div className="flex items-center gap-3 md:gap-6 shrink-0 w-[100px] md:w-[140px]">
+                <div className="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
+                  <Phone className="text-white/40" size={16} />
                 </div>
-                <p className="font-bold text-white text-base md:text-lg pt-2 md:pt-3">연락처</p>
+                <p className="font-bold text-white text-sm md:text-lg">연락처</p>
               </div>
-              <a href={`tel:${selectedStore.phone}`} className="text-[#b3b3b3] text-xs md:text-sm opacity-60 font-en pt-0 md:pt-3.5 flex-grow hover:text-white transition-colors">{selectedStore.phone}</a>
+              <a href={`tel:${selectedStore.phone}`} className="text-[#b3b3b3] text-xs md:text-sm opacity-60 font-en flex-grow hover:text-white transition-colors pl-2">{selectedStore.phone}</a>
             </div>
-            <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-6">
-              <div className="flex items-start gap-4 md:gap-6 shrink-0 md:min-w-[120px]">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
-                  <MapPin className="text-white/40" size={20} />
+
+            <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-6">
+              <div className="flex items-center gap-3 md:gap-6 shrink-0 w-[100px] md:w-[140px]">
+                <div className="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
+                  <MapPin className="text-white/40" size={16} />
                 </div>
-                <p className="font-bold text-white text-base md:text-lg pt-2 md:pt-3">위치 정보</p>
+                <p className="font-bold text-white text-sm md:text-lg">위치 정보</p>
               </div>
-              <div className="flex flex-col md:flex-row md:items-center gap-3 pt-0 md:pt-3.5 flex-grow w-full">
-                <p className="text-[#b3b3b3] text-xs md:text-sm opacity-60 leading-relaxed flex-grow">{selectedStore.address}</p>
+              <div className="flex flex-col gap-3 flex-grow w-full md:pt-3.5 pl-2">
+                <p className="text-[#b3b3b3] text-xs md:text-sm opacity-60 leading-relaxed text-left">{selectedStore.address}</p>
                 <a 
                   href={`https://map.naver.com/v5/search/${encodeURIComponent(selectedStore.address)}`}
                   target="_blank"

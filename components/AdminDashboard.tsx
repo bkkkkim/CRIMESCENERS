@@ -11,6 +11,8 @@ import {
   Store as StoreIcon, Globe, MapPin, Send, Mail
 } from 'lucide-react';
 
+import { compressImage } from '../src/utils/imageUtils';
+
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState<'bookings' | 'themes' | 'stores' | 'site' | 'inquiries'>('bookings');
   const [settings, setSettings] = useState<AdminSettings>(DEFAULT_ADMIN_SETTINGS);
@@ -21,6 +23,7 @@ const AdminDashboard = () => {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [isDirty, setIsDirty] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchDate, setSearchDate] = useState('');
   const [searchEndDate, setSearchEndDate] = useState('');
@@ -57,6 +60,8 @@ const AdminDashboard = () => {
   }, []);
 
   const handlePublish = async () => {
+    if (isPublishing) return;
+    setIsPublishing(true);
     try {
       await Promise.all([
         dataService.saveSettings(settings),
@@ -69,6 +74,8 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error("Failed to publish changes:", error);
       alert("변경사항 반영에 실패했습니다.");
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -82,14 +89,26 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        callback(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        // Compress image to WebP with 0.8 quality
+        const compressedBlob = await compressImage(file, 0.8);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          callback(reader.result as string);
+        };
+        reader.readAsDataURL(compressedBlob);
+      } catch (error) {
+        console.error("Image compression failed:", error);
+        // Fallback to original file if compression fails
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          callback(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -132,15 +151,19 @@ const AdminDashboard = () => {
           <div className="pt-8 px-4">
             <button 
               onClick={handlePublish}
-              disabled={!isDirty}
+              disabled={!isDirty || isPublishing}
               className={`w-full py-3 font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all ${
-                isDirty 
+                (isDirty && !isPublishing)
                 ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/20' 
                 : 'bg-white/5 text-white/20 cursor-not-allowed'
               }`}
             >
-              <Send size={16} />
-              <span>홈페이지 적용하기</span>
+              {isPublishing ? (
+                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Send size={16} />
+              )}
+              <span>{isPublishing ? '적용 중...' : '홈페이지 적용하기'}</span>
             </button>
             <p className="text-[10px] text-white/20 mt-2 text-center">
               {isDirty ? '수정된 내용이 있습니다. 적용해주세요.' : '현재 모든 내용이 적용된 상태입니다.'}
@@ -424,14 +447,16 @@ const AdminDashboard = () => {
                         <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer">
                           <Upload size={24} className="mb-2" />
                           <span className="text-[10px]">이미지 업로드</span>
-                          <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, (base64) => {
-                            setThemes(prev => {
-                              const updated = [...prev];
-                              updated[idx] = { ...updated[idx], posterUrl: base64 };
-                              setIsDirty(true);
-                              return updated;
+                          <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                            setIsDirty(true);
+                            handleFileUpload(e, (base64) => {
+                              setThemes(prev => {
+                                const updated = [...prev];
+                                updated[idx] = { ...updated[idx], posterUrl: base64 };
+                                return updated;
+                              });
                             });
-                          })} />
+                          }} />
                         </label>
                       </div>
                     </div>
@@ -781,12 +806,14 @@ const AdminDashboard = () => {
                           <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer">
                             <Upload size={24} className="mb-2" />
                             <span className="text-[10px]">이미지 업로드</span>
-                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, (base64) => {
-                              const updated = [...stores];
-                              updated[idx].imageUrl = base64;
-                              setStores(updated);
+                            <input type="file" className="hidden" accept="image/*" onChange={(e) => {
                               setIsDirty(true);
-                            })} />
+                              handleFileUpload(e, (base64) => {
+                                const updated = [...stores];
+                                updated[idx].imageUrl = base64;
+                                setStores(updated);
+                              });
+                            }} />
                           </label>
                         </div>
                       </div>
@@ -830,10 +857,12 @@ const AdminDashboard = () => {
                         {settings.logoUrl ? <img src={settings.logoUrl} className="h-full object-contain p-2" /> : <span className="text-white/20 text-xs">로고 없음</span>}
                         <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                           <Upload size={20} />
-                          <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, (base64) => {
-                            setSettings(prev => ({ ...prev, logoUrl: base64 }));
+                          <input type="file" className="hidden" accept="image/*" onChange={(e) => {
                             setIsDirty(true);
-                          })} />
+                            handleFileUpload(e, (base64) => {
+                              setSettings(prev => ({ ...prev, logoUrl: base64 }));
+                            });
+                          }} />
                         </label>
                       </div>
                     </div>
@@ -843,10 +872,12 @@ const AdminDashboard = () => {
                         {settings.faviconUrl ? <img src={settings.faviconUrl} className="w-10 h-10 object-contain" /> : <span className="text-white/20 text-xs">파비콘 없음</span>}
                         <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                           <Upload size={20} />
-                          <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, (base64) => {
-                            setSettings(prev => ({ ...prev, faviconUrl: base64 }));
+                          <input type="file" className="hidden" accept="image/*" onChange={(e) => {
                             setIsDirty(true);
-                          })} />
+                            handleFileUpload(e, (base64) => {
+                              setSettings(prev => ({ ...prev, faviconUrl: base64 }));
+                            });
+                          }} />
                         </label>
                       </div>
                     </div>
@@ -856,10 +887,12 @@ const AdminDashboard = () => {
                         {settings.thumbnailUrl ? <img src={settings.thumbnailUrl} className="w-full h-full object-cover" /> : <span className="text-white/20 text-xs">썸네일 없음</span>}
                         <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                           <Upload size={20} />
-                          <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, (base64) => {
-                            setSettings(prev => ({ ...prev, thumbnailUrl: base64 }));
+                          <input type="file" className="hidden" accept="image/*" onChange={(e) => {
                             setIsDirty(true);
-                          })} />
+                            handleFileUpload(e, (base64) => {
+                              setSettings(prev => ({ ...prev, thumbnailUrl: base64 }));
+                            });
+                          }} />
                         </label>
                       </div>
                     </div>
@@ -875,10 +908,12 @@ const AdminDashboard = () => {
                       <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer">
                         <Upload size={32} className="mb-2" />
                         <span>히어로 이미지 업로드</span>
-                        <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, (base64) => {
-                          setSettings(prev => ({ ...prev, homeConfig: { ...prev.homeConfig, heroImageUrl: base64 } }));
+                        <input type="file" className="hidden" accept="image/*" onChange={(e) => {
                           setIsDirty(true);
-                        })} />
+                          handleFileUpload(e, (base64) => {
+                            setSettings(prev => ({ ...prev, homeConfig: { ...prev.homeConfig, heroImageUrl: base64 } }));
+                          });
+                        }} />
                       </label>
                     </div>
                   </div>
@@ -890,14 +925,16 @@ const AdminDashboard = () => {
                           {url ? <img src={url} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-black flex items-center justify-center text-white/20 text-xs">이미지 없음</div>}
                           <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                             <Upload size={20} />
-                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, (base64) => {
-                              setSettings(prev => {
-                                const updatedImages = [...prev.homeConfig.introImages];
-                                updatedImages[i] = base64;
-                                return { ...prev, homeConfig: { ...prev.homeConfig, introImages: updatedImages } };
-                              });
+                            <input type="file" className="hidden" accept="image/*" onChange={(e) => {
                               setIsDirty(true);
-                            })} />
+                              handleFileUpload(e, (base64) => {
+                                setSettings(prev => {
+                                  const updatedImages = [...prev.homeConfig.introImages];
+                                  updatedImages[i] = base64;
+                                  return { ...prev, homeConfig: { ...prev.homeConfig, introImages: updatedImages } };
+                                });
+                              });
+                            }} />
                           </label>
                         </div>
                       </div>

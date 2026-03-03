@@ -101,9 +101,9 @@ const BookingSuccess = () => {
         </Link>
         <Link 
             to="/reservation" 
-            className="flex items-center justify-center py-4 bg-white text-black rounded-xl font-bold hover:bg-neutral-200 transition-all gap-2"
+            className="flex items-center justify-center py-4 bg-white text-black rounded-xl font-bold hover:bg-neutral-200 transition-all text-sm md:text-base whitespace-nowrap px-4"
         >
-            추가 예약하기 <ArrowRight size={20} />
+            추가 예약하기
         </Link>
       </div>
     </div>
