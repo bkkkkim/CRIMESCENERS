@@ -13,7 +13,7 @@ const NoticeBoard = () => {
   const [stores, setStores] = useState<Store[]>([]);
   const [settings, setSettings] = useState<AdminSettings>(DEFAULT_ADMIN_SETTINGS);
   const [activeTab, setActiveTab] = useState<'method' | 'stores'>('method');
-  const [expandedNotice, setExpandedNotice] = useState<string | null>(null);
+  const [expandedNotice, setExpandedNotice] = useState<string | null>('admin');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -39,10 +39,10 @@ const NoticeBoard = () => {
   // if (loading) return <LoadingScreen />;
 
   return (
-    <div className={`pt-32 md:pt-48 pb-24 px-6 max-w-7xl mx-auto ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100 transition-opacity duration-500'}`}>
+    <div className={`pt-32 md:pt-40 pb-24 px-6 max-w-7xl mx-auto ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100 transition-opacity duration-500'}`}>
       <div className="text-center mb-8 md:mb-10">
-        <h1 className="text-4xl md:text-6xl font-bold mb-4 uppercase tracking-tighter font-en">Information</h1>
-        <p className="text-[#b3b3b3] opacity-60">크라임씬 이용 안내 및 매장 정보</p>
+        <h1 className="text-4xl md:text-5xl font-bold mb-4 uppercase tracking-tighter font-en">Information</h1>
+        <p className="text-[#d1d1d1] text-sm md:text-base opacity-60">크라임씬 이용 안내 및 매장 정보</p>
       </div>
 
       <div className="flex justify-center mb-12">
@@ -98,7 +98,7 @@ const NoticeBoard = () => {
               <div className="bg-white/5 p-10 rounded-[40px] border border-white/5 flex flex-col justify-center items-center text-center">
                 <Gamepad2 size={64} className="text-white/20 mb-8" />
                 <h3 className="text-2xl font-bold mb-4">준비되셨나요?</h3>
-                <p className="text-[#b3b3b3] mb-10 opacity-60">지금 바로 사건 현장으로 떠나보세요.</p>
+                <p className="text-[#d1d1d1] mb-10 opacity-60">지금 바로 사건 현장으로 떠나보세요.</p>
                 <Link to="/reservation" className="px-12 py-5 bg-white text-black font-bold rounded-none hover:bg-neutral-200 transition-all tracking-normal uppercase text-sm font-en">
                   Book Now
                 </Link>
@@ -117,9 +117,9 @@ const NoticeBoard = () => {
                       onClick={() => setExpandedNotice(expandedNotice === 'admin' ? null : 'admin')}
                       className="w-full p-8 text-left flex justify-between items-center group"
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 flex-1 pr-4">
                         <span className="bg-[#dc2626] text-[10px] font-bold px-2 py-0.5 rounded tracking-widest uppercase shrink-0">중요</span>
-                        <h3 className="text-xl font-bold tracking-tight group-hover:text-white transition-colors">{settings.noticeTitle.replace('[필독] ', '')}</h3>
+                        <h3 className="text-lg md:text-xl font-bold tracking-tight group-hover:text-white transition-colors line-clamp-2 md:line-clamp-none">{settings.noticeTitle.replace('[필독] ', '')}</h3>
                       </div>
                       <ChevronRight size={20} className={`text-white/20 transition-transform ${expandedNotice === 'admin' ? 'rotate-90' : ''}`} />
                     </button>
@@ -144,9 +144,9 @@ const NoticeBoard = () => {
                       onClick={() => setExpandedNotice(expandedNotice === notice.id ? null : notice.id)}
                       className="w-full p-8 text-left flex justify-between items-center group"
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 flex-1 pr-4">
                         {notice.isImportant && <span className="bg-[#dc2626] text-[10px] font-bold px-2 py-0.5 rounded tracking-widest uppercase shrink-0">중요</span>}
-                        <h3 className="text-xl font-bold tracking-tight group-hover:text-white transition-colors">{notice.title}</h3>
+                        <h3 className="text-lg md:text-xl font-bold tracking-tight group-hover:text-white transition-colors line-clamp-2 md:line-clamp-none">{notice.title}</h3>
                       </div>
                       <ChevronRight size={20} className={`text-white/20 transition-transform ${expandedNotice === notice.id ? 'rotate-90' : ''}`} />
                     </button>
@@ -212,7 +212,7 @@ const NoticeBoard = () => {
                   </div>
                   <Link 
                     to="/reservation" 
-                    className="flex items-center justify-center gap-3 w-full py-5 border-2 border-white/10 text-white font-black rounded-none hover:bg-white hover:text-black transition-all tracking-normal uppercase text-sm font-en"
+                    className="flex items-center justify-center gap-3 w-full py-5 border-2 border-white/10 text-white font-bold rounded-none hover:bg-white hover:text-black transition-all tracking-normal uppercase text-sm font-en"
                   >
                     Reservation <ChevronRight size={18} />
                   </Link>

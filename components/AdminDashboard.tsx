@@ -796,7 +796,7 @@ const AdminDashboard = () => {
                         <input className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none focus:border-white" 
                           value={store.name} onChange={e => {
                             const updated = [...stores];
-                            updated[idx].name = e.target.value;
+                            updated[idx] = { ...updated[idx], name: e.target.value };
                             setStores(updated);
                             setIsDirty(true);
                           }} />
@@ -806,7 +806,7 @@ const AdminDashboard = () => {
                         <input className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none focus:border-white" 
                           value={store.phone} onChange={e => {
                             const updated = [...stores];
-                            updated[idx].phone = e.target.value;
+                            updated[idx] = { ...updated[idx], phone: e.target.value };
                             setStores(updated);
                             setIsDirty(true);
                           }} />
@@ -816,7 +816,7 @@ const AdminDashboard = () => {
                         <input className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none focus:border-white" 
                           value={store.weekdayHours} onChange={e => {
                             const updated = [...stores];
-                            updated[idx].weekdayHours = e.target.value;
+                            updated[idx] = { ...updated[idx], weekdayHours: e.target.value };
                             setStores(updated);
                             setIsDirty(true);
                           }} />
@@ -826,7 +826,7 @@ const AdminDashboard = () => {
                         <input className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none focus:border-white" 
                           value={store.weekendHours} onChange={e => {
                             const updated = [...stores];
-                            updated[idx].weekendHours = e.target.value;
+                            updated[idx] = { ...updated[idx], weekendHours: e.target.value };
                             setStores(updated);
                             setIsDirty(true);
                           }} />
@@ -841,8 +841,9 @@ const AdminDashboard = () => {
                             <input type="file" className="hidden" accept="image/*" onChange={(e) => {
                               handleFileUpload(e, 'stores', store.imageUrl, (url) => {
                                 const updated = [...stores];
-                                updated[idx].imageUrl = url;
+                                updated[idx] = { ...updated[idx], imageUrl: url };
                                 setStores(updated);
+                                setIsDirty(true);
                               });
                             }} />
                           </label>
@@ -853,7 +854,7 @@ const AdminDashboard = () => {
                         <input className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none focus:border-white" 
                           value={store.address} onChange={e => {
                             const updated = [...stores];
-                            updated[idx].address = e.target.value;
+                            updated[idx] = { ...updated[idx], address: e.target.value };
                             setStores(updated);
                             setIsDirty(true);
                           }} />

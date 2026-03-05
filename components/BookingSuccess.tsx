@@ -95,7 +95,7 @@ const BookingSuccess = () => {
       <div className="grid grid-cols-2 gap-4">
         <Link 
             to="/" 
-            className="flex items-center justify-center py-4 bg-white/5 border border-white/10 rounded-xl font-bold hover:bg-white/10 transition-all text-white"
+            className="flex items-center justify-center py-4 bg-white/5 border border-white/10 rounded-xl font-bold hover:bg-white/10 transition-all text-white text-sm md:text-base whitespace-nowrap px-4"
         >
             홈으로 이동
         </Link>

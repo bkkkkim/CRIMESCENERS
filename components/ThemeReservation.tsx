@@ -66,16 +66,16 @@ const ThemeReservation = () => {
   if (loading) return <LoadingScreen />;
 
   return (
-    <div className="pt-32 pb-24 px-4 md:px-6 max-w-7xl mx-auto">
-      <div className="mb-12 md:mb-16 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-8">
+    <div className="pt-32 md:pt-40 pb-24 px-4 md:px-6 max-w-7xl mx-auto">
+      <div className="mb-12 md:mb-16 text-center flex flex-col items-center gap-8">
         <div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tighter uppercase font-en">#SCENARIOS</h1>
-          <p className="text-[#b3b3b3] text-base md:text-lg opacity-60">원하시는 시나리오를 선택하여 사건 현장으로 입장하세요.</p>
+          <p className="text-[#d1d1d1] text-sm md:text-base opacity-60">원하시는 시나리오를 선택하여 사건 현장으로 입장하세요.</p>
         </div>
         
-        <div className="flex flex-row items-center gap-3 w-full md:w-auto">
+        <div className="flex flex-row items-center justify-center gap-3 w-full md:w-auto">
           <div className="relative group flex-1 md:flex-none">
-            <div className="flex items-center justify-center md:justify-start gap-2 px-3 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold text-white/60">
+            <div className="flex items-center justify-center md:justify-start gap-2 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-xs md:text-sm font-medium text-white/60">
               <MapPin size={12} />
               <select 
                 value={selectedStoreId} 
@@ -89,9 +89,8 @@ const ThemeReservation = () => {
               </select>
             </div>
           </div>
-
           <div className="relative group flex-1 md:flex-none">
-            <div className="flex items-center justify-center md:justify-start gap-2 px-3 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold text-white/60">
+            <div className="flex items-center justify-center md:justify-start gap-2 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-xs md:text-sm font-medium text-white/60">
               <ArrowUpDown size={12} />
               <select 
                 value={sortBy} 
@@ -109,8 +108,7 @@ const ThemeReservation = () => {
           </div>
         </div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
         {filteredAndSortedThemes.map((theme) => {
           const store = stores.find(s => s.id === theme.storeId);
           const now = new Date();
@@ -124,10 +122,10 @@ const ThemeReservation = () => {
           const isComingSoon = (startDate && now < startDate) || (endDate && now > endDate);
 
           return (
-            <div key={theme.id} className={`group flex flex-col mb-16 md:mb-0 ${isComingSoon ? 'opacity-60' : ''}`}>
+            <div key={theme.id} className={`group flex flex-col mb-0 md:mb-0 ${isComingSoon ? 'opacity-60' : ''}`}>
               <Link 
                 to={isComingSoon ? '#' : `/theme/${theme.id}`} 
-                className={`relative aspect-[3/4] overflow-hidden rounded-2xl mb-6 shadow-xl block ${isComingSoon ? 'cursor-default' : ''}`}
+                className={`relative aspect-[3/4] overflow-hidden rounded-none md:rounded-2xl mb-0 md:mb-6 shadow-xl block ${isComingSoon ? 'cursor-default' : ''}`}
                 onClick={(e) => isComingSoon && e.preventDefault()}
               >
                 <img 
@@ -145,7 +143,7 @@ const ThemeReservation = () => {
                   </div>
                 )}
                 {theme.storeId && store && (
-                  <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-[10px] font-bold text-white flex items-center gap-1.5 border border-white/10">
+                  <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-[10px] font-medium text-white flex items-center gap-1.5 border border-white/10">
                     <MapPin size={12} /> {store.name}
                   </div>
                 )}
@@ -158,7 +156,7 @@ const ThemeReservation = () => {
                 )}
               </Link>
               
-              <div className="space-y-4">
+              <div className="space-y-4 px-0 pb-6 pt-4 md:p-0">
                 <div className="flex flex-col gap-1">
                   <h3 className="text-2xl font-bold group-hover:text-white transition-colors">{theme.title}</h3>
                   <div className="flex items-center gap-2 text-white/60 text-sm font-bold">
@@ -168,7 +166,7 @@ const ThemeReservation = () => {
                   </div>
                 </div>
               
-              <div className="flex flex-wrap gap-4 text-[10px] font-bold tracking-normal uppercase text-white/40">
+              <div className="flex flex-wrap gap-4 text-[10px] font-medium tracking-normal uppercase text-white/40">
                 <div className="flex items-center gap-1.5">
                   <span>난이도</span>
                   <div className="flex gap-0.5">
@@ -200,11 +198,14 @@ const ThemeReservation = () => {
                     <Clock size={14} /> {theme.duration}분
                   </span>
                 </div>
+                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
+                  <ChevronRight size={14} />
+                </div>
               </div>
             </div>
           </div>
-        );
-      })}
+          );
+        })}
       </div>
     </div>
   );

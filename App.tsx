@@ -59,8 +59,8 @@ const Header = ({ settings }: { settings: AdminSettings }) => {
 
   return (
     <header className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 ${headerBg}`}>
-      <div className="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between relative z-[101]">
-        <Link to="/" className="h-14 flex items-center">
+      <div className="max-w-7xl mx-auto px-6 h-20 md:h-24 flex items-center justify-between relative z-[101]">
+        <Link to="/" className="h-12 md:h-14 flex items-center">
           {settings.logoUrl && !logoError ? (
             <img 
               key={settings.logoUrl}
@@ -97,7 +97,7 @@ const Header = ({ settings }: { settings: AdminSettings }) => {
             {navItems.map((item) => (
               <Link key={item.path} to={item.path} className="text-2xl font-black border-b border-white/5 pb-6 flex justify-between items-center" onClick={() => setIsMenuOpen(false)}>
                 <span>{item.name}</span>
-                <span className="text-white/20 font-en text-xs tracking-normal uppercase">{item.path.replace('/', '') || 'HOME'}</span>
+                <span className="text-white/20 font-en text-xs font-bold tracking-normal uppercase">{item.path.replace('/', '') || 'HOME'}</span>
               </Link>
             ))}
           </motion.div>
@@ -112,7 +112,7 @@ const Footer = ({ settings }: { settings: AdminSettings }) => {
   const [showPrivacy, setShowPrivacy] = useState(false);
 
   return (
-    <footer className="bg-black border-t border-white/5 py-20 px-6">
+    <footer className="bg-black border-t border-white/5 pt-12 pb-20 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-12">
           <div className="space-y-4 max-w-md">
@@ -126,7 +126,7 @@ const Footer = ({ settings }: { settings: AdminSettings }) => {
                 <p>연락처: {settings.managerPhone}</p>
                 <p>이메일: {settings.managerEmail}</p>
               </div>
-              <p className="pt-2 opacity-30 text-[10px] tracking-normal uppercase font-en">© 2026 CRIME SCENERS. ALL RIGHTS RESERVED.</p>
+              <p className="pt-2 text-white/40 text-[10px] tracking-normal uppercase font-en">© 2026 CRIME SCENERS. ALL RIGHTS RESERVED.</p>
             </div>
           </div>
 
@@ -204,16 +204,15 @@ const App = () => {
     const init = async () => {
       try {
         const saved = await dataService.getSettings();
+        const logoToPreload = saved.logoUrl || 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
         
         // Pre-load logo image to avoid flicker in LoadingScreen
-        if (saved.logoUrl) {
-          const img = new Image();
-          img.src = saved.logoUrl;
-          await new Promise((resolve) => {
-            img.onload = resolve;
-            img.onerror = resolve;
-          });
-        }
+        const img = new Image();
+        img.src = logoToPreload;
+        await new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
         
         setSettings(saved);
 

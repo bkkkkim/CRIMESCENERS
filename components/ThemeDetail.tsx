@@ -142,23 +142,23 @@ const ThemeDetail = () => {
   const store = theme.storeId ? stores.find(s => s.id === theme.storeId) : null;
 
   return (
-    <div className="pt-24 md:pt-32 pb-24 px-0 md:px-6 max-w-7xl mx-auto">
+    <div className="pt-24 md:pt-32 pb-0 px-0 md:px-6 max-w-7xl mx-auto">
       <div className="px-6 md:px-0">
-        <Link to="/reservation" className="inline-flex items-center text-[#b3b3b3] hover:text-white mb-8 gap-2 text-sm font-bold tracking-normal uppercase font-en">
+        <Link to="/reservation" className="inline-flex items-center text-[#b3b3b3] hover:text-white mb-4 md:mb-8 gap-2 text-sm font-bold tracking-normal uppercase font-en">
           <ArrowLeft size={16} /> Back to Scenarios
         </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-0 md:gap-16">
-        <div className="px-6 md:px-0 mb-12 lg:mb-0">
-          <div className="relative aspect-[3/4] md:aspect-[16/10] overflow-hidden rounded-none md:rounded-[40px] shadow-2xl mb-12 border border-white/5">
+        <div className="px-6 md:px-0 mb-0 lg:mb-0">
+          <div className="relative aspect-[3/4] md:aspect-[16/10] overflow-hidden rounded-none md:rounded-[40px] shadow-2xl mb-6 md:mb-12 border border-white/5">
             <img src={theme.posterUrl} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-transparent md:hidden" />
           </div>
           
           <div className="space-y-8">
             <div>
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-3 mb-3 md:mb-6">
                 <span className="bg-[#dc2626] text-[10px] font-bold px-2 py-1 rounded tracking-widest uppercase font-en">TOP RATED</span>
                 {store && (
                   <div className="relative">
@@ -186,21 +186,21 @@ const ThemeDetail = () => {
                             </div>
                             <div className="space-y-4 text-xs text-[#b3b3b3] leading-relaxed">
                               <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-                                <p className="text-white/40 mb-1 uppercase tracking-normal text-[8px] font-bold">Address</p>
+                                <p className="text-white/40 mb-1 uppercase tracking-normal text-[8px] font-medium">Address</p>
                                 <p>{store.address}</p>
                               </div>
                               <div className="grid grid-cols-2 gap-3">
                                 <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-                                  <p className="text-white/40 mb-1 uppercase tracking-normal text-[8px] font-bold">Weekday</p>
+                                  <p className="text-white/40 mb-1 uppercase tracking-normal text-[8px] font-medium">Weekday</p>
                                   <p>{store.weekdayHours}</p>
                                 </div>
                                 <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-                                  <p className="text-white/40 mb-1 uppercase tracking-normal text-[8px] font-bold">Weekend</p>
+                                  <p className="text-white/40 mb-1 uppercase tracking-normal text-[8px] font-medium">Weekend</p>
                                   <p>{store.weekendHours}</p>
                                 </div>
                               </div>
                               <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-                                <p className="text-white/40 mb-1 uppercase tracking-normal text-[8px] font-bold">Contact</p>
+                                <p className="text-white/40 mb-1 uppercase tracking-normal text-[8px] font-medium">Contact</p>
                                 <p className="font-en">{store.phone}</p>
                               </div>
                             </div>
@@ -209,7 +209,7 @@ const ThemeDetail = () => {
                                 href={`https://map.naver.com/v5/search/${encodeURIComponent(store.address)}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="block w-full text-center py-2.5 bg-white text-black text-[10px] font-bold rounded-xl hover:bg-neutral-200 transition-colors uppercase tracking-normal font-en"
+                                className="block w-full text-center py-2.5 bg-white text-black text-[10px] font-medium rounded-xl hover:bg-neutral-200 transition-colors uppercase tracking-normal font-en"
                               >
                                 Naver Maps
                               </a>
@@ -239,12 +239,12 @@ const ThemeDetail = () => {
                               </div>
                               <div className="space-y-4 text-sm text-[#b3b3b3] leading-relaxed">
                                 <div className="p-4 bg-black/40 rounded-2xl border border-white/5">
-                                  <p className="text-white/40 mb-1 uppercase tracking-normal text-[10px] font-bold">Address</p>
+                                  <p className="text-white/40 mb-1 uppercase tracking-normal text-[10px] font-medium">Address</p>
                                   <p>{store.address}</p>
                                 </div>
                                 <div className="grid grid-cols-1 gap-3">
                                   <div className="p-4 bg-black/40 rounded-2xl border border-white/5">
-                                    <p className="text-white/40 mb-1 uppercase tracking-normal text-[10px] font-bold">Business Hours</p>
+                                    <p className="text-white/40 mb-1 uppercase tracking-normal text-[10px] font-medium">Business Hours</p>
                                     <div className="flex flex-col gap-1">
                                       <p>평일: {store.weekdayHours}</p>
                                       <p>주말: {store.weekendHours}</p>
@@ -274,13 +274,13 @@ const ThemeDetail = () => {
                   </div>
                 )}
               </div>
-              <h1 className="text-4xl md:text-7xl font-bold mb-8 tracking-tighter">{theme.title}</h1>
+              <h1 className="text-4xl md:text-7xl font-bold mb-4 md:mb-8 tracking-tighter">{theme.title}</h1>
               <p className="text-[#b3b3b3] text-lg md:text-xl leading-relaxed max-w-2xl opacity-80">{theme.synopsis}</p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-y-8 gap-x-4 py-10 border-y border-white/5">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-y-6 md:gap-y-8 gap-x-4 py-8 md:py-10 border-y border-white/5">
               <div className="space-y-2">
-                <p className="text-[10px] font-bold text-white/40 tracking-normal uppercase">난이도</p>
+                <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase">난이도</p>
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
                     <div key={i} className={`w-4 h-1 rounded-full ${i < theme.difficulty ? 'bg-white' : 'bg-white/10'}`} />
@@ -288,7 +288,7 @@ const ThemeDetail = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="text-[10px] font-bold text-white/40 tracking-normal uppercase">공포도</p>
+                <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase">공포도</p>
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
                     <div key={i} className={`w-4 h-1 rounded-full ${i < theme.fearLevel ? 'bg-[#dc2626]' : 'bg-white/10'}`} />
@@ -296,14 +296,14 @@ const ThemeDetail = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="text-[10px] font-bold text-white/40 tracking-normal uppercase">소요시간</p>
+                <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase">소요시간</p>
                 <div className="flex items-center gap-2 text-white font-bold text-sm">
                   <Clock size={14} className="text-white/40" />
                   <span>{theme.duration}분</span>
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="text-[10px] font-bold text-white/40 tracking-normal uppercase">참여인원</p>
+                <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase">참여인원</p>
                 <div className="flex items-center gap-2 text-white font-bold text-sm">
                   <Users size={14} className="text-white/40" />
                   <span>{theme.minPlayers}-{theme.maxPlayers}명</span>
@@ -336,7 +336,7 @@ const ThemeDetail = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-7 gap-2 text-center text-[10px] text-white/20 mb-6 font-bold tracking-normal uppercase font-en">
+          <div className="grid grid-cols-7 gap-2 text-center text-[10px] text-white/20 mb-6 font-medium tracking-normal uppercase font-en">
             {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => <div key={d}>{d}</div>)}
           </div>
           <div className="grid grid-cols-7 gap-2 mb-12">
@@ -349,7 +349,7 @@ const ThemeDetail = () => {
                 <h3 className="text-lg font-bold flex items-center gap-2">
                   <Clock size={18} /> 시간 선택
                 </h3>
-                <span className="text-xs font-mono text-white/40 font-en">{selectedDate.toLocaleDateString()}</span>
+                <span className="text-xs text-white/40 font-en">{selectedDate.toLocaleDateString()}</span>
               </div>
               <div className="grid grid-cols-1 gap-4">
                 {getSlots().map(slotInfo => {
@@ -368,13 +368,13 @@ const ThemeDetail = () => {
                       <div className="flex flex-col items-start gap-1">
                         <span className={`text-2xl font-bold font-en ${slotInfo.isAvailable ? 'group-hover:translate-x-2 transition-transform' : ''}`}>{slotInfo.time}</span>
                         {slotInfo.isAvailable && slotInfo.currentParticipants > 0 && (
-                          <span className="text-[10px] font-bold text-[#dc2626] tracking-normal uppercase font-en bg-[#dc2626]/10 px-2 py-0.5 rounded">
+                          <span className="text-[10px] font-medium text-[#dc2626] tracking-normal uppercase font-en bg-[#dc2626]/10 px-2 py-0.5 rounded">
                             {slotInfo.currentParticipants}/{theme.maxPlayers}명 Booked
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-xs font-bold tracking-normal uppercase font-en">
+                        <span className="text-xs font-medium tracking-normal uppercase font-en">
                           {slotInfo.isAvailable ? 'Available' : (slotInfo.isFull ? 'Full' : 'Closed')}
                         </span>
                         {slotInfo.isAvailable && <ChevronRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity" />}

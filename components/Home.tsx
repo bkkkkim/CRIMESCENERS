@@ -83,7 +83,7 @@ const HeroBanner = ({ imageUrl }: { imageUrl: string }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.8 }}
-          className="text-base md:text-2xl text-[#d1d1d1] font-light max-w-4xl mx-auto mb-10 md:mb-12 whitespace-nowrap"
+          className="text-base md:text-2xl text-[#d1d1d1] font-light max-w-4xl mx-auto mb-10 md:mb-12 whitespace-nowrap opacity-60"
         >
           사건 현장에 있는 우리 모두 <span className="text-white font-medium">SCENERS</span> 입니다.
         </motion.p>
@@ -92,12 +92,12 @@ const HeroBanner = ({ imageUrl }: { imageUrl: string }) => {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.8 }}
         >
-            <Link 
-              to="/reservation" 
-              className="inline-block px-10 md:px-12 py-4 md:py-5 border border-white/40 text-white font-black rounded-none hover:bg-white hover:text-black transition-all transform hover:scale-105 tracking-normal uppercase text-sm font-en"
-            >
-              지금 예약하기
-            </Link>
+              <Link 
+                to="/reservation" 
+                className="inline-block px-10 md:px-12 py-4 md:py-5 border border-white/40 text-white font-bold rounded-none hover:bg-white hover:text-black transition-all transform hover:scale-105 tracking-normal uppercase text-sm font-en"
+              >
+                지금 예약하기
+              </Link>
         </motion.div>
       </div>
 
@@ -123,9 +123,9 @@ const IntroSection = ({ images }: { images: string[] }) => (
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-[#b3b3b3] text-sm md:text-base opacity-80 mt-2 leading-relaxed"
+          className="text-[#d1d1d1] text-sm md:text-base opacity-60 mt-2 leading-relaxed"
         >
-          스릴러 매니아들이 설계한 몰입형 추리 게임 카페 '크라임 씨너스' 에 오신것을 환영합니다!
+          스릴러 매니아들이 설계한 몰입형 추리 게임 카페<br className="md:hidden" /> '크라임 씨너스' 에 오신것을 환영합니다!
         </motion.p>
       </div>
       <div className="mobile-snap-container hide-scrollbar md:grid md:grid-cols-3 md:gap-8 items-start">
@@ -142,7 +142,7 @@ const IntroSection = ({ images }: { images: string[] }) => (
             </div>
             <div className="text-left flex-grow">
               <h3 className="text-lg md:text-xl font-bold mb-2 md:mb-3 tracking-tight whitespace-nowrap md:whitespace-normal">{point.title}</h3>
-              <p className="text-[#b3b3b3] text-xs md:text-sm leading-relaxed opacity-60">
+              <p className="text-[#d1d1d1] text-xs md:text-sm leading-relaxed opacity-60">
                 {point.desc}
               </p>
             </div>
@@ -179,7 +179,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
       <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6">
         <div className="text-center mb-10 md:mb-16">
           <h2 className="text-3xl md:text-5xl font-bold mb-3 md:mb-4 uppercase tracking-tighter font-en">BEST SCENARIOS</h2>
-          <p className="text-[#d1d1d1] text-sm md:text-xl opacity-60">지금 가장 핫한 시나리오</p>
+          <p className="text-[#d1d1d1] text-sm md:text-base opacity-60">지금 가장 핫한 시나리오</p>
         </div>
 
         <div className="relative group">
@@ -232,7 +232,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                     className={`mobile-snap-item-1-5 md:w-[calc(50%-16px)] group block shrink-0 ${isComingSoon ? 'cursor-default' : ''}`}
                     onClick={(e) => isComingSoon && e.preventDefault()}
                   >
-                    <div className="relative aspect-[3/4] overflow-hidden rounded-[32px] md:rounded-[40px] mb-6 md:mb-8 shadow-2xl border border-white/5">
+                    <div className="relative aspect-[3/4] overflow-hidden rounded-2xl mb-3 md:mb-8 shadow-2xl border border-white/5">
                       <img 
                         src={theme.posterUrl} 
                         alt={theme.title} 
@@ -243,7 +243,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                       {isComingSoon && (
                         <div className="absolute inset-0 flex items-center justify-center z-20">
                           <div className="bg-black/80 backdrop-blur-md px-6 py-3 rounded-xl border border-white/20">
-                            <span className="text-xl font-bold tracking-normal text-white font-en">COMING SOON</span>
+                            <span className="text-xl font-medium tracking-normal text-white font-en">COMING SOON</span>
                           </div>
                         </div>
                       )}
@@ -252,12 +252,12 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                     
                     <div className="text-left">
                       <div className="flex items-center gap-2 mb-3 md:mb-4">
-                        <span className="bg-[#dc2626] text-[10px] font-bold px-2 py-1 rounded tracking-normal uppercase font-en">BEST</span>
+                        <span className="bg-[#dc2626] text-[10px] font-medium px-2 py-1 rounded tracking-normal uppercase font-en">BEST</span>
                         {theme.storeId && store && (
-                          <span className="text-white/40 text-xs font-bold uppercase tracking-normal">{store.name}</span>
+                          <span className="text-white/40 text-xs font-medium uppercase tracking-normal">{store.name}</span>
                         )}
                       </div>
-                      <h3 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 tracking-tight line-clamp-1">{theme.title}</h3>
+                      <h3 className="text-xl md:text-2xl font-bold mb-1.5 md:mb-2 tracking-tight line-clamp-1">{theme.title}</h3>
                       <div className="flex flex-col gap-4">
                         <div className="flex items-center gap-2 text-white/60 text-sm font-bold">
                           <span>{theme.price.toLocaleString()}원</span>
@@ -265,7 +265,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                           <span>1명</span>
                         </div>
                         
-                        <div className="flex flex-wrap gap-4 text-[10px] font-bold tracking-normal uppercase text-white/40">
+                        <div className="flex flex-wrap gap-4 text-[10px] font-medium tracking-normal uppercase text-white/40">
                           <div className="flex items-center gap-1.5">
                             <span>난이도</span>
                             <div className="flex gap-0.5">
@@ -304,7 +304,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
         </div>
 
         <div className="flex justify-center mt-12 md:mt-20">
-          <Link to="/reservation" className="group text-white font-black flex items-center gap-3 hover:opacity-70 transition-all border border-white/40 px-10 md:px-14 py-4 md:py-6 rounded-full text-sm md:text-base tracking-normal font-en">
+          <Link to="/reservation" className="group text-white font-bold flex items-center gap-3 hover:opacity-70 transition-all border border-white/40 px-10 md:px-14 py-4 md:py-6 rounded-full text-sm md:text-base tracking-normal font-en">
             VIEW ALL SCENARIOS <ChevronRight size={22} className="group-hover:translate-x-2 transition-transform" />
           </Link>
         </div>
@@ -342,8 +342,8 @@ const StoreSection = ({ stores }: { stores: Store[] }) => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-        <div className="rounded-[32px] md:rounded-[40px] overflow-hidden aspect-square lg:aspect-video shadow-2xl border border-white/5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-20 items-center">
+        <div className="rounded-[32px] md:rounded-[40px] overflow-hidden aspect-video shadow-2xl border border-white/5">
           <img 
             src={selectedStore.imageUrl || "https://picsum.photos/id/1031/800/600?grayscale"} 
             alt={selectedStore.name} 
@@ -390,7 +390,7 @@ const StoreSection = ({ stores }: { stores: Store[] }) => {
                   href={`https://map.naver.com/v5/search/${encodeURIComponent(selectedStore.address)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center justify-center px-4 py-2 border border-white/20 text-white font-bold rounded-none hover:bg-white hover:text-black transition-all tracking-tight uppercase text-[9px] w-fit shrink-0"
+                  className="inline-flex items-center justify-center px-4 py-2 border border-white/20 text-white font-medium rounded-none hover:bg-white hover:text-black transition-all tracking-tight uppercase text-[9px] w-fit shrink-0"
                 >
                   네이버 지도로 보기
                 </a>

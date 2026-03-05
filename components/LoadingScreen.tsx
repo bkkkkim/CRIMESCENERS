@@ -11,7 +11,8 @@ interface LoadingScreenProps {
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ logoUrl }) => {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [useTextFallback, setUseTextFallback] = useState(false);
-  const [displayUrl, setDisplayUrl] = useState<string | null>(logoUrl || '/logo.jpg');
+  const defaultLogo = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
+  const [displayUrl, setDisplayUrl] = useState<string>(logoUrl || defaultLogo);
 
   useEffect(() => {
     if (logoUrl) {
