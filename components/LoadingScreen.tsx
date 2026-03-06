@@ -44,8 +44,8 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ logoUrl }) => {
             <img 
               key={displayUrl}
               src={displayUrl} 
-              alt="CRIME SCENERS" 
-              className="h-16 md:h-20 w-auto object-contain" 
+              alt="" 
+              className={`h-16 md:h-20 w-auto object-contain transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`} 
               onLoad={() => setIsImageLoaded(true)}
               onError={() => {
                 setUseTextFallback(true);
@@ -60,14 +60,16 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ logoUrl }) => {
           )}
         </motion.div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mt-3 text-center"
-        >
-          <p className="text-white/30 text-[8px] md:text-[9px] tracking-widest uppercase font-en animate-pulse">Investigating the scene...</p>
-        </motion.div>
+        {(isImageLoaded || useTextFallback) && (
+          <motion.div 
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mt-3 text-center"
+          >
+            <p className="text-white/30 text-[8px] md:text-[9px] tracking-widest uppercase font-en animate-pulse">Investigating the scene...</p>
+          </motion.div>
+        )}
       </div>
     </motion.div>
   );

@@ -37,7 +37,7 @@ const TypingTitle = () => {
   }, [index, isDeleting]);
 
   return (
-    <h2 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 text-center tracking-tighter h-10 font-en uppercase">
+    <h2 className="text-3xl md:text-5xl font-bold mb-2 md:mb-3 text-center tracking-tighter h-10 md:h-14 font-en uppercase">
       {displayText}
       <span className="animate-pulse">|</span>
     </h2>
@@ -75,7 +75,7 @@ const HeroBanner = ({ imageUrl }: { imageUrl: string }) => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-4xl md:text-8xl font-bold mb-6 leading-tight tracking-tighter uppercase font-en"
+          className="text-4xl md:text-8xl font-bold mb-2 md:mb-6 leading-tight tracking-tighter uppercase font-en"
         >
           Crime <span className="text-white">Sceners</span>
         </motion.h1>
@@ -117,13 +117,13 @@ const HeroBanner = ({ imageUrl }: { imageUrl: string }) => {
 const IntroSection = ({ images }: { images: string[] }) => (
   <section className="py-16 md:py-24 px-4 md:px-6 bg-[#121212]">
     <div className="max-w-7xl mx-auto">
-      <div className="text-center mb-10 md:mb-16">
+      <div className="text-center mb-8 md:mb-12">
         <TypingTitle />
         <motion.p 
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-[#d1d1d1] text-sm md:text-base opacity-60 mt-2 leading-relaxed"
+          className="text-[#d1d1d1] text-sm md:text-base opacity-60 leading-relaxed"
         >
           스릴러 매니아들이 설계한 몰입형 추리 게임 카페<br className="md:hidden" /> '크라임 씨너스' 에 오신것을 환영합니다!
         </motion.p>
@@ -157,8 +157,11 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
   const [currentIndex, setCurrentIndex] = useState(0);
   const displayThemes = themes.filter(t => t.showOnMain !== false);
   
+  const itemsPerView = displayThemes.length === 2 ? 2 : 3;
+  const showArrows = displayThemes.length > itemsPerView;
+
   const nextSlide = () => {
-    if (currentIndex < displayThemes.length - 2) {
+    if (currentIndex < displayThemes.length - itemsPerView) {
       setCurrentIndex(prev => prev + 1);
     }
   };
@@ -177,14 +180,14 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6">
-        <div className="text-center mb-10 md:mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold mb-3 md:mb-4 uppercase tracking-tighter font-en">BEST SCENARIOS</h2>
+        <div className="text-center mb-8 md:mb-12">
+          <h2 className="text-3xl md:text-5xl font-bold mb-2 md:mb-3 uppercase tracking-tighter font-en">BEST SCENARIOS</h2>
           <p className="text-[#d1d1d1] text-sm md:text-base opacity-60">지금 가장 핫한 시나리오</p>
         </div>
 
         <div className="relative group">
           {/* PC Navigation Arrows */}
-          {displayThemes.length > 2 && (
+          {showArrows && (
             <>
               <button 
                 onClick={prevSlide}
@@ -195,18 +198,18 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
               </button>
               <button 
                 onClick={nextSlide}
-                disabled={currentIndex >= displayThemes.length - 2}
-                className={`hidden md:flex absolute -right-16 top-1/2 -translate-y-1/2 z-30 w-12 h-12 items-center justify-center rounded-full border border-white/10 bg-black/50 backdrop-blur-sm transition-all ${currentIndex >= displayThemes.length - 2 ? 'opacity-0 pointer-events-none' : 'hover:bg-white hover:text-black'}`}
+                disabled={currentIndex >= displayThemes.length - itemsPerView}
+                className={`hidden md:flex absolute -right-16 top-1/2 -translate-y-1/2 z-30 w-12 h-12 items-center justify-center rounded-full border border-white/10 bg-black/50 backdrop-blur-sm transition-all ${currentIndex >= displayThemes.length - itemsPerView ? 'opacity-0 pointer-events-none' : 'hover:bg-white hover:text-black'}`}
               >
                 <ChevronDown className="-rotate-90" size={24} />
               </button>
             </>
           )}
 
-          <div className={`mobile-snap-container hide-scrollbar ${displayThemes.length < 3 ? 'flex justify-center' : 'md:overflow-visible'}`}>
+          <div className={`mobile-snap-container hide-scrollbar ${displayThemes.length < itemsPerView + 1 ? 'flex justify-center' : 'md:overflow-visible'}`}>
             <motion.div 
               className="flex gap-6 md:gap-8"
-              animate={displayThemes.length > 2 ? { x: `calc(-${currentIndex * 50}% - ${currentIndex * 16}px)` } : {}}
+              animate={showArrows || (displayThemes.length > itemsPerView) ? { x: `calc(-${currentIndex * (100 / itemsPerView)}% - ${currentIndex * (32 / itemsPerView)}px)` } : {}}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               style={{ 
                 width: '100%',
@@ -229,7 +232,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                   <Link 
                     key={theme.id} 
                     to={isComingSoon ? '#' : `/theme/${theme.id}`}
-                    className={`mobile-snap-item-1-5 md:w-[calc(50%-16px)] group block shrink-0 ${isComingSoon ? 'cursor-default' : ''}`}
+                    className={`mobile-snap-item-1-5 ${itemsPerView === 2 ? 'md:w-[calc(50%-16px)]' : 'md:w-[calc(33.333%-21.333px)]'} group block shrink-0 ${isComingSoon ? 'cursor-default' : ''}`}
                     onClick={(e) => isComingSoon && e.preventDefault()}
                   >
                     <div className="relative aspect-[3/4] overflow-hidden rounded-2xl mb-3 md:mb-8 shadow-2xl border border-white/5">
@@ -304,7 +307,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
         </div>
 
         <div className="flex justify-center mt-12 md:mt-20">
-          <Link to="/reservation" className="group text-white font-bold flex items-center gap-3 hover:opacity-70 transition-all border border-white/40 px-10 md:px-14 py-4 md:py-6 rounded-full text-sm md:text-base tracking-normal font-en">
+          <Link to="/reservation" className="group text-white font-bold flex items-center gap-3 hover:bg-white hover:text-black transition-all border border-white/40 px-10 md:px-14 py-4 md:py-6 rounded-full text-sm md:text-base tracking-normal font-en">
             VIEW ALL SCENARIOS <ChevronRight size={22} className="group-hover:translate-x-2 transition-transform" />
           </Link>
         </div>
@@ -321,8 +324,8 @@ const StoreSection = ({ stores }: { stores: Store[] }) => {
 
   return (
     <section className="py-16 md:py-24 px-4 md:px-6 max-w-7xl mx-auto">
-      <div className="text-center mb-6 md:mb-8">
-        <h2 className="text-3xl md:text-5xl font-bold uppercase tracking-tighter font-en mb-3 md:mb-4">Find Us</h2>
+      <div className="text-center mb-8 md:mb-12">
+        <h2 className="text-3xl md:text-5xl font-bold uppercase tracking-tighter font-en mb-2 md:mb-3">Find Us</h2>
         <p className="text-[#d1d1d1] text-sm md:text-base opacity-60">가까운 매장을 선택하여 정보를 확인하세요.</p>
       </div>
 

@@ -108,7 +108,7 @@ const ThemeReservation = () => {
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-12">
         {filteredAndSortedThemes.map((theme) => {
           const store = stores.find(s => s.id === theme.storeId);
           const now = new Date();
@@ -185,7 +185,7 @@ const ThemeReservation = () => {
                 </div>
               </div>
 
-              <p className="text-[#b3b3b3] text-sm line-clamp-2 leading-relaxed min-h-[2.8rem]">
+              <p className="text-[#b3b3b3] text-sm md:line-clamp-2 leading-relaxed md:min-h-[2.8rem]">
                 {theme.synopsis}
               </p>
 
