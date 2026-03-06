@@ -208,11 +208,11 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
 
           <div className={`mobile-snap-container hide-scrollbar ${displayThemes.length < itemsPerView + 1 ? 'flex justify-center' : 'md:overflow-visible'}`}>
             <motion.div 
-              className="flex gap-6 md:gap-8"
+              className={`flex gap-6 md:gap-8 ${displayThemes.length === 1 ? 'justify-center' : ''}`}
               animate={showArrows || (displayThemes.length > itemsPerView) ? { x: `calc(-${currentIndex * (100 / itemsPerView)}% - ${currentIndex * (32 / itemsPerView)}px)` } : {}}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               style={{ 
-                width: '100%',
+                width: displayThemes.length === 1 ? 'auto' : '100%',
                 display: 'flex',
               }}
             >
@@ -232,7 +232,14 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                   <Link 
                     key={theme.id} 
                     to={isComingSoon ? '#' : `/theme/${theme.id}`}
-                    className={`mobile-snap-item-1-5 ${itemsPerView === 1 ? 'md:w-[450px]' : (itemsPerView === 2 ? 'md:w-[calc(50%-16px)]' : 'md:w-[calc(33.333%-21.333px)]')} group block shrink-0 ${isComingSoon ? 'cursor-default' : ''}`}
+                    className={`
+                      ${displayThemes.length === 1 
+                        ? 'w-[85%] md:w-[450px] mx-auto' 
+                        : (itemsPerView === 2 
+                            ? 'mobile-snap-item-1-5 md:w-[calc(50%-16px)]' 
+                            : 'mobile-snap-item-1-5 md:w-[calc(33.333%-21.333px)]')}
+                      group block shrink-0 ${isComingSoon ? 'cursor-default' : ''}
+                    `}
                     onClick={(e) => isComingSoon && e.preventDefault()}
                   >
                     <div className="relative aspect-[3/4] overflow-hidden rounded-2xl mb-3 md:mb-8 shadow-2xl border border-white/5">
