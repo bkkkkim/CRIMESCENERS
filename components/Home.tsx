@@ -83,7 +83,7 @@ const HeroBanner = ({ imageUrl }: { imageUrl: string }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.8 }}
-          className="text-base md:text-2xl text-[#d1d1d1] font-light max-w-4xl mx-auto mb-10 md:mb-12 whitespace-nowrap opacity-60"
+          className="text-base md:text-2xl text-[#d1d1d1] font-light max-w-4xl mx-auto mb-10 md:mb-12 whitespace-nowrap"
         >
           사건 현장에 있는 우리 모두 <span className="text-white font-medium">SCENERS</span> 입니다.
         </motion.p>
@@ -121,9 +121,9 @@ const IntroSection = ({ images }: { images: string[] }) => (
         <TypingTitle />
         <motion.p 
           initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          whileInView={{ opacity: 0.6, y: 0 }}
           viewport={{ once: true }}
-          className="text-[#d1d1d1] text-sm md:text-base opacity-60 leading-relaxed"
+          className="text-[#d1d1d1] text-sm md:text-base leading-relaxed"
         >
           스릴러 매니아들이 설계한 몰입형 추리 게임 카페<br className="md:hidden" /> '크라임 씨너스' 에 오신것을 환영합니다!
         </motion.p>
