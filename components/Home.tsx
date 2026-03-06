@@ -157,7 +157,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
   const [currentIndex, setCurrentIndex] = useState(0);
   const displayThemes = themes.filter(t => t.showOnMain !== false);
   
-  const itemsPerView = displayThemes.length === 2 ? 2 : 3;
+  const itemsPerView = displayThemes.length === 2 ? 2 : (displayThemes.length === 1 ? 1 : 3);
   const showArrows = displayThemes.length > itemsPerView;
 
   const nextSlide = () => {
@@ -232,7 +232,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                   <Link 
                     key={theme.id} 
                     to={isComingSoon ? '#' : `/theme/${theme.id}`}
-                    className={`mobile-snap-item-1-5 ${itemsPerView === 2 ? 'md:w-[calc(50%-16px)]' : 'md:w-[calc(33.333%-21.333px)]'} group block shrink-0 ${isComingSoon ? 'cursor-default' : ''}`}
+                    className={`mobile-snap-item-1-5 ${itemsPerView === 1 ? 'md:w-[450px]' : (itemsPerView === 2 ? 'md:w-[calc(50%-16px)]' : 'md:w-[calc(33.333%-21.333px)]')} group block shrink-0 ${isComingSoon ? 'cursor-default' : ''}`}
                     onClick={(e) => isComingSoon && e.preventDefault()}
                   >
                     <div className="relative aspect-[3/4] overflow-hidden rounded-2xl mb-3 md:mb-8 shadow-2xl border border-white/5">

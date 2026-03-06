@@ -112,7 +112,7 @@ const Footer = ({ settings }: { settings: AdminSettings }) => {
   const [showPrivacy, setShowPrivacy] = useState(false);
 
   return (
-    <footer className="bg-black border-t border-white/5 pt-12 pb-20 px-6">
+    <footer className="bg-black border-t border-white/5 pt-12 pb-12 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-12">
           <div className="space-y-4 max-w-md">
