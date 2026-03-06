@@ -185,7 +185,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
           <p className="text-[#d1d1d1] text-sm md:text-base opacity-60">지금 가장 핫한 시나리오</p>
         </div>
 
-        <div className="relative group">
+        <div className="relative">
           {/* PC Navigation Arrows */}
           {showArrows && (
             <>
@@ -206,7 +206,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
             </>
           )}
 
-          <div className={`mobile-snap-container hide-scrollbar ${displayThemes.length < itemsPerView + 1 ? 'flex justify-center' : 'md:overflow-visible'}`}>
+          <div className={`mobile-snap-container hide-scrollbar ${displayThemes.length < itemsPerView + 1 ? 'flex justify-center' : 'md:overflow-hidden'}`}>
             <motion.div 
               className={`flex gap-6 md:gap-8 ${displayThemes.length === 1 ? 'justify-center' : ''}`}
               animate={showArrows || (displayThemes.length > itemsPerView) ? { x: `calc(-${currentIndex * (100 / itemsPerView)}% - ${currentIndex * (32 / itemsPerView)}px)` } : {}}
@@ -313,7 +313,22 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
           </div>
         </div>
 
-        <div className="flex justify-center mt-12 md:mt-20">
+        <div className="flex flex-col items-center mt-12 md:mt-20 gap-8">
+          {/* Pagination Line (PC only) */}
+          {showArrows && (
+            <div className="hidden md:flex w-48 h-[2px] bg-white/10 relative overflow-hidden rounded-full">
+              <motion.div 
+                className="absolute top-0 left-0 h-full bg-white"
+                initial={false}
+                animate={{ 
+                  width: `${100 / (displayThemes.length - itemsPerView + 1)}%`,
+                  left: `${currentIndex * (100 / (displayThemes.length - itemsPerView + 1))}%`
+                }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              />
+            </div>
+          )}
+          
           <Link to="/reservation" className="group text-white font-bold flex items-center gap-3 hover:bg-white hover:text-black transition-all border border-white/40 px-10 md:px-14 py-4 md:py-6 rounded-full text-sm md:text-base tracking-normal font-en">
             VIEW ALL SCENARIOS <ChevronRight size={22} className="group-hover:translate-x-2 transition-transform" />
           </Link>

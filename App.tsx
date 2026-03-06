@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Instagram, Youtube, Settings, Globe, Shield, FileText } from 'lucide-react';
 import { DEFAULT_ADMIN_SETTINGS } from './constants';
 import { AdminSettings } from './types';
@@ -142,10 +142,6 @@ const Footer = ({ settings }: { settings: AdminSettings }) => {
                   <Globe size={24} />
                 </a>
               )}
-              <Link to="/admin" className="text-white/20 hover:text-white/60 transition-colors flex items-center gap-1 text-xs font-en">
-                <Settings size={14} />
-                <span>ADMIN</span>
-              </Link>
             </div>
             
             <div className="flex flex-wrap gap-6 text-[10px] font-bold tracking-normal uppercase text-white/40">
@@ -193,6 +189,61 @@ const Footer = ({ settings }: { settings: AdminSettings }) => {
         )}
       </AnimatePresence>
     </footer>
+  );
+};
+
+const AdminGuard = ({ children }: { children: React.ReactNode }) => {
+  const [password, setPassword] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === '1234') {
+      setIsAuthenticated(true);
+      setError('');
+    } else {
+      setError('비밀번호가 올바르지 않습니다.');
+    }
+  };
+
+  if (isAuthenticated) return <>{children}</>;
+
+  return (
+    <div className="min-h-screen bg-[#121212] flex items-center justify-center p-6">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-[#1a1a1a] border border-white/10 p-10 rounded-[40px] w-full max-w-md shadow-2xl"
+      >
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/10">
+            <Shield className="text-white/40" size={32} />
+          </div>
+          <h2 className="text-2xl font-bold tracking-tighter mb-2">ADMIN ACCESS</h2>
+          <p className="text-white/40 text-sm">관리자 페이지 진입을 위해 비밀번호를 입력하세요.</p>
+        </div>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <input 
+              type="password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="비밀번호 입력"
+              className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder:text-white/20 focus:outline-none focus:border-white/40 transition-colors"
+              autoFocus
+            />
+            {error && <p className="text-[#dc2626] text-xs mt-2 ml-2 font-bold">{error}</p>}
+          </div>
+          <button 
+            type="submit"
+            className="w-full bg-white text-black font-bold py-4 rounded-2xl hover:bg-white/90 transition-colors"
+          >
+            접속하기
+          </button>
+        </form>
+      </motion.div>
+    </div>
   );
 };
 
@@ -254,9 +305,9 @@ const App = () => {
   }, []);
 
   return (
-    <HashRouter>
+    <BrowserRouter>
       <AppContent loading={loading} settings={settings} setSettings={setSettings} />
-    </HashRouter>
+    </BrowserRouter>
   );
 };
 
@@ -295,7 +346,7 @@ const AppContent = ({ loading, settings, setSettings }: { loading: boolean, sett
             <Route path="/booking/:themeId/:date/:time" element={<BookingForm />} />
             <Route path="/success" element={<BookingSuccess />} />
             <Route path="/contact" element={<ContactForm />} />
-            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
             <Route path="/info" element={<NoticeBoard />} />
           </Routes>
         </motion.main>
