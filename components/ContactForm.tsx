@@ -30,10 +30,25 @@ const ContactForm = () => {
     }
     
     try {
-      await dataService.addInquiry({
+      const settings = await dataService.getSettings();
+      const inquiryData = {
         author: `${form.title} (${form.email} / ${phoneDigits})`,
         content: form.content
-      });
+      };
+      
+      await dataService.addInquiry(inquiryData);
+      
+      // Send notification
+      try {
+        await fetch('/api/notify/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ inquiry: inquiryData, settings })
+        });
+      } catch (notifyErr) {
+        console.error("Notification failed", notifyErr);
+      }
+      
       setSubmitted(true);
     } catch (error) {
       console.error("Failed to submit inquiry:", error);
