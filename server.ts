@@ -114,10 +114,31 @@ async function startServer() {
           html = await vite.transformIndexHtml(req.url, html);
           
           if (settings?.thumbnailUrl) {
+            // Replace og:image
             html = html.replace(
-              /<meta property="og:image" content="[^"]*">/,
+              /<meta property="og:image" content="[^"]*">/g,
               `<meta property="og:image" content="${settings.thumbnailUrl}">`
             );
+            // Replace og:url with current domain if possible, or just keep it consistent
+            const host = req.headers.host || "crime-sceners.com";
+            const protocol = req.secure ? "https" : "http";
+            const currentUrl = `${protocol}://${host}${req.url}`;
+            
+            html = html.replace(
+              /<meta property="og:url" content="[^"]*">/g,
+              `<meta property="og:url" content="${currentUrl}">`
+            );
+
+            // Replace twitter:image
+            html = html.replace(
+              /<meta name="twitter:image" content="[^"]*">/g,
+              `<meta name="twitter:image" content="${settings.thumbnailUrl}">`
+            );
+
+            // Add extra tags for better compatibility if they don't exist
+            if (!html.includes('twitter:card')) {
+              html = html.replace('</head>', `<meta name="twitter:card" content="summary_large_image">\n</head>`);
+            }
           }
           
           return res.status(200).set({ "Content-Type": "text/html" }).end(html);
@@ -139,10 +160,31 @@ async function startServer() {
         const settings = data?.value;
         
         if (settings?.thumbnailUrl) {
+          // Replace og:image
           html = html.replace(
-            /<meta property="og:image" content="[^"]*">/,
+            /<meta property="og:image" content="[^"]*">/g,
             `<meta property="og:image" content="${settings.thumbnailUrl}">`
           );
+          // Replace og:url
+          const host = req.headers.host || "crime-sceners.com";
+          const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+          const currentUrl = `${protocol}://${host}${req.url}`;
+          
+          html = html.replace(
+            /<meta property="og:url" content="[^"]*">/g,
+            `<meta property="og:url" content="${currentUrl}">`
+          );
+
+          // Replace twitter:image
+          html = html.replace(
+            /<meta name="twitter:image" content="[^"]*">/g,
+            `<meta name="twitter:image" content="${settings.thumbnailUrl}">`
+          );
+
+          // Add extra tags for better compatibility
+          if (!html.includes('twitter:card')) {
+            html = html.replace('</head>', `<meta name="twitter:card" content="summary_large_image">\n</head>`);
+          }
         }
       } catch (e) {
         console.error("OG Injection failed", e);

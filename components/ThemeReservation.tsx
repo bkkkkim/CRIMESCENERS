@@ -185,10 +185,6 @@ const ThemeReservation = () => {
                 </div>
               </div>
 
-              <p className="text-[#b3b3b3] text-sm md:line-clamp-2 leading-relaxed md:min-h-[2.8rem]">
-                {theme.synopsis}
-              </p>
-
               <div className="pt-4 flex items-center justify-between border-t border-white/5">
                 <div className="flex items-center gap-4 text-xs text-white/60">
                   <span className="flex items-center gap-1.5">
