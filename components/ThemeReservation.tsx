@@ -125,7 +125,7 @@ const ThemeReservation = () => {
             <div key={theme.id} className={`group flex flex-col mb-0 md:mb-0 ${isComingSoon ? 'opacity-60' : ''}`}>
               <Link 
                 to={isComingSoon ? '#' : `/theme/${theme.id}`} 
-                className={`relative aspect-[3/4] overflow-hidden rounded-none md:rounded-2xl mb-0 md:mb-6 shadow-xl block ${isComingSoon ? 'cursor-default' : ''}`}
+                className={`relative aspect-[2/3] overflow-hidden rounded-none md:rounded-2xl mb-0 md:mb-6 shadow-xl block ${isComingSoon ? 'cursor-default' : ''}`}
                 onClick={(e) => isComingSoon && e.preventDefault()}
               >
                 <img 

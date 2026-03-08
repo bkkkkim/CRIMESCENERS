@@ -242,7 +242,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                     `}
                     onClick={(e) => isComingSoon && e.preventDefault()}
                   >
-                    <div className="relative aspect-[3/4] overflow-hidden rounded-2xl mb-3 md:mb-8 shadow-2xl border border-white/5">
+                    <div className="relative aspect-[2/3] overflow-hidden rounded-2xl mb-3 md:mb-8 shadow-2xl border border-white/5">
                       <img 
                         src={theme.posterUrl} 
                         alt={theme.title} 

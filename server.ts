@@ -20,87 +20,80 @@ async function startServer() {
 
   app.use(express.json());
 
+  // --- Notification Helper ---
+  const sendNotification = async (type: 'booking' | 'contact' | 'reminder', data: any, settings: any) => {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    try {
+      // 1. Email Notification
+      if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+        let subject = "";
+        let html = "";
+
+        if (type === 'booking') {
+          subject = `[신규 예약] ${data.themeTitle} - ${data.userName}님`;
+          html = `<h3>신규 예약 내역</h3><p><b>테마:</b> ${data.themeTitle}</p><p><b>일시:</b> ${data.date} ${data.time}</p><p><b>예약자:</b> ${data.userName} (${data.userPhone})</p>`;
+        } else if (type === 'contact') {
+          subject = `[문의 접수] ${data.author}님의 문의`;
+          html = `<h3>문의 내용</h3><p><b>작성자:</b> ${data.author}</p><p><b>내용:</b> ${data.content}</p>`;
+        } else if (type === 'reminder') {
+          subject = `[내일 예약 알림] ${data.themeTitle} - ${data.userName}님`;
+          html = `<h3>내일 예약 안내</h3><p><b>테마:</b> ${data.themeTitle}</p><p><b>일시:</b> ${data.date} ${data.time}</p>`;
+        }
+
+        await transporter.sendMail({
+          from: `"CRIME SCENERS" <${process.env.EMAIL_USER}>`,
+          to: settings.managerEmail,
+          subject,
+          html
+        });
+      }
+
+      // 2. SMS / Alimtalk (Aligo Integration Placeholder)
+      // 알리고(Aligo) 가입 후 API Key를 발급받으시면 아래 주석을 해제하고 연동할 수 있습니다.
+      const targetPhone = type === 'contact' ? settings.managerPhone : data.userPhone;
+      const message = type === 'booking' ? settings.smsTemplates.onBooking.content : 
+                      type === 'reminder' ? settings.smsTemplates.dayBefore.content : 
+                      "신규 문의가 접수되었습니다.";
+
+      console.log(`[NOTIFICATION SENT] Type: ${type}, To: ${targetPhone}, Msg: ${message}`);
+      
+      /* 
+      // 알리고 실제 연동 예시 (axios 필요)
+      if (process.env.ALIGO_KEY) {
+        const formData = new URLSearchParams();
+        formData.append('key', process.env.ALIGO_KEY);
+        formData.append('user_id', process.env.ALIGO_ID);
+        formData.append('sender', settings.managerPhone);
+        formData.append('receiver', targetPhone);
+        formData.append('msg', message);
+        // 알림톡일 경우 endpoint와 파라미터가 달라집니다.
+        await axios.post('https://apis.aligo.in/send/', formData);
+      }
+      */
+    } catch (err) {
+      console.error(`Notification failed (${type}):`, err);
+    }
+  };
+
   // API: Notify Booking
   app.post("/api/notify/booking", async (req, res) => {
     const { booking, settings } = req.body;
-    
-    try {
-      // 1. Send Email to Manager
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: process.env.EMAIL_USER, // User needs to set this
-          pass: process.env.EMAIL_PASS  // User needs to set this
-        }
-      });
-
-      const mailOptions = {
-        from: `"CRIME SCENERS" <${process.env.EMAIL_USER}>`,
-        to: settings.managerEmail,
-        subject: `[신규 예약] ${booking.themeTitle} - ${booking.userName}님`,
-        html: `
-          <h3>신규 예약 내역</h3>
-          <p><b>테마:</b> ${booking.themeTitle}</p>
-          <p><b>일시:</b> ${booking.date} ${booking.time}</p>
-          <p><b>예약자:</b> ${booking.userName} (${booking.userPhone})</p>
-          <p><b>인원:</b> ${booking.participantCount}명</p>
-          <p><b>결제방식:</b> ${booking.paymentMethod}</p>
-          <p><b>요청사항:</b> ${booking.notes || '없음'}</p>
-        `
-      };
-
-      if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-        await transporter.sendMail(mailOptions);
-      }
-
-      // 2. SMS Logic (Placeholder for Aligo/CoolSMS)
-      console.log(`[SMS SEND] To: ${booking.userPhone}, Content: ${settings.smsTemplates.onBooking.content}`);
-      // Integration example:
-      // await axios.post('https://apis.aligo.in/send/', { key: '...', user_id: '...', sender: settings.managerPhone, receiver: booking.userPhone, msg: settings.smsTemplates.onBooking.content });
-
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Notification error:", error);
-      res.status(500).json({ error: "Failed to send notification" });
-    }
+    await sendNotification('booking', booking, settings);
+    res.json({ success: true });
   });
 
   // API: Notify Contact
   app.post("/api/notify/contact", async (req, res) => {
     const { inquiry, settings } = req.body;
-    
-    try {
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS
-        }
-      });
-
-      const mailOptions = {
-        from: `"CRIME SCENERS" <${process.env.EMAIL_USER}>`,
-        to: settings.managerEmail,
-        subject: `[문의 접수] ${inquiry.author}님의 문의`,
-        html: `
-          <h3>문의 내용</h3>
-          <p><b>작성자:</b> ${inquiry.author}</p>
-          <p><b>내용:</b></p>
-          <p>${inquiry.content}</p>
-        `
-      };
-
-      if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-        await transporter.sendMail(mailOptions);
-      }
-
-      console.log(`[SMS SEND] To Manager: ${settings.managerPhone}, Content: 신규 문의가 접수되었습니다.`);
-
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Contact notification error:", error);
-      res.status(500).json({ error: "Failed to send notification" });
-    }
+    await sendNotification('contact', inquiry, settings);
+    res.json({ success: true });
   });
 
   // Vite middleware for development
@@ -180,9 +173,7 @@ async function startServer() {
       if (error || !bookings) return;
 
       for (const booking of bookings) {
-        console.log(`[SCHEDULED SMS] To: ${booking.userPhone}, Content: ${settings.smsTemplates.dayBefore.content}`);
-        // Integration example:
-        // await axios.post('https://apis.aligo.in/send/', { ... });
+        await sendNotification('reminder', booking, settings);
       }
     } catch (e) {
       console.error("Scheduled task error:", e);
