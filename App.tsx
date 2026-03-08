@@ -8,6 +8,8 @@ import { dataService } from './src/services/dataService';
 import { AnimatePresence, motion } from 'framer-motion';
 import LoadingScreen from './components/LoadingScreen';
 
+import AdminDashboard from './components/AdminDashboard';
+
 // Lazy load components
 const Home = lazy(() => import('./components/Home'));
 const ThemeReservation = lazy(() => import('./components/ThemeReservation'));
@@ -15,7 +17,7 @@ const ThemeDetail = lazy(() => import('./components/ThemeDetail'));
 const BookingForm = lazy(() => import('./components/BookingForm'));
 const BookingSuccess = lazy(() => import('./components/BookingSuccess'));
 const ContactForm = lazy(() => import('./components/ContactForm'));
-const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+// AdminDashboard is imported directly to avoid lazy loading issues in production
 const NoticeBoard = lazy(() => import('./components/NoticeBoard'));
 
 const ScrollToTop = () => {
@@ -203,6 +205,7 @@ const AdminGuard = ({ children }: { children: React.ReactNode }) => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (password === '1234') {
+      console.log("Admin login successful");
       setIsAuthenticated(true);
       setError('');
     } else {
