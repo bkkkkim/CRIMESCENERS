@@ -94,12 +94,12 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, path: string, oldUrl: string | undefined, callback: (url: string) => void) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, path: string, oldUrl: string | undefined, callback: (url: string) => void, format: 'image/webp' | 'image/jpeg' | 'image/png' = 'image/webp') => {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        // Compress image to WebP with 0.8 quality
-        const compressedBlob = await compressImage(file, 0.8);
+        // Compress image to specified format with 0.8 quality
+        const compressedBlob = await compressImage(file, 0.8, format);
         
         // Delete old image if exists
         if (oldUrl) {
@@ -107,7 +107,7 @@ const AdminDashboard = () => {
         }
 
         // Upload new image
-        const publicUrl = await dataService.uploadImage(compressedBlob, path);
+        const publicUrl = await dataService.uploadImage(compressedBlob, path, format);
         callback(publicUrl);
         setIsDirty(true);
       } catch (error: any) {
@@ -747,8 +747,11 @@ const AdminDashboard = () => {
                       </div>
                       <button 
                         type="button"
-                        onClick={() => {
+                        onClick={async () => {
                           if (window.confirm(`정말 '${theme.title}' 테마를 삭제하시겠습니까?`)) {
+                            if (theme.posterUrl) {
+                              await dataService.deleteImage(theme.posterUrl);
+                            }
                             setThemes(prev => prev.filter(t => t.id !== theme.id));
                             setIsDirty(true);
                           }
@@ -920,7 +923,7 @@ const AdminDashboard = () => {
                           <input type="file" className="hidden" accept="image/*" onChange={(e) => {
                             handleFileUpload(e, 'brand', settings.thumbnailUrl, (url) => {
                               setSettings(prev => ({ ...prev, thumbnailUrl: url }));
-                            });
+                            }, 'image/jpeg');
                           }} />
                         </label>
                       </div>

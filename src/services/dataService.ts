@@ -145,14 +145,15 @@ export const dataService = {
   },
 
   // --- Storage ---
-  uploadImage: async (file: File | Blob, path: string): Promise<string> => {
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
+  uploadImage: async (file: File | Blob, path: string, format: 'image/webp' | 'image/jpeg' | 'image/png' = 'image/webp'): Promise<string> => {
+    const extension = format === 'image/jpeg' ? 'jpg' : format === 'image/png' ? 'png' : 'webp';
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${extension}`;
     const fullPath = `${path}/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from('images')
       .upload(fullPath, file, {
-        contentType: 'image/webp',
+        contentType: format,
         cacheControl: '3600',
         upsert: false
       });

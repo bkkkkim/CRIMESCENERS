@@ -1,5 +1,5 @@
 
-export const compressImage = (file: File, quality: number = 0.8): Promise<Blob> => {
+export const compressImage = (file: File, quality: number = 0.8, format: 'image/webp' | 'image/jpeg' | 'image/png' = 'image/webp'): Promise<Blob> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -18,6 +18,12 @@ export const compressImage = (file: File, quality: number = 0.8): Promise<Blob> 
         canvas.width = img.width;
         canvas.height = img.height;
 
+        // If converting to JPEG, fill with white background first to avoid black backgrounds on transparent PNGs
+        if (format === 'image/jpeg') {
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
         ctx.drawImage(img, 0, 0);
 
         canvas.toBlob(
@@ -28,7 +34,7 @@ export const compressImage = (file: File, quality: number = 0.8): Promise<Blob> 
               reject(new Error('Canvas toBlob failed'));
             }
           },
-          'image/webp',
+          format,
           quality
         );
       };

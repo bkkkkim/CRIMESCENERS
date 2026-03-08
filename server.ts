@@ -105,7 +105,7 @@ async function startServer() {
 
     // Inject OG Tags in Dev
     app.use(async (req, res, next) => {
-      if (req.url === "/" || req.url === "/index.html") {
+      if (req.method === 'GET' && req.headers.accept?.includes('text/html')) {
         try {
           const { data } = await supabase.from('site_contents').select('value').eq('key', 'settings').single();
           const settings = data?.value;
@@ -129,7 +129,7 @@ async function startServer() {
       }
     });
   } else {
-    app.use(express.static(path.join(__dirname, "dist")));
+    app.use(express.static(path.join(__dirname, "dist"), { index: false }));
     
     app.get("*", async (req, res) => {
       let html = fs.readFileSync(path.join(__dirname, "dist", "index.html"), "utf-8");
