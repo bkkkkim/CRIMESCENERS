@@ -304,8 +304,9 @@ const ThemeDetail = () => {
                   <span>{theme.minPlayers}-{theme.maxPlayers}명</span>
                 </div>
               </div>
-              <div className="space-y-2 flex flex-col justify-end">
-                <p className="text-white font-bold text-sm">{theme.price.toLocaleString()}원 <span className="text-xs font-normal text-white/40">/ 1인</span></p>
+              <div className="space-y-2">
+                <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase">1인</p>
+                <p className="text-white font-bold text-sm">{theme.price.toLocaleString()}원</p>
               </div>
             </div>
           </div>
