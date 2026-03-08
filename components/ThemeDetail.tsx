@@ -149,13 +149,8 @@ const ThemeDetail = () => {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-0 md:gap-16">
-        <div className="px-6 md:px-0 mb-0 lg:mb-0">
-          <div className="relative aspect-[3/4] md:aspect-[16/10] overflow-hidden rounded-none md:rounded-[40px] shadow-2xl mb-6 md:mb-12 border border-white/5">
-            <img src={theme.posterUrl} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-transparent md:hidden" />
-          </div>
-          
+      <div className="grid grid-cols-1 lg:grid-cols-[500px_450px] gap-0 md:gap-8 lg:gap-16 justify-center">
+        <div className="px-6 md:px-0 mb-0 lg:mb-0 w-full">
           <div className="space-y-8">
             <div>
               <div className="flex items-center gap-3 mb-3 md:mb-6">
@@ -274,8 +269,8 @@ const ThemeDetail = () => {
                   </div>
                 )}
               </div>
-              <h1 className="text-4xl md:text-7xl font-bold mb-4 md:mb-8 tracking-tighter">{theme.title}</h1>
-              <p className="text-[#b3b3b3] text-lg md:text-xl leading-relaxed max-w-2xl opacity-80">{theme.synopsis}</p>
+              <h1 className="text-3xl md:text-4xl font-bold mb-4 md:mb-6 tracking-tighter">{theme.title}</h1>
+              <p className="text-[#b3b3b3] text-sm md:text-base leading-relaxed max-w-2xl opacity-80">{theme.synopsis}</p>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-5 gap-y-6 md:gap-y-8 gap-x-4 py-8 md:py-10 border-y border-white/5">
@@ -310,13 +305,18 @@ const ThemeDetail = () => {
                 </div>
               </div>
               <div className="space-y-2 flex flex-col justify-end">
-                <p className="text-white font-bold text-sm">{theme.price.toLocaleString()}원</p>
+                <p className="text-white font-bold text-sm">{theme.price.toLocaleString()}원 <span className="text-xs font-normal text-white/40">/ 1인</span></p>
               </div>
             </div>
           </div>
+
+          <div className="relative aspect-[2/3] overflow-hidden rounded-none md:rounded-[40px] shadow-2xl mt-6 md:mt-12 mb-12 border border-white/5">
+            <img src={theme.posterUrl} className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-transparent md:hidden" />
+          </div>
         </div>
 
-        <div className="bg-[#1a1a1a] p-6 md:p-10 rounded-none md:rounded-[40px] border-t md:border border-white/5 shadow-2xl">
+        <div className="bg-[#1a1a1a] p-6 md:p-10 rounded-none md:rounded-[40px] border-t md:border border-white/5 shadow-2xl lg:h-[calc(100%-3rem)]">
           <div className="flex items-center justify-between mb-10">
             <h2 className="text-xl font-bold flex items-center gap-2 tracking-tight"><CalendarIcon size={20}/> 날짜 선택</h2>
             <div className="flex items-center gap-6">
