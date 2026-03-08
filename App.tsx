@@ -151,6 +151,9 @@ const Footer = ({ settings }: { settings: AdminSettings }) => {
               <button onClick={() => setShowPrivacy(true)} className="hover:text-white transition-colors flex items-center gap-1.5">
                 <Shield size={12} /> 개인정보처리방침
               </button>
+              <Link to="/admin" className="hover:text-white transition-colors flex items-center gap-1.5">
+                <Settings size={12} /> ADMIN
+              </Link>
             </div>
           </div>
         </div>
