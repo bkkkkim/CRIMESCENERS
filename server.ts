@@ -148,7 +148,7 @@ async function startServer() {
         console.error("OG Injection failed", e);
       }
       
-      res.send(html);
+      res.status(200).set({ "Content-Type": "text/html" }).end(html);
     });
   }
 

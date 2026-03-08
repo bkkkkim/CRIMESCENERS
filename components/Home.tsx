@@ -101,13 +101,18 @@ const HeroBanner = ({ imageUrl }: { imageUrl: string }) => {
         </motion.div>
       </div>
 
-      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-4">
+      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-4 cursor-pointer" onClick={() => {
+        window.scrollTo({
+          top: window.innerHeight,
+          behavior: 'smooth'
+        });
+      }}>
         <motion.div
           animate={{ y: [0, 15, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           className="flex items-center justify-center"
         >
-          <ChevronDown size={48} strokeWidth={1} className="text-white/40" />
+          <ChevronDown size={48} strokeWidth={1} className="text-white/40 hover:text-white transition-colors" />
         </motion.div>
       </div>
     </div>
