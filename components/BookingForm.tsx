@@ -118,13 +118,9 @@ const BookingForm = () => {
 
       const result = await dataService.createBooking(bookingData);
       if (result) {
-        // Send notification
+        // Send notification via Aligo API
         try {
-          await fetch('/api/notify/booking', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ booking: result, settings })
-          });
+          await dataService.sendNotification('booking', result, settings);
         } catch (notifyErr) {
           console.error("Notification failed", notifyErr);
           // Don't block the user if notification fails

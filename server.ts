@@ -114,6 +114,19 @@ async function startServer() {
           html = await vite.transformIndexHtml(req.url, html);
           
           if (settings) {
+            if (settings.thumbnailUrl) {
+              // Replace og:image
+              html = html.replace(
+                /<meta property="og:image" content="[^"]*">/g,
+                `<meta property="og:image" content="${settings.thumbnailUrl}">`
+              );
+              // Replace twitter:image
+              html = html.replace(
+                /<meta name="twitter:image" content="[^"]*">/g,
+                `<meta name="twitter:image" content="${settings.thumbnailUrl}">`
+              );
+            }
+
             // Replace og:url with current domain if possible, or just keep it consistent
             const host = req.headers.host || "crime-sceners.com";
             const protocol = req.secure ? "https" : "http";
@@ -144,6 +157,19 @@ async function startServer() {
         const settings = data?.value;
         
         if (settings) {
+          if (settings.thumbnailUrl) {
+            // Replace og:image
+            html = html.replace(
+              /<meta property="og:image" content="[^"]*">/g,
+              `<meta property="og:image" content="${settings.thumbnailUrl}">`
+            );
+            // Replace twitter:image
+            html = html.replace(
+              /<meta name="twitter:image" content="[^"]*">/g,
+              `<meta name="twitter:image" content="${settings.thumbnailUrl}">`
+            );
+          }
+
           // Replace og:url
           const host = req.headers.host || "crime-sceners.com";
           const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';

@@ -38,13 +38,9 @@ const ContactForm = () => {
       
       await dataService.addInquiry(inquiryData);
       
-      // Send notification
+      // Send notification via Aligo API
       try {
-        await fetch('/api/notify/contact', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ inquiry: inquiryData, settings })
-        });
+        await dataService.sendNotification('contact', inquiryData, settings);
       } catch (notifyErr) {
         console.error("Notification failed", notifyErr);
       }
