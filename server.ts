@@ -113,12 +113,7 @@ async function startServer() {
           let html = fs.readFileSync(path.join(__dirname, "index.html"), "utf-8");
           html = await vite.transformIndexHtml(req.url, html);
           
-          if (settings?.thumbnailUrl) {
-            // Replace og:image
-            html = html.replace(
-              /<meta property="og:image" content="[^"]*">/g,
-              `<meta property="og:image" content="${settings.thumbnailUrl}">`
-            );
+          if (settings) {
             // Replace og:url with current domain if possible, or just keep it consistent
             const host = req.headers.host || "crime-sceners.com";
             const protocol = req.secure ? "https" : "http";
@@ -128,17 +123,6 @@ async function startServer() {
               /<meta property="og:url" content="[^"]*">/g,
               `<meta property="og:url" content="${currentUrl}">`
             );
-
-            // Replace twitter:image
-            html = html.replace(
-              /<meta name="twitter:image" content="[^"]*">/g,
-              `<meta name="twitter:image" content="${settings.thumbnailUrl}">`
-            );
-
-            // Add extra tags for better compatibility if they don't exist
-            if (!html.includes('twitter:card')) {
-              html = html.replace('</head>', `<meta name="twitter:card" content="summary_large_image">\n</head>`);
-            }
           }
           
           return res.status(200).set({ "Content-Type": "text/html" }).end(html);
@@ -159,12 +143,7 @@ async function startServer() {
         const { data } = await supabase.from('site_contents').select('value').eq('key', 'settings').single();
         const settings = data?.value;
         
-        if (settings?.thumbnailUrl) {
-          // Replace og:image
-          html = html.replace(
-            /<meta property="og:image" content="[^"]*">/g,
-            `<meta property="og:image" content="${settings.thumbnailUrl}">`
-          );
+        if (settings) {
           // Replace og:url
           const host = req.headers.host || "crime-sceners.com";
           const protocol = req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
@@ -174,17 +153,6 @@ async function startServer() {
             /<meta property="og:url" content="[^"]*">/g,
             `<meta property="og:url" content="${currentUrl}">`
           );
-
-          // Replace twitter:image
-          html = html.replace(
-            /<meta name="twitter:image" content="[^"]*">/g,
-            `<meta name="twitter:image" content="${settings.thumbnailUrl}">`
-          );
-
-          // Add extra tags for better compatibility
-          if (!html.includes('twitter:card')) {
-            html = html.replace('</head>', `<meta name="twitter:card" content="summary_large_image">\n</head>`);
-          }
         }
       } catch (e) {
         console.error("OG Injection failed", e);
