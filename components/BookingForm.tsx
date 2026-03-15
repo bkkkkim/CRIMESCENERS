@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { THEMES, DEFAULT_ADMIN_SETTINGS } from '../constants';
 import { ChevronLeft, CheckCircle2, Copy, Check } from 'lucide-react';
@@ -14,6 +14,11 @@ const BookingForm = () => {
   const [settings, setSettings] = useState<AdminSettings>(DEFAULT_ADMIN_SETTINGS);
   const [bookings, setBookings] = useState<BookingData[]>([]);
   const [copied, setCopied] = useState(false);
+
+  const nameRef = useRef<HTMLDivElement>(null);
+  const phoneRef = useRef<HTMLDivElement>(null);
+  const participantsRef = useRef<HTMLDivElement>(null);
+  const privacyRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -95,8 +100,11 @@ const BookingForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const isValid = validate(); // Set inline errors
     if (!handleValidationAlert()) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if (!isValid) {
       return;
     }
 
@@ -147,13 +155,31 @@ const BookingForm = () => {
 
   const handleValidationAlert = () => {
     const missing = [];
-    if (!formData.name.trim()) missing.push('예약자 성함');
-    if (!formData.phone.trim()) missing.push('휴대폰 번호');
-    if (formData.participants === 0) missing.push('참여 인원');
-    if (!agreed) missing.push('개인정보 수집 및 유의사항 확인 동의');
+    let firstMissingRef: React.RefObject<HTMLDivElement> | null = null;
+
+    if (!formData.name.trim()) {
+      missing.push('예약자 성함');
+      if (!firstMissingRef) firstMissingRef = nameRef;
+    }
+    if (!formData.phone.trim()) {
+      missing.push('휴대폰 번호');
+      if (!firstMissingRef) firstMissingRef = phoneRef;
+    }
+    if (formData.participants === 0) {
+      missing.push('참여 인원');
+      if (!firstMissingRef) firstMissingRef = participantsRef;
+    }
+    if (!agreed) {
+      missing.push('개인정보 수집 및 유의사항 확인 동의');
+      if (!firstMissingRef) firstMissingRef = privacyRef;
+    }
 
     if (missing.length > 0) {
       alert(`예약 신청 정보를 확인해주세요\n\n필수 입력 항목: ${missing.join(', ')}`);
+      if (firstMissingRef?.current) {
+        const y = firstMissingRef.current.getBoundingClientRect().top + window.scrollY - 100;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
       return false;
     }
 
@@ -161,6 +187,10 @@ const BookingForm = () => {
     const phoneDigits = formData.phone.replace(/[^0-9]/g, '');
     if (phoneDigits.length < 11) {
       alert('휴대폰 번호를 정확히 입력해주세요. (최소 11자리 숫자가 필요합니다)');
+      if (phoneRef.current) {
+        const y = phoneRef.current.getBoundingClientRect().top + window.scrollY - 100;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
       return false;
     }
 
@@ -187,7 +217,7 @@ const BookingForm = () => {
 
         <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-12">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-3">
+            <div ref={nameRef} className="space-y-3">
               <label className="text-xs font-medium text-white/40 tracking-normal uppercase">예약자 성함</label>
               {errors.name && <p className="text-[10px] text-red-500 font-bold animate-pulse">{errors.name}</p>}
               <input 
@@ -201,7 +231,7 @@ const BookingForm = () => {
                 }}
               />
             </div>
-            <div className="space-y-3">
+            <div ref={phoneRef} className="space-y-3">
               <label className="text-xs font-medium text-white/40 tracking-normal uppercase">휴대폰 번호</label>
               {errors.phone && <p className="text-[10px] text-red-500 font-bold animate-pulse">{errors.phone}</p>}
                 <input 
@@ -218,7 +248,7 @@ const BookingForm = () => {
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div ref={participantsRef} className="space-y-6">
             <div className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/10">
               <label className="text-xs font-medium text-white/40 tracking-normal uppercase">참여 인원 선택</label>
               <div className="flex items-center gap-3">
@@ -352,7 +382,7 @@ const BookingForm = () => {
                 </ul>
             </div>
 
-            <div className="flex items-start gap-4 p-6 bg-white/5 rounded-2xl border border-white/5">
+            <div ref={privacyRef} className="flex items-start gap-4 p-6 bg-white/5 rounded-2xl border border-white/5">
                 <div className="pt-0.5">
                     <input 
                         type="checkbox" 
