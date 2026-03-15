@@ -10,8 +10,8 @@ import LoadingScreen from './components/LoadingScreen';
 
 import AdminDashboard from './components/AdminDashboard';
 
-class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
-  constructor(props: {children: React.ReactNode}) {
+class ErrorBoundary extends React.Component<any, any> {
+  constructor(props: any) {
     super(props);
     this.state = { hasError: false };
   }

@@ -54,11 +54,7 @@ const BookingForm = () => {
           setTheme(found);
           const booked = savedBookings.reduce((sum, b) => sum + b.participantCount, 0);
           
-          if (booked > 0) {
-            setFormData(prev => ({ ...prev, participants: 0 }));
-          } else {
-            setFormData(prev => ({ ...prev, participants: found.minPlayers }));
-          }
+          setFormData(prev => ({ ...prev, participants: 0 }));
         }
       } catch (error) {
         console.error("Failed to load booking form data:", error);
@@ -87,10 +83,6 @@ const BookingForm = () => {
     } else {
       if (formData.participants > remainingCapacity) {
         newErrors.participants = `현재 예약 가능한 인원은 최대 ${remainingCapacity}명입니다.`;
-      }
-      // Only check minPlayers if it's the first booking for this slot
-      if (bookedCount === 0 && formData.participants < theme.minPlayers) {
-        newErrors.participants = `최소 ${theme.minPlayers}명 이상 예약 가능합니다.`;
       }
     }
 
