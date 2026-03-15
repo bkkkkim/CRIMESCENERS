@@ -45,7 +45,8 @@ const ThemeDetail = () => {
 
   const scrollToCalendar = () => {
     if (calendarRef.current) {
-      calendarRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const y = calendarRef.current.getBoundingClientRect().top + window.scrollY - 90;
+      window.scrollTo({ top: y, behavior: 'smooth' });
     }
   };
 
@@ -53,7 +54,8 @@ const ThemeDetail = () => {
     setSelectedDate(date);
     setTimeout(() => {
       if (timeSlotsRef.current) {
-        timeSlotsRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const y = timeSlotsRef.current.getBoundingClientRect().top + window.scrollY - 90;
+        window.scrollTo({ top: y, behavior: 'smooth' });
       }
     }, 100);
   };
