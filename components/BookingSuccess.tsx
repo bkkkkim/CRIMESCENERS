@@ -41,8 +41,19 @@ const BookingSuccess = () => {
         <div className="p-8 space-y-6">
           <div className="flex justify-between items-start">
             <span className="text-[#b3b3b3]">선택 시나리오</span>
-            <span className="font-bold text-white text-right">{theme.title}</span>
+            <div className="text-right">
+              <span className="font-bold text-white block">{theme.title}</span>
+              {booking.storeName && (
+                <span className="text-sm text-white/50">{booking.storeName}</span>
+              )}
+            </div>
           </div>
+          {booking.storeAddress && (
+            <div className="flex justify-between items-start">
+              <span className="text-[#b3b3b3]">매장 주소</span>
+              <span className="font-bold text-white text-right text-sm max-w-[60%]">{booking.storeAddress}</span>
+            </div>
+          )}
           <div className="flex justify-between items-center">
             <span className="text-[#b3b3b3]">예약자 성함</span>
             <span className="font-bold text-white">{name}</span>

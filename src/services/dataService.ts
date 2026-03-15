@@ -222,11 +222,25 @@ export const dataService = {
     const themes = await dataService.getThemes();
     const theme = themes.find(t => t.id === booking.themeId);
     
+    let storeName = undefined;
+    let storeAddress = undefined;
+    
+    if (theme && theme.storeId) {
+      const stores = await dataService.getStores();
+      const store = stores.find(s => s.id === theme.storeId);
+      if (store) {
+        storeName = store.name;
+        storeAddress = store.address;
+      }
+    }
+    
     const newBooking: BookingData = {
       ...booking,
       id: crypto.randomUUID(),
       themeTitle: theme?.title || 'Unknown Theme',
       themePoster: theme?.posterUrl || '',
+      storeName,
+      storeAddress,
       createdAt: new Date().toISOString(),
       status: booking.status || 'pending'
     };
@@ -270,80 +284,11 @@ export const dataService = {
     if (error) throw error;
   },
 
-  // --- Notifications (Client-side Aligo API call) ---
+  // --- Notifications ---
   sendNotification: async (type: 'booking' | 'contact' | 'reminder', data: any, settings: AdminSettings) => {
-    // 알리고 API 연동을 위한 환경변수 (Netlify 환경변수에 등록 필요)
-    // VITE_ALIGO_KEY, VITE_ALIGO_ID, VITE_ALIGO_SENDER
-    const ALIGO_KEY = import.meta.env.VITE_ALIGO_KEY;
-    const ALIGO_ID = import.meta.env.VITE_ALIGO_ID;
-    const ALIGO_SENDER = import.meta.env.VITE_ALIGO_SENDER || settings.managerPhone;
-
-    if (!ALIGO_KEY || !ALIGO_ID) {
-      console.warn("Aligo API keys are not configured. Skipping SMS notification.");
-      return;
-    }
-
-    try {
-      let targetPhone = '';
-      let message = '';
-
-      if (type === 'booking') {
-        // 1. 고객에게 발송
-        const customerPhone = data.userPhone.replace(/[^0-9]/g, '');
-        const customerMsg = settings.smsTemplates.onBooking.content
-          .replace(/{이름}/g, data.userName)
-          .replace(/{테마명}/g, data.themeTitle)
-          .replace(/{예약일시}/g, `${data.date} ${data.time}`)
-          .replace(/{인원}/g, `${data.participantCount}명`);
-
-        // 2. 관리자에게 발송
-        const adminPhone = settings.managerPhone.replace(/[^0-9]/g, '');
-        const adminMsg = `[신규 예약 알림]\n테마: ${data.themeTitle}\n일시: ${data.date} ${data.time}\n예약자: ${data.userName}\n연락처: ${data.userPhone}\n인원: ${data.participantCount}명`;
-
-        // 고객에게 문자 전송
-        if (settings.smsTemplates.onBooking.enabled) {
-          await dataService.sendAligoSMS(ALIGO_KEY, ALIGO_ID, ALIGO_SENDER, customerPhone, customerMsg);
-        }
-        // 관리자에게 문자 전송
-        await dataService.sendAligoSMS(ALIGO_KEY, ALIGO_ID, ALIGO_SENDER, adminPhone, adminMsg);
-
-      } else if (type === 'contact') {
-        const adminPhone = settings.managerPhone.replace(/[^0-9]/g, '');
-        const adminMsg = `[신규 문의 접수]\n작성자: ${data.author}\n내용: ${data.content.substring(0, 50)}...`;
-        await dataService.sendAligoSMS(ALIGO_KEY, ALIGO_ID, ALIGO_SENDER, adminPhone, adminMsg);
-      }
-    } catch (error) {
-      console.error("Failed to send SMS notification:", error);
-    }
-  },
-
-  sendAligoSMS: async (key: string, userId: string, sender: string, receiver: string, msg: string) => {
-    try {
-      const formData = new URLSearchParams();
-      formData.append('key', key);
-      formData.append('user_id', userId);
-      formData.append('sender', sender);
-      formData.append('receiver', receiver);
-      formData.append('msg', msg);
-
-      // CORS 이슈를 피하기 위해 Netlify Functions나 Edge Functions를 사용하는 것이 가장 좋지만,
-      // 프론트엔드에서 직접 호출할 경우 브라우저 보안 정책에 막힐 수 있습니다.
-      // 실제 서비스 시에는 Supabase Edge Functions를 권장합니다.
-      const response = await fetch('https://apis.aligo.in/send/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: formData.toString()
-      });
-      
-      const result = await response.json();
-      console.log("Aligo SMS Result:", result);
-      return result;
-    } catch (error) {
-      console.error("Aligo API Error:", error);
-      throw error;
-    }
+    // Netlify 환경에서는 서버가 없으므로 프론트엔드에서 직접 알리고 API를 호출할 수 없습니다. (IP 제한 문제)
+    // 따라서 이 함수는 현재 작동하지 않으며, Zapier나 Supabase Edge Functions를 통한 백엔드 연동이 필요합니다.
+    console.log(`[Notification Placeholder] Type: ${type} - Please configure Zapier or Edge Functions for actual SMS delivery.`);
   },
 
   // --- Helper ---

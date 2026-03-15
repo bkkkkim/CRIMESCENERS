@@ -283,7 +283,10 @@ const AdminDashboard = () => {
                                         {booking.status === 'confirmed' && <span className="bg-blue-500 text-white text-[10px] px-2 py-0.5 rounded">예약 완료</span>}
                                         {booking.isCloseRequested && <span className="bg-[#dc2626] text-white text-[10px] font-bold px-2 py-0.5 rounded animate-pulse">마감 요청됨</span>}
                                       </div>
-                                      <h3 className="text-xl font-bold mb-2">{booking.themeTitle}</h3>
+                                      <h3 className="text-xl font-bold mb-2">
+                                        {booking.themeTitle}
+                                        {booking.storeName && <span className="text-sm font-normal text-white/50 ml-2">({booking.storeName})</span>}
+                                      </h3>
                                       <div className="flex flex-wrap gap-4 text-sm text-white/40">
                                         <span className="flex items-center gap-1"><User size={14}/> {booking.userName}</span>
                                         <span className="flex items-center gap-1"><Phone size={14}/> {booking.userPhone}</span>

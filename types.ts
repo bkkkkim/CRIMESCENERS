@@ -82,6 +82,8 @@ export interface BookingData {
   themeId: string;
   themeTitle: string;
   themePoster: string;
+  storeName?: string;
+  storeAddress?: string;
   date: string;
   time: string;
   userName: string;
