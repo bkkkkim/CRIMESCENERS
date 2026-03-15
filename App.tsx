@@ -10,6 +10,43 @@ import LoadingScreen from './components/LoadingScreen';
 
 import AdminDashboard from './components/AdminDashboard';
 
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
+  constructor(props: {children: React.ReactNode}) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error("Caught error:", error, errorInfo);
+    // If it's a chunk load error, reload the page
+    if (error?.name === 'ChunkLoadError' || error?.message?.includes('dynamically imported module') || error?.message?.includes('Failed to fetch dynamically imported module')) {
+      window.location.reload();
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-[#121212] text-white p-6 text-center">
+          <h1 className="text-2xl font-bold mb-4">일시적인 오류가 발생했습니다.</h1>
+          <p className="text-[#b3b3b3] mb-8">페이지를 새로고침하여 다시 시도해주세요.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-6 py-3 bg-red-600 rounded-lg font-bold hover:bg-red-700 transition-colors"
+          >
+            새로고침
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // Lazy load components
 const Home = lazy(() => import('./components/Home'));
 const ThemeReservation = lazy(() => import('./components/ThemeReservation'));
@@ -338,25 +375,27 @@ const AppContent = ({ loading, settings, setSettings }: { loading: boolean, sett
       </AnimatePresence>
       
       {!isAdminPage && <Header settings={settings} />}
-      <Suspense fallback={<LoadingScreen logoUrl={settings.logoUrl} />}>
-        <motion.main 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1 }}
-          className="flex-grow"
-        >
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/reservation" element={<ThemeReservation />} />
-            <Route path="/theme/:id" element={<ThemeDetail />} />
-            <Route path="/booking/:themeId/:date/:time" element={<BookingForm />} />
-            <Route path="/success" element={<BookingSuccess />} />
-            <Route path="/contact" element={<ContactForm />} />
-            <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
-            <Route path="/info" element={<NoticeBoard />} />
-          </Routes>
-        </motion.main>
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={<LoadingScreen logoUrl={settings.logoUrl} />}>
+          <motion.main 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1 }}
+            className="flex-grow"
+          >
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/reservation" element={<ThemeReservation />} />
+              <Route path="/theme/:id" element={<ThemeDetail />} />
+              <Route path="/booking/:themeId/:date/:time" element={<BookingForm />} />
+              <Route path="/success" element={<BookingSuccess />} />
+              <Route path="/contact" element={<ContactForm />} />
+              <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
+              <Route path="/info" element={<NoticeBoard />} />
+            </Routes>
+          </motion.main>
+        </Suspense>
+      </ErrorBoundary>
       {!isAdminPage && <Footer settings={settings} />}
     </div>
   );

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { THEMES, DEFAULT_ADMIN_SETTINGS, STORES } from '../constants';
 import { isWeekendOrHoliday } from '../src/utils/holiday';
@@ -23,6 +23,40 @@ const ThemeDetail = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [settings, setSettings] = useState<AdminSettings>(DEFAULT_ADMIN_SETTINGS);
+
+  const calendarRef = useRef<HTMLDivElement>(null);
+  const timeSlotsRef = useRef<HTMLDivElement>(null);
+  const [showFloatingBtn, setShowFloatingBtn] = useState(true);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (calendarRef.current) {
+        const rect = calendarRef.current.getBoundingClientRect();
+        // Hide the button when the top of the calendar is within 150px of the bottom of the viewport
+        setShowFloatingBtn(rect.top > window.innerHeight - 150);
+      } else {
+        setShowFloatingBtn(window.scrollY < 500);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Initial check
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToCalendar = () => {
+    if (calendarRef.current) {
+      calendarRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
+    setTimeout(() => {
+      if (timeSlotsRef.current) {
+        timeSlotsRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -91,7 +125,7 @@ const ThemeDetail = () => {
         <button
           key={d}
           disabled={isPast}
-          onClick={() => setSelectedDate(date)}
+          onClick={() => handleDateSelect(date)}
           className={`aspect-square rounded-xl border transition-all flex flex-col items-center justify-center relative group ${
             isPast ? 'opacity-20 cursor-not-allowed' :
             isSelected ? 'bg-white border-white text-black font-bold shadow-xl scale-105' : 
@@ -317,7 +351,7 @@ const ThemeDetail = () => {
           </div>
         </div>
 
-        <div className="bg-[#1a1a1a] p-6 md:p-10 rounded-none md:rounded-[40px] border-t md:border border-white/5 shadow-2xl lg:h-[calc(100%-3rem)]">
+        <div ref={calendarRef} className="bg-[#1a1a1a] p-6 md:p-10 rounded-none md:rounded-[40px] border-t md:border border-white/5 shadow-2xl lg:h-[calc(100%-3rem)]">
           <div className="flex items-center justify-between mb-10">
             <h2 className="text-xl font-bold flex items-center gap-2 tracking-tight"><CalendarIcon size={20}/> 날짜 선택</h2>
             <div className="flex items-center gap-6">
@@ -345,7 +379,7 @@ const ThemeDetail = () => {
           </div>
 
           {selectedDate && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+            <div ref={timeSlotsRef} className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold flex items-center gap-2">
                   <Clock size={18} /> 시간 선택
@@ -388,6 +422,25 @@ const ThemeDetail = () => {
           )}
         </div>
       </div>
+
+      {/* Mobile Floating Button */}
+      <AnimatePresence>
+        {showFloatingBtn && (
+          <motion.div 
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="md:hidden fixed bottom-6 left-6 right-6 z-40"
+          >
+            <button 
+              onClick={scrollToCalendar}
+              className="w-full py-4 bg-white text-black font-bold rounded-full shadow-2xl flex items-center justify-center gap-2 text-sm"
+            >
+              <CalendarIcon size={18} /> 예약 날짜 선택하기
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

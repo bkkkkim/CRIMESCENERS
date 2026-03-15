@@ -343,7 +343,7 @@ const BookingForm = () => {
             />
           </div>
 
-          <div className="space-y-8 pt-8 border-t border-white/5">
+          <div className="space-y-8 pt-8 border-t border-white/5 pb-24 md:pb-0">
             <div className="space-y-4">
                 <h4 className="text-sm font-bold text-white/60">예약 유의사항</h4>
                 <ul className="text-xs text-[#b3b3b3] space-y-2 list-disc pl-4 leading-relaxed">
@@ -373,17 +373,19 @@ const BookingForm = () => {
                 </label>
             </div>
 
-            <button 
-              type="submit"
-              disabled={loading}
-              className={`w-full py-6 font-medium rounded-none text-sm transition-all shadow-2xl flex items-center justify-center gap-3 tracking-normal uppercase font-en ${
-                isFormValid && !loading
-                    ? 'bg-white text-black hover:bg-neutral-200 shadow-black/50' 
-                    : 'bg-white/5 text-white/20 cursor-not-allowed shadow-none'
-              }`}
-            >
-              {loading ? 'PROCESSING...' : <><CheckCircle2 size={20} /> CONFIRM RESERVATION</>}
-            </button>
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#1a1a1a] border-t border-white/10 z-50 md:relative md:p-0 md:bg-transparent md:border-none">
+              <button 
+                type="submit"
+                disabled={loading}
+                className={`w-full py-4 md:py-6 font-bold rounded-full md:rounded-none text-sm md:text-base transition-all shadow-2xl flex items-center justify-center gap-3 tracking-normal uppercase font-en ${
+                  isFormValid && !loading
+                      ? 'bg-white text-black hover:bg-neutral-200 shadow-black/50' 
+                      : 'bg-white/5 text-white/20 cursor-not-allowed shadow-none'
+                }`}
+              >
+                {loading ? 'PROCESSING...' : <><CheckCircle2 size={20} /> CONFIRM RESERVATION</>}
+              </button>
+            </div>
           </div>
         </form>
       </div>
