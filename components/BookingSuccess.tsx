@@ -84,7 +84,7 @@ const BookingSuccess = () => {
             <div className="flex items-center gap-2 text-[#b3b3b3]">
               <CreditCard size={18} /> 결제 방식
             </div>
-            <span className="font-bold text-white">{paymentMethod === 'bank-transfer' ? '계좌이체 (선입금)' : '현장 결제'}</span>
+            <span className="font-bold text-white">{(paymentMethod === 'bank-transfer' || paymentMethod === 'deposit') ? '계좌이체 (선입금)' : '현장 결제'}</span>
           </div>
           {notes && (
             <div className="pt-4 border-t border-white/5">

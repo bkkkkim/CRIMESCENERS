@@ -291,7 +291,7 @@ const AdminDashboard = () => {
                                         <span className="flex items-center gap-1"><User size={14}/> {booking.userName}</span>
                                         <span className="flex items-center gap-1"><Phone size={14}/> {booking.userPhone}</span>
                                         <span className="flex items-center gap-1"><Users size={14}/> {booking.participantCount}명</span>
-                                        <span className="flex items-center gap-1"><CreditCard size={14}/> {booking.paymentMethod === 'bank-transfer' ? '계좌이체' : '현장결제'}</span>
+                                        <span className="flex items-center gap-1"><CreditCard size={14}/> {(booking.paymentMethod === 'bank-transfer' || booking.paymentMethod === 'deposit') ? '계좌이체' : '현장결제'}</span>
                                       </div>
                                       <div className="mt-3 pt-3 border-t border-white/5 flex items-center gap-2 text-[10px] text-white/20 uppercase tracking-widest font-mono">
                                         <Clock size={10} /> 신청일시: {new Date(booking.createdAt).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })}

@@ -110,7 +110,7 @@ const BookingForm = () => {
         userPhone: formData.phone,
         participantCount: formData.participants,
         totalPrice: theme.price * formData.participants,
-        paymentMethod: formData.paymentMethod === 'bank-transfer' ? 'deposit' : 'onsite',
+        paymentMethod: formData.paymentMethod,
         status: 'pending',
         isCloseRequested: formData.isCloseRequested,
         notes: formData.notes
