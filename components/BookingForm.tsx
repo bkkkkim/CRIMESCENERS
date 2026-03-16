@@ -24,7 +24,7 @@ const BookingForm = () => {
     name: '',
     phone: '',
     participants: 2,
-    paymentMethod: 'on-site' as 'on-site' | 'bank-transfer',
+    paymentMethod: 'bank-transfer' as 'on-site' | 'bank-transfer',
     isCloseRequested: false,
     notes: ''
   });
@@ -190,7 +190,7 @@ const BookingForm = () => {
   };
 
   return (
-    <div className="pt-24 md:pt-32 pb-24 px-0 md:px-6 max-w-3xl mx-auto">
+    <div className="pt-24 md:pt-32 pb-0 md:pb-24 px-0 md:px-6 max-w-3xl mx-auto">
       <div className="px-6 md:px-0">
         <Link to={`/theme/${themeId}`} className="inline-flex items-center text-[#b3b3b3] hover:text-white mb-4 md:mb-8 gap-1 text-sm font-bold tracking-normal uppercase">
           <ChevronLeft size={16} /> Back to Scenarios
@@ -289,6 +289,17 @@ const BookingForm = () => {
             <div className="grid grid-cols-2 gap-4">
               <button
                 type="button"
+                onClick={() => setFormData({...formData, paymentMethod: 'bank-transfer'})}
+                className={`py-5 rounded-2xl border font-bold transition-all flex items-center justify-center gap-2 ${
+                  formData.paymentMethod === 'bank-transfer'
+                    ? 'bg-white border-white text-black shadow-xl'
+                    : 'bg-transparent border-white/10 text-[#b3b3b3] hover:border-white/30'
+                }`}
+              >
+                선입금 (계좌이체)
+              </button>
+              <button
+                type="button"
                 onClick={() => setFormData({...formData, paymentMethod: 'on-site'})}
                 className={`py-5 rounded-2xl border font-bold transition-all flex items-center justify-center gap-2 ${
                   formData.paymentMethod === 'on-site'
@@ -297,17 +308,6 @@ const BookingForm = () => {
                 }`}
               >
                 현장 결제
-              </button>
-              <button
-                type="button"
-                onClick={() => setFormData({...formData, paymentMethod: 'bank-transfer'})}
-                className={`py-5 rounded-2xl border font-bold transition-all flex items-center justify-center gap-2 ${
-                  formData.paymentMethod === 'bank-transfer'
-                    ? 'bg-white border-white text-black shadow-xl'
-                    : 'bg-transparent border-white/10 text-[#b3b3b3] hover:border-white/30'
-                }`}
-              >
-                계좌이체
               </button>
             </div>
 
@@ -346,8 +346,8 @@ const BookingForm = () => {
                 />
               </div>
               <label htmlFor="closeBooking" className="cursor-pointer">
-                <p className="font-bold text-[#dc2626]/60 text-sm mb-1">예약 마감 신청 (Private Play)</p>
-                <p className="text-sm text-[#b3b3b3] leading-relaxed opacity-40">
+                <p className="font-bold text-[#dc2626] text-sm mb-1">예약 마감 신청 (Private Play)</p>
+                <p className="text-sm text-[#b3b3b3] leading-relaxed opacity-90">
                   최소 인원 조건이 충족되었습니다. 모르는 사람과 함께 플레이하는 것을 원치 않으시면 체크해주세요. 체크 시 해당 시간대는 즉시 예약 마감 처리됩니다.
                 </p>
               </label>
@@ -365,7 +365,7 @@ const BookingForm = () => {
             />
           </div>
 
-          <div className="space-y-8 pt-8 border-t border-white/5 pb-24 md:pb-0">
+          <div className="space-y-8 pt-8 border-t border-white/5">
             <div className="space-y-4">
                 <h4 className="text-sm font-bold text-white/60">예약 유의사항</h4>
                 <ul className="text-xs text-[#b3b3b3] space-y-2 list-disc pl-4 leading-relaxed">

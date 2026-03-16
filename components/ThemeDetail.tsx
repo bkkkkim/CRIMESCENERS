@@ -54,7 +54,8 @@ const ThemeDetail = () => {
     setSelectedDate(date);
     setTimeout(() => {
       if (timeSlotsRef.current) {
-        const y = timeSlotsRef.current.getBoundingClientRect().top + window.scrollY - 90;
+        const offset = window.innerWidth < 768 ? 90 : 120;
+        const y = timeSlotsRef.current.getBoundingClientRect().top + window.scrollY - offset;
         window.scrollTo({ top: y, behavior: 'smooth' });
       }
     }, 100);
