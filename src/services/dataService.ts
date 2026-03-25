@@ -234,9 +234,13 @@ export const dataService = {
       }
     }
     
+    const generatedId = crypto.randomUUID();
+    const bookingNumber = generatedId.split('-')[0].toUpperCase();
+
     const newBooking: BookingData = {
       ...booking,
-      id: crypto.randomUUID(),
+      id: generatedId,
+      bookingNumber,
       themeTitle: theme?.title || 'Unknown Theme',
       themePoster: theme?.posterUrl || '',
       storeName,
@@ -247,7 +251,7 @@ export const dataService = {
 
     // Omit columns that might not exist in the Supabase schema to avoid 400 errors
     // BUT themeTitle and themePoster are required by the schema (not-null constraint)
-    const { totalPrice, ...insertData } = newBooking as any;
+    const { totalPrice, bookingNumber: omittedBookingNumber, ...insertData } = newBooking as any;
 
     const { error } = await supabase
       .from('reservations')

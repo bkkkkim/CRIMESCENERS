@@ -109,7 +109,12 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
       '/intro2.jpg',
       '/intro3.jpg'
     ]
-  }
+  },
+  bookingNotice: `[예약 및 환불 규정]
+- 예약금 입금 후 예약이 확정됩니다.
+- 이용일 3일 전 취소 시 100% 환불
+- 이용일 2일 전 취소 시 50% 환불
+- 이용일 1일 전 및 당일 취소 시 환불 불가`
 };
 
 export const INITIAL_NOTICES: Notice[] = [

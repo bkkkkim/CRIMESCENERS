@@ -221,7 +221,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                 display: 'flex',
               }}
             >
-              {displayThemes.map((theme) => {
+              {displayThemes.map((theme, index) => {
                 const store = stores.find(s => s.id === theme.storeId);
                 const now = new Date();
                 const startDate = theme.startDate ? new Date(theme.startDate) : null;
@@ -235,7 +235,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
 
                 return (
                   <Link 
-                    key={theme.id} 
+                    key={`${theme.id}-${index}`} 
                     to={isComingSoon ? '#' : `/theme/${theme.id}`}
                     className={`
                       ${displayThemes.length === 1 
@@ -256,13 +256,14 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                         referrerPolicy="no-referrer"
                       />
                       {isComingSoon && (
+                        <div className="absolute inset-0 bg-black/20 z-10" />
+                      )}
+                      {isComingSoon && (
                         <div className="absolute inset-0 flex items-center justify-center z-20">
-                          <div className="bg-black/80 backdrop-blur-md px-6 py-3 rounded-xl border border-white/20">
-                            <span className="text-xl font-medium tracking-normal text-white font-en">COMING SOON</span>
-                          </div>
+                          <span className="text-2xl font-bold tracking-wider text-white font-en drop-shadow-lg">COMING SOON</span>
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 z-0" />
                     </div>
                     
                     <div className="text-left">
@@ -272,7 +273,9 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                           <span className="text-white/40 text-xs font-medium uppercase tracking-normal">{store.name}</span>
                         )}
                       </div>
-                      <h3 className="text-xl md:text-2xl font-bold mb-1.5 md:mb-2 tracking-tight line-clamp-1">{theme.title}</h3>
+                      <h3 className="text-xl md:text-2xl font-bold mb-1.5 md:mb-2 tracking-tight line-clamp-1 flex items-center gap-2">
+                        {theme.title}
+                      </h3>
                       <div className="flex flex-col gap-4">
                         <div className="flex items-center gap-2 text-white/60 text-sm font-bold">
                           <span>{theme.price.toLocaleString()}원</span>
@@ -357,9 +360,9 @@ const StoreSection = ({ stores }: { stores: Store[] }) => {
       </div>
 
       <div className="flex flex-wrap justify-center gap-2 md:gap-3 mb-8 md:mb-12">
-        {stores.map(store => (
+        {stores.map((store, index) => (
           <button
-            key={store.id}
+            key={`${store.id}-${index}`}
             onClick={() => setSelectedStoreId(store.id)}
             className={`px-6 md:px-8 py-2 md:py-3 rounded-full text-xs md:text-sm font-bold transition-all tracking-tight ${
               selectedStoreId === store.id 

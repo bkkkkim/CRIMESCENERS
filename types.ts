@@ -75,10 +75,12 @@ export interface AdminSettings {
     heroImageUrl: string;
     introImages: string[];
   };
+  bookingNotice: string;
 }
 
 export interface BookingData {
   id: string;
+  bookingNumber?: string;
   themeId: string;
   themeTitle: string;
   themePoster: string;

@@ -45,11 +45,11 @@ const NoticeBoard = () => {
         <p className="text-[#d1d1d1] text-sm md:text-base opacity-60">크라임씬 이용 안내 및 매장 정보</p>
       </div>
 
-      <div className="flex justify-center mb-12">
-        <div className="inline-flex bg-white/5 p-1.5 rounded-2xl border border-white/5 overflow-x-auto no-scrollbar max-w-full">
+      <div className="flex justify-center mb-8 md:mb-10">
+        <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 w-full max-w-md">
           <button
             onClick={() => setActiveTab('method')}
-            className={`px-8 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
               activeTab === 'method' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'
             }`}
           >
@@ -57,7 +57,7 @@ const NoticeBoard = () => {
           </button>
           <button
             onClick={() => setActiveTab('stores')}
-            className={`px-8 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
               activeTab === 'stores' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'
             }`}
           >
@@ -138,8 +138,8 @@ const NoticeBoard = () => {
                   </div>
                 )}
 
-                {notices.filter(n => !n.title.includes('크라임씨너스 이용 가이드')).map((notice) => (
-                  <div key={notice.id} className="bg-[#1a1a1a] rounded-[32px] border border-white/5 overflow-hidden">
+                {notices.filter(n => !n.title.includes('크라임씨너스 이용 가이드')).map((notice, index) => (
+                  <div key={`${notice.id}-${index}`} className="bg-[#1a1a1a] rounded-[32px] border border-white/5 overflow-hidden">
                     <button 
                       onClick={() => setExpandedNotice(expandedNotice === notice.id ? null : notice.id)}
                       className="w-full p-8 text-left flex justify-between items-center group"
@@ -180,8 +180,8 @@ const NoticeBoard = () => {
               'grid-cols-1 md:grid-cols-2'
             }`}
           >
-            {stores.map((store) => (
-              <div key={store.id} className="bg-[#1a1a1a] rounded-[40px] overflow-hidden border border-white/5 group">
+            {stores.map((store, index) => (
+              <div key={`${store.id}-${index}`} className="bg-[#1a1a1a] rounded-[40px] overflow-hidden border border-white/5 group">
                 <div className="aspect-video overflow-hidden">
                   <img 
                     src={store.imageUrl || "https://picsum.photos/id/1031/800/600?grayscale"} 

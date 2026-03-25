@@ -368,10 +368,16 @@ const BookingForm = () => {
           <div className="space-y-8 pt-8 border-t border-white/5">
             <div className="space-y-4">
                 <h4 className="text-sm font-bold text-white/60">예약 유의사항</h4>
-                <ul className="text-xs text-[#b3b3b3] space-y-2 list-disc pl-4 leading-relaxed">
-                    <li>예약 완료 즉시 입력하신 연락처로 안내해 드리며, 만약 연락처 정보를 잘못 입력하시거나 연락을 못받으신 경우 매장으로 연락해주세요.</li>
-                    <li>예약일 전날 밤 10시까지 입금안내와 매장 이용 안내 전달할 예정입니다. 당일 예약 후 반복하여 취소하시는 경우 향후 매장 이용에 제한이 생길 수 있습니다.</li>
-                </ul>
+                {settings.bookingNotice ? (
+                  <div className="text-xs text-[#b3b3b3] space-y-2 leading-relaxed whitespace-pre-wrap">
+                    {settings.bookingNotice}
+                  </div>
+                ) : (
+                  <ul className="text-xs text-[#b3b3b3] space-y-2 list-disc pl-4 leading-relaxed">
+                      <li>예약 완료 즉시 입력하신 연락처로 안내해 드리며, 만약 연락처 정보를 잘못 입력하시거나 연락을 못받으신 경우 매장으로 연락해주세요.</li>
+                      <li>예약일 전날 밤 10시까지 입금안내와 매장 이용 안내 전달할 예정입니다. 당일 예약 후 반복하여 취소하시는 경우 향후 매장 이용에 제한이 생길 수 있습니다.</li>
+                  </ul>
+                )}
             </div>
 
             <div ref={privacyRef} className="flex items-start gap-4 p-6 bg-white/5 rounded-2xl border border-white/5">

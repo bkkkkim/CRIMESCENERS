@@ -224,8 +224,8 @@ const AdminDashboard = () => {
                       className="bg-white/5 border border-white/10 text-white text-xs rounded-lg p-2 outline-none focus:border-white/30"
                     >
                       <option value="">모든 테마</option>
-                      {themes.map(t => (
-                        <option key={t.id} value={t.title}>{t.title}</option>
+                      {themes.map((t, index) => (
+                        <option key={`${t.id}-${index}`} value={t.title}>{t.title}</option>
                       ))}
                     </select>
                     <input 
@@ -268,8 +268,8 @@ const AdminDashboard = () => {
 
                         return (
                           <>
-                            {paged.map((booking) => (
-                              <div key={booking.id} className={`bg-[#1a1a1a] p-6 rounded-2xl border border-white/5 flex flex-col gap-6 transition-opacity ${booking.status === 'cancelled' ? 'opacity-40 grayscale' : ''}`}>
+                            {paged.map((booking, index) => (
+                              <div key={`${booking.id}-${index}`} className={`bg-[#1a1a1a] p-6 rounded-2xl border border-white/5 flex flex-col gap-6 transition-opacity ${booking.status === 'cancelled' ? 'opacity-40 grayscale' : ''}`}>
                                 <div className="flex flex-col md:flex-row justify-between gap-6">
                                   <div className="flex gap-6">
                                     <div className="w-20 h-24 rounded-lg overflow-hidden shrink-0 border border-white/10">
@@ -288,6 +288,7 @@ const AdminDashboard = () => {
                                         {booking.storeName && <span className="text-sm font-normal text-white/50 ml-2">({booking.storeName})</span>}
                                       </h3>
                                       <div className="flex flex-wrap gap-4 text-sm text-white/40">
+                                        <span className="flex items-center gap-1 font-bold text-emerald-400">#{booking.bookingNumber || booking.id.split('-')[0].toUpperCase()}</span>
                                         <span className="flex items-center gap-1"><User size={14}/> {booking.userName}</span>
                                         <span className="flex items-center gap-1"><Phone size={14}/> {booking.userPhone}</span>
                                         <span className="flex items-center gap-1"><Users size={14}/> {booking.participantCount}명</span>
@@ -347,8 +348,8 @@ const AdminDashboard = () => {
                 <div className="bg-[#1a1a1a] p-8 rounded-3xl border border-white/5">
                   <p className="text-sm text-white/40 mb-8 flex items-center gap-2"><AlertCircle size={16} /> 예약이 이미 찬 슬롯 외에, 매장 사정으로 닫아야 하는 슬롯을 클릭하여 마감하세요.</p>
                   <div className="space-y-10">
-                    {themes.map(t => (
-                      <div key={t.id} className="space-y-4">
+                    {themes.map((t, index) => (
+                      <div key={`${t.id}-${index}`} className="space-y-4">
                         <h3 className="font-bold text-lg text-white/80">{t.title}</h3>
                         <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-8 gap-3">
                           {[0, 1, 2, 3, 4, 5, 6].map(dayOffset => {
@@ -403,8 +404,8 @@ const AdminDashboard = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {inquiries.map((inquiry) => (
-                    <div key={inquiry.id} className="bg-[#1a1a1a] p-6 rounded-2xl border border-white/5 space-y-4">
+                  {inquiries.map((inquiry, index) => (
+                    <div key={`${inquiry.id}-${index}`} className="bg-[#1a1a1a] p-6 rounded-2xl border border-white/5 space-y-4">
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="text-sm font-bold text-white/60 mb-1">{inquiry.author}</p>
@@ -452,7 +453,7 @@ const AdminDashboard = () => {
               </div>
               <div className="grid grid-cols-1 gap-6">
                 {themes.map((theme, idx) => (
-                  <div key={theme.id} className="bg-[#1a1a1a] p-8 rounded-3xl border border-white/5 grid grid-cols-1 md:grid-cols-[200px_1fr] gap-8">
+                  <div key={`${theme.id}-${idx}`} className="bg-[#1a1a1a] p-8 rounded-3xl border border-white/5 grid grid-cols-1 md:grid-cols-[200px_1fr] gap-8">
                     <div className="space-y-4">
                       <div className="aspect-[3/4] rounded-xl overflow-hidden border border-white/10 bg-black flex items-center justify-center relative group">
                         {theme.posterUrl ? (
@@ -503,8 +504,8 @@ const AdminDashboard = () => {
                             }}
                           >
                             <option value="">매장 선택 없음</option>
-                            {stores.map(s => (
-                              <option key={s.id} value={s.id}>{s.name}</option>
+                            {stores.map((s, index) => (
+                              <option key={`${s.id}-${index}`} value={s.id}>{s.name}</option>
                             ))}
                           </select>
                         </div>
@@ -795,7 +796,7 @@ const AdminDashboard = () => {
               </div>
               <div className="grid grid-cols-1 gap-6">
                 {stores.map((store, idx) => (
-                  <div key={store.id} className="bg-[#1a1a1a] p-8 rounded-3xl border border-white/5 space-y-6">
+                  <div key={`${store.id}-${idx}`} className="bg-[#1a1a1a] p-8 rounded-3xl border border-white/5 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="text-xs text-white/40 mb-1 block">매장 명</label>
@@ -1032,6 +1033,14 @@ const AdminDashboard = () => {
 
                     <div className="grid grid-cols-1 gap-6 p-6 bg-black/40 rounded-2xl border border-white/5">
                       <h3 className="font-bold text-white/60 text-sm uppercase tracking-widest">이용약관 및 개인정보처리방침</h3>
+                      <div>
+                        <label className="text-xs text-white/40 mb-1 block">예약 및 환불 규정 (예약 페이지 노출)</label>
+                        <textarea className="w-full bg-black border border-white/10 p-4 rounded-xl text-sm outline-none focus:border-white" rows={6}
+                          value={settings.bookingNotice || ''} onChange={e => {
+                            setSettings({...settings, bookingNotice: e.target.value});
+                            setIsDirty(true);
+                          }} />
+                      </div>
                       <div>
                         <label className="text-xs text-white/40 mb-1 block">이용약관</label>
                         <textarea className="w-full bg-black border border-white/10 p-4 rounded-xl text-sm outline-none focus:border-white" rows={6}

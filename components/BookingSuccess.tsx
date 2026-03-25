@@ -48,6 +48,10 @@ const BookingSuccess = () => {
               )}
             </div>
           </div>
+          <div className="flex justify-between items-center">
+            <span className="text-[#b3b3b3]">예약 번호</span>
+            <span className="font-bold text-emerald-400">{booking.bookingNumber || booking.id.split('-')[0].toUpperCase()}</span>
+          </div>
           {booking.storeAddress && (
             <div className="flex justify-between items-start">
               <span className="text-[#b3b3b3]">매장 주소</span>
