@@ -44,6 +44,21 @@ export interface Inquiry {
   createdAt: string;
 }
 
+export interface HeroSlide {
+  id: string;
+  imageUrl: string;
+  title: string;
+  subtitle: string;
+  buttonText: string;
+  buttonLink: string;
+}
+
+export interface PopupSettings {
+  isEnabled: boolean;
+  imageUrl: string;
+  linkUrl: string;
+}
+
 export interface AdminSettings {
   managerPhone: string;
   managerEmail: string;
@@ -72,9 +87,13 @@ export interface AdminSettings {
     dayBefore: { content: string; time: string; enabled: boolean };
   };
   homeConfig: {
-    heroImageUrl: string;
+    heroImageUrl: string; // Keep for backward compatibility or remove? Let's keep it but add heroSlides
+    heroSlides: HeroSlide[];
+    introTitle: string;
+    introDescription: string;
     introImages: string[];
   };
+  popupSettings: PopupSettings;
   bookingNotice: string;
 }
 

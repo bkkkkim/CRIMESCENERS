@@ -1,5 +1,4 @@
 import express from "express";
-import { createServer as createViteServer } from "vite";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -98,6 +97,7 @@ async function startServer() {
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -149,7 +149,7 @@ async function startServer() {
   } else {
     app.use(express.static(path.join(__dirname, "dist"), { index: false }));
     
-    app.get("*", async (req, res) => {
+    app.get('*all', async (req, res) => {
       let html = fs.readFileSync(path.join(__dirname, "dist", "index.html"), "utf-8");
       
       try {

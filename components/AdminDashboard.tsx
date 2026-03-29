@@ -8,7 +8,7 @@ import {
   Save, Plus, Trash2, LayoutDashboard, Calendar, FileText, Settings, 
   User, Phone, Users, Clock, MessageSquare, XCircle, Home as HomeIcon, 
   CalendarX, CheckCircle, AlertCircle, Upload, CreditCard, Copy, Check,
-  Store as StoreIcon, Globe, MapPin, Send, Mail
+  Store as StoreIcon, Globe, MapPin, Send, Mail, GripVertical
 } from 'lucide-react';
 
 import { compressImage } from '../src/utils/imageUtils';
@@ -30,6 +30,7 @@ const AdminDashboard = () => {
   const [searchTheme, setSearchTheme] = useState('');
   const [sortOrder, setSortOrder] = useState<'createdAt' | 'gameDate'>('createdAt');
   const [currentPage, setCurrentPage] = useState(1);
+  const [draggedSlideIndex, setDraggedSlideIndex] = useState<number | null>(null);
   const itemsPerPage = 20;
 
   useEffect(() => {
@@ -936,43 +937,279 @@ const AdminDashboard = () => {
                 </div>
 
                 <div className="bg-[#1a1a1a] p-8 rounded-3xl border border-white/5 space-y-8">
-                  <h3 className="text-lg font-bold border-b border-white/5 pb-4">메인 화면 이미지 (파일 업로드)</h3>
-                  <div>
-                    <label className="text-sm font-bold mb-4 block">메인 히어로 배경 이미지</label>
-                    <div className="h-48 bg-black rounded-xl border border-white/10 flex items-center justify-center relative group overflow-hidden">
-                      {settings.homeConfig.heroImageUrl ? <img src={settings.homeConfig.heroImageUrl} className="w-full h-full object-cover" /> : <span className="text-white/20 text-xs">이미지 없음</span>}
-                      <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer">
-                        <Upload size={32} className="mb-2" />
-                        <span>히어로 이미지 업로드</span>
-                        <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                          handleFileUpload(e, 'home', settings.homeConfig.heroImageUrl, (url) => {
-                            setSettings(prev => ({ ...prev, homeConfig: { ...prev.homeConfig, heroImageUrl: url } }));
-                          });
-                        }} />
-                      </label>
+                  <h3 className="text-lg font-bold border-b border-white/5 pb-4">메인 화면 설정</h3>
+                  
+                  {/* Hero Slider Settings */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-bold block">히어로 슬라이더 관리</label>
+                      <button 
+                        onClick={() => {
+                          setSettings(prev => ({
+                            ...prev,
+                            homeConfig: {
+                              ...prev.homeConfig,
+                              heroSlides: [
+                                ...(prev.homeConfig.heroSlides || []),
+                                { id: Date.now().toString(), imageUrl: '', title: '', subtitle: '', buttonText: '', buttonLink: '' }
+                              ]
+                            }
+                          }));
+                          setIsDirty(true);
+                        }}
+                        className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-medium transition-colors flex items-center gap-1"
+                      >
+                        <Plus size={14} /> 슬라이드 추가
+                      </button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {(settings.homeConfig.heroSlides || []).map((slide, index) => (
+                        <div 
+                          key={slide.id} 
+                          className={`p-4 pl-10 bg-black rounded-xl border border-white/10 space-y-4 relative transition-all ${draggedSlideIndex === index ? 'opacity-50 scale-[0.98] border-white/40 z-10' : 'opacity-100'}`}
+                          draggable
+                          onDragStart={(e) => {
+                            setDraggedSlideIndex(index);
+                            e.dataTransfer.effectAllowed = 'move';
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'move';
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            if (draggedSlideIndex === null || draggedSlideIndex === index) return;
+                            
+                            setSettings(prev => {
+                              const newSlides = [...(prev.homeConfig.heroSlides || [])];
+                              const draggedItem = newSlides[draggedSlideIndex];
+                              newSlides.splice(draggedSlideIndex, 1);
+                              newSlides.splice(index, 0, draggedItem);
+                              return {
+                                ...prev,
+                                homeConfig: {
+                                  ...prev.homeConfig,
+                                  heroSlides: newSlides
+                                }
+                              };
+                            });
+                            setDraggedSlideIndex(null);
+                            setIsDirty(true);
+                          }}
+                          onDragEnd={() => setDraggedSlideIndex(null)}
+                        >
+                          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 cursor-grab hover:text-white/60 active:cursor-grabbing">
+                            <GripVertical size={20} />
+                          </div>
+                          <button 
+                            onClick={() => {
+                              setSettings(prev => ({
+                                ...prev,
+                                homeConfig: {
+                                  ...prev.homeConfig,
+                                  heroSlides: prev.homeConfig.heroSlides.filter(s => s.id !== slide.id)
+                                }
+                              }));
+                              setIsDirty(true);
+                            }}
+                            className="absolute top-4 right-4 text-white/40 hover:text-[#dc2626] transition-colors"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-xs text-white/40 mb-1 block">배경 이미지</label>
+                              <div className="h-32 bg-[#1a1a1a] rounded-lg border border-white/10 flex items-center justify-center relative group overflow-hidden">
+                                {slide.imageUrl ? <img src={slide.imageUrl} className="w-full h-full object-cover" /> : <span className="text-white/20 text-xs">이미지 없음</span>}
+                                <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer">
+                                  <Upload size={24} className="mb-1" />
+                                  <span className="text-xs">업로드</span>
+                                  <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                                    handleFileUpload(e, 'home', slide.imageUrl, (url) => {
+                                      setSettings(prev => {
+                                        const newSlides = [...prev.homeConfig.heroSlides];
+                                        newSlides[index] = { ...newSlides[index], imageUrl: url };
+                                        return { ...prev, homeConfig: { ...prev.homeConfig, heroSlides: newSlides } };
+                                      });
+                                      setIsDirty(true);
+                                    });
+                                  }} />
+                                </label>
+                              </div>
+                            </div>
+                            <div className="space-y-3">
+                              <div>
+                                <label className="text-xs text-white/40 mb-1 block">타이틀</label>
+                                <input className="w-full bg-[#1a1a1a] border border-white/10 p-2 rounded-lg outline-none text-sm" 
+                                  value={slide.title} onChange={e => {
+                                    setSettings(prev => {
+                                      const newSlides = [...prev.homeConfig.heroSlides];
+                                      newSlides[index] = { ...newSlides[index], title: e.target.value };
+                                      return { ...prev, homeConfig: { ...prev.homeConfig, heroSlides: newSlides } };
+                                    });
+                                    setIsDirty(true);
+                                  }} />
+                              </div>
+                              <div>
+                                <label className="text-xs text-white/40 mb-1 block">서브카피</label>
+                                <input className="w-full bg-[#1a1a1a] border border-white/10 p-2 rounded-lg outline-none text-sm" 
+                                  value={slide.subtitle} onChange={e => {
+                                    setSettings(prev => {
+                                      const newSlides = [...prev.homeConfig.heroSlides];
+                                      newSlides[index] = { ...newSlides[index], subtitle: e.target.value };
+                                      return { ...prev, homeConfig: { ...prev.homeConfig, heroSlides: newSlides } };
+                                    });
+                                    setIsDirty(true);
+                                  }} />
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="text-xs text-white/40 mb-1 block">버튼 텍스트</label>
+                                  <input className="w-full bg-[#1a1a1a] border border-white/10 p-2 rounded-lg outline-none text-sm" 
+                                    value={slide.buttonText} onChange={e => {
+                                      setSettings(prev => {
+                                        const newSlides = [...prev.homeConfig.heroSlides];
+                                        newSlides[index] = { ...newSlides[index], buttonText: e.target.value };
+                                        return { ...prev, homeConfig: { ...prev.homeConfig, heroSlides: newSlides } };
+                                      });
+                                      setIsDirty(true);
+                                    }} />
+                                </div>
+                                <div>
+                                  <label className="text-xs text-white/40 mb-1 block">버튼 링크</label>
+                                  <input className="w-full bg-[#1a1a1a] border border-white/10 p-2 rounded-lg outline-none text-sm" 
+                                    value={slide.buttonLink} onChange={e => {
+                                      setSettings(prev => {
+                                        const newSlides = [...prev.homeConfig.heroSlides];
+                                        newSlides[index] = { ...newSlides[index], buttonLink: e.target.value };
+                                        return { ...prev, homeConfig: { ...prev.homeConfig, heroSlides: newSlides } };
+                                      });
+                                      setIsDirty(true);
+                                    }} />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {settings.homeConfig.introImages.map((url, i) => (
-                      <div key={i} className="space-y-2">
-                        <label className="text-xs text-white/40">인트로 포인트 {i+1} 이미지</label>
-                        <div className="aspect-[4/3] rounded-lg overflow-hidden border border-white/10 relative group">
-                          {url ? <img src={url} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-black flex items-center justify-center text-white/20 text-xs">이미지 없음</div>}
-                          <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                            <Upload size={20} />
-                            <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                              handleFileUpload(e, 'home', url, (newUrl) => {
-                                setSettings(prev => {
-                                  const updatedImages = [...prev.homeConfig.introImages];
-                                  updatedImages[i] = newUrl;
-                                  return { ...prev, homeConfig: { ...prev.homeConfig, introImages: updatedImages } };
+
+                  <div className="w-full h-px bg-white/5 my-8" />
+
+                  {/* Intro Text Settings */}
+                  <div className="space-y-4">
+                    <label className="text-sm font-bold block">인트로 텍스트 설정</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="text-xs text-white/40 mb-1 block">인트로 타이틀</label>
+                        <input className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none" 
+                          value={settings.homeConfig.introTitle || 'CRIME SCENERS?'} onChange={e => {
+                            setSettings(prev => ({...prev, homeConfig: {...prev.homeConfig, introTitle: e.target.value}}));
+                            setIsDirty(true);
+                          }} />
+                      </div>
+                      <div>
+                        <label className="text-xs text-white/40 mb-1 block">인트로 설명</label>
+                        <textarea className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none min-h-[100px]" 
+                          value={settings.homeConfig.introDescription || '스릴러 매니아들이 설계한 몰입형 추리 게임 카페\n\'크라임 씨너스\' 에 오신것을 환영합니다!'} onChange={e => {
+                            setSettings(prev => ({...prev, homeConfig: {...prev.homeConfig, introDescription: e.target.value}}));
+                            setIsDirty(true);
+                          }} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="w-full h-px bg-white/5 my-8" />
+
+                  {/* Intro Images */}
+                  <div className="space-y-4">
+                    <label className="text-sm font-bold block">인트로 포인트 이미지</label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {settings.homeConfig.introImages.map((url, i) => (
+                        <div key={i} className="space-y-2">
+                          <label className="text-xs text-white/40">인트로 포인트 {i+1} 이미지</label>
+                          <div className="aspect-[4/3] rounded-lg overflow-hidden border border-white/10 relative group">
+                            {url ? <img src={url} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-black flex items-center justify-center text-white/20 text-xs">이미지 없음</div>}
+                            <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                              <Upload size={20} />
+                              <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                                handleFileUpload(e, 'home', url, (newUrl) => {
+                                  setSettings(prev => {
+                                    const updatedImages = [...prev.homeConfig.introImages];
+                                    updatedImages[i] = newUrl;
+                                    return { ...prev, homeConfig: { ...prev.homeConfig, introImages: updatedImages } };
+                                  });
+                                  setIsDirty(true);
                                 });
-                              });
-                            }} />
-                          </label>
+                              }} />
+                            </label>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-[#1a1a1a] p-8 rounded-3xl border border-white/5 space-y-8">
+                  <h3 className="text-lg font-bold border-b border-white/5 pb-4">팝업 설정</h3>
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => {
+                          setSettings(prev => ({
+                            ...prev,
+                            popupSettings: {
+                              ...(prev.popupSettings || { imageUrl: '', linkUrl: '' }),
+                              isEnabled: !(prev.popupSettings?.isEnabled)
+                            }
+                          }));
+                          setIsDirty(true);
+                        }}
+                        className={`w-12 h-6 rounded-full transition-colors relative ${settings.popupSettings?.isEnabled ? 'bg-[#dc2626]' : 'bg-white/20'}`}
+                      >
+                        <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${settings.popupSettings?.isEnabled ? 'left-7' : 'left-1'}`} />
+                      </button>
+                      <span className="text-sm font-medium">홈페이지 진입 시 팝업 노출</span>
+                    </div>
+
+                    {settings.popupSettings?.isEnabled && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/5">
+                        <div>
+                          <label className="text-xs text-white/40 mb-2 block">팝업 이미지</label>
+                          <div className="h-48 bg-black rounded-xl border border-white/10 flex items-center justify-center relative group overflow-hidden">
+                            {settings.popupSettings.imageUrl ? <img src={settings.popupSettings.imageUrl} className="w-full h-full object-contain" /> : <span className="text-white/20 text-xs">이미지 없음</span>}
+                            <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer">
+                              <Upload size={32} className="mb-2" />
+                              <span className="text-xs">이미지 업로드</span>
+                              <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                                handleFileUpload(e, 'popup', settings.popupSettings.imageUrl, (url) => {
+                                  setSettings(prev => ({ ...prev, popupSettings: { ...prev.popupSettings, imageUrl: url } }));
+                                  setIsDirty(true);
+                                });
+                              }} />
+                            </label>
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="text-xs text-white/40 mb-1 block">랜딩 URL (클릭 시 이동할 주소)</label>
+                            <input className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none" 
+                              value={settings.popupSettings.linkUrl || ''} onChange={e => {
+                                setSettings(prev => ({...prev, popupSettings: {...prev.popupSettings, linkUrl: e.target.value}}));
+                                setIsDirty(true);
+                              }} placeholder="https://..." />
+                          </div>
+                          <p className="text-xs text-white/40 leading-relaxed">
+                            * 팝업 이미지를 클릭했을 때 이동할 페이지 주소를 입력하세요.<br/>
+                            * 외부 링크인 경우 https:// 를 포함하여 전체 주소를 입력해야 합니다.<br/>
+                            * 내부 링크인 경우 /reservation 과 같이 입력할 수 있습니다.
+                          </p>
                         </div>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>

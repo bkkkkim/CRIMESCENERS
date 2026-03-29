@@ -3,13 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { THEMES, INTRO_POINTS, STORE_INFO, DEFAULT_ADMIN_SETTINGS, STORES } from '../constants';
 import { Clock, Phone, MapPin, ChevronRight, Users, ChevronDown } from 'lucide-react';
-import { Theme, AdminSettings, Store } from '../types';
+import { Theme, AdminSettings, Store, HeroSlide, PopupSettings } from '../types';
 import { motion } from 'framer-motion';
 import { dataService } from '../src/services/dataService';
 import LoadingScreen from './LoadingScreen';
 
-const TypingTitle = () => {
-  const text = "CRIME SCENERS?";
+const TypingTitle = ({ title }: { title: string }) => {
   const [displayText, setDisplayText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [index, setIndex] = useState(0);
@@ -17,9 +16,9 @@ const TypingTitle = () => {
   useEffect(() => {
     let timeout: NodeJS.Timeout;
     
-    if (!isDeleting && index < text.length) {
+    if (!isDeleting && index < title.length) {
       timeout = setTimeout(() => {
-        setDisplayText(prev => prev + text[index]);
+        setDisplayText(prev => prev + title[index]);
         setIndex(prev => prev + 1);
       }, 150);
     } else if (isDeleting && index > 0) {
@@ -27,14 +26,14 @@ const TypingTitle = () => {
         setDisplayText(prev => prev.slice(0, -1));
         setIndex(prev => prev - 1);
       }, 50);
-    } else if (index === text.length) {
+    } else if (index === title.length) {
       timeout = setTimeout(() => setIsDeleting(true), 2000);
     } else if (index === 0 && isDeleting) {
       setIsDeleting(false);
     }
 
     return () => clearTimeout(timeout);
-  }, [index, isDeleting]);
+  }, [index, isDeleting, title]);
 
   return (
     <h2 className="text-3xl md:text-5xl font-bold mb-2 md:mb-3 text-center tracking-tighter h-10 md:h-14 font-en uppercase">
@@ -44,62 +43,154 @@ const TypingTitle = () => {
   );
 };
 
-const HeroBanner = ({ imageUrl }: { imageUrl: string }) => {
+const PopupModal = ({ settings, onClose }: { settings: PopupSettings, onClose: () => void }) => {
+  if (!settings.isEnabled) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 px-4">
+      <div className="relative max-w-lg w-full bg-[#1a1a1a] rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center bg-black/50 text-white rounded-full hover:bg-white/20 transition-colors"
+        >
+          ✕
+        </button>
+        {settings.linkUrl ? (
+          <a href={settings.linkUrl} target="_blank" rel="noopener noreferrer" className="block">
+            <img 
+              src={settings.imageUrl || "https://picsum.photos/seed/popup/600/800"} 
+              alt="Popup" 
+              className="w-full h-auto max-h-[70vh] object-cover"
+              referrerPolicy="no-referrer"
+            />
+          </a>
+        ) : (
+          <img 
+            src={settings.imageUrl || "https://picsum.photos/seed/popup/600/800"} 
+            alt="Popup" 
+            className="w-full h-auto max-h-[70vh] object-cover"
+            referrerPolicy="no-referrer"
+          />
+        )}
+        <div className="p-4 bg-[#121212] flex justify-end">
+          <button 
+            onClick={() => {
+              // In a real app, this would set a cookie or localStorage to not show again today
+              onClose();
+            }}
+            className="text-white/60 text-sm hover:text-white transition-colors"
+          >
+            오늘 하루 보지 않기
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const HeroBanner = ({ slides }: { slides: HeroSlide[] }) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    if (!slides || slides.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 5000); // Change slide every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [slides]);
+
+  if (!slides || slides.length === 0) return null;
+
   return (
     <div className="relative w-full h-[600px] md:h-[800px] overflow-hidden flex items-center justify-center">
-      <div className="absolute inset-0 z-0">
-        <motion.img 
-          initial={{ scale: 1, x: 0, y: 0 }}
-          animate={{ 
-            scale: [1, 1.1, 1.15, 1],
-            x: [0, 20, -20, 0],
-            y: [0, -10, 10, 0]
-          }}
-          transition={{ 
-            duration: 20, 
-            repeat: Infinity, 
-            ease: "linear" 
-          }}
-          src={imageUrl || "/hero.jpg"}
-          alt="Hero"
-          className="w-full h-full object-cover"
-          loading="eager"
-          referrerPolicy="no-referrer"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#121212]" />
-        <div className="absolute inset-0 bg-black/40" />
-      </div>
+      {slides.map((slide, index) => (
+        <div 
+          key={slide.id}
+          className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+        >
+          <div className="absolute inset-0 z-0">
+            <motion.img 
+              initial={{ scale: 1, x: 0, y: 0 }}
+              animate={index === currentSlide ? { 
+                scale: [1, 1.1, 1.15, 1],
+                x: [0, 20, -20, 0],
+                y: [0, -10, 10, 0]
+              } : {}}
+              transition={{ 
+                duration: 20, 
+                repeat: Infinity, 
+                ease: "linear" 
+              }}
+              src={slide.imageUrl || "/hero.jpg"}
+              alt={slide.title}
+              className="w-full h-full object-cover"
+              loading={index === 0 ? "eager" : "lazy"}
+              referrerPolicy="no-referrer"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#121212]" />
+            <div className="absolute inset-0 bg-black/40" />
+          </div>
 
-      <div className="relative z-10 text-center px-12 md:px-6">
-        <motion.h1 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-4xl md:text-8xl font-bold mb-2 md:mb-6 leading-tight tracking-tighter uppercase font-en"
-        >
-          Crime <span className="text-white">Sceners</span>
-        </motion.h1>
-        <motion.p 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.8 }}
-          className="text-base md:text-2xl text-[#d1d1d1] font-light max-w-4xl mx-auto mb-10 md:mb-12 whitespace-nowrap"
-        >
-          사건 현장에 있는 우리 모두 <span className="text-white font-medium">SCENERS</span> 입니다.
-        </motion.p>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.8 }}
-        >
-              <Link 
-                to="/reservation" 
-                className="inline-block px-10 md:px-12 py-4 md:py-5 border border-white/40 text-white font-bold rounded-none hover:bg-white hover:text-black transition-all transform hover:scale-105 tracking-normal uppercase text-sm font-en"
+          <div className="relative z-10 text-center px-12 md:px-6 h-full flex flex-col items-center justify-center">
+            <motion.h1 
+              initial={{ opacity: 0, y: 30 }}
+              animate={index === currentSlide ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+              transition={{ duration: 0.8 }}
+              className="text-4xl md:text-8xl font-bold mb-2 md:mb-6 leading-tight tracking-tighter uppercase font-en"
+            >
+              {slide.title}
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={index === currentSlide ? { opacity: 1 } : { opacity: 0 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="text-base md:text-2xl text-[#d1d1d1] font-light max-w-4xl mx-auto mb-10 md:mb-12 whitespace-nowrap"
+            >
+              {slide.subtitle}
+            </motion.p>
+            {Boolean(slide.buttonText?.trim()) && Boolean(slide.buttonLink?.trim()) && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={index === currentSlide ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
+                transition={{ delay: 0.8 }}
               >
-                지금 예약하기
-              </Link>
-        </motion.div>
-      </div>
+                {slide.buttonLink.startsWith('/') ? (
+                  <Link 
+                    to={slide.buttonLink} 
+                    className="inline-block px-10 md:px-12 py-4 md:py-5 border border-white/40 text-white font-bold rounded-none hover:bg-white hover:text-black transition-all transform hover:scale-105 tracking-normal uppercase text-sm font-en"
+                  >
+                    {slide.buttonText}
+                  </Link>
+                ) : (
+                  <a 
+                    href={slide.buttonLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block px-10 md:px-12 py-4 md:py-5 border border-white/40 text-white font-bold rounded-none hover:bg-white hover:text-black transition-all transform hover:scale-105 tracking-normal uppercase text-sm font-en"
+                  >
+                    {slide.buttonText}
+                  </a>
+                )}
+              </motion.div>
+            )}
+          </div>
+        </div>
+      ))}
+
+      {slides.length > 1 && (
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`w-2 h-2 rounded-full transition-all ${index === currentSlide ? 'bg-white w-6' : 'bg-white/40 hover:bg-white/60'}`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
 
       <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-4 cursor-pointer" onClick={() => {
         window.scrollTo({
@@ -119,18 +210,18 @@ const HeroBanner = ({ imageUrl }: { imageUrl: string }) => {
   );
 };
 
-const IntroSection = ({ images }: { images: string[] }) => (
+const IntroSection = ({ images, title, description }: { images: string[], title: string, description: string }) => (
   <section className="py-16 md:py-24 px-4 md:px-6 bg-[#121212]">
     <div className="max-w-7xl mx-auto">
       <div className="text-center mb-8 md:mb-12">
-        <TypingTitle />
+        <TypingTitle title={title || 'CRIME SCENERS?'} />
         <motion.p 
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 0.6, y: 0 }}
           viewport={{ once: true }}
-          className="text-[#d1d1d1] text-sm md:text-base leading-relaxed"
+          className="text-[#d1d1d1] text-sm md:text-base leading-relaxed whitespace-pre-line"
         >
-          스릴러 매니아들이 설계한 몰입형 추리 게임 카페<br className="md:hidden" /> '크라임 씨너스' 에 오신것을 환영합니다!
+          {description || '스릴러 매니아들이 설계한 몰입형 추리 게임 카페\n\'크라임 씨너스\' 에 오신것을 환영합니다!'}
         </motion.p>
       </div>
       <div className="mobile-snap-container hide-scrollbar md:grid md:grid-cols-3 md:gap-8 items-start">
@@ -441,6 +532,7 @@ const Home = () => {
   const [themes, setThemes] = useState<Theme[]>(THEMES);
   const [stores, setStores] = useState<Store[]>(STORES);
   const [loading, setLoading] = useState(true);
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -454,6 +546,10 @@ const Home = () => {
         setSettings(s);
         setThemes(t);
         setStores(st);
+        
+        if (s.popupSettings?.isEnabled) {
+          setShowPopup(true);
+        }
       } catch (error) {
         console.error("Failed to load home data:", error);
       } finally {
@@ -468,8 +564,18 @@ const Home = () => {
 
   return (
     <div className={loading ? 'opacity-50 pointer-events-none' : 'opacity-100 transition-opacity duration-500'}>
-      <HeroBanner imageUrl={settings.homeConfig.heroImageUrl} />
-      <IntroSection images={settings.homeConfig.introImages} />
+      {showPopup && settings.popupSettings && (
+        <PopupModal 
+          settings={settings.popupSettings} 
+          onClose={() => setShowPopup(false)} 
+        />
+      )}
+      <HeroBanner slides={settings.homeConfig.heroSlides || []} />
+      <IntroSection 
+        images={settings.homeConfig.introImages} 
+        title={settings.homeConfig.introTitle}
+        description={settings.homeConfig.introDescription}
+      />
       <PopularThemes themes={themes} stores={stores} />
       <StoreSection stores={stores} />
       <style>{`

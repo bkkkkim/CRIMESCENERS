@@ -104,11 +104,28 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
   },
   homeConfig: {
     heroImageUrl: '/hero.jpg',
+    heroSlides: [
+      {
+        id: '1',
+        imageUrl: '/hero.jpg',
+        title: 'CRIME SCENERS',
+        subtitle: '사건 현장에 있는 우리 모두 SCENERS 입니다.',
+        buttonText: '지금 예약하기',
+        buttonLink: '/reservation'
+      }
+    ],
+    introTitle: 'CRIME SCENERS?',
+    introDescription: '스릴러 매니아들이 설계한 몰입형 추리 게임 카페\n\'크라임 씨너스\' 에 오신것을 환영합니다!',
     introImages: [
       '/intro1.jpg',
       '/intro2.jpg',
       '/intro3.jpg'
     ]
+  },
+  popupSettings: {
+    isEnabled: false,
+    imageUrl: '',
+    linkUrl: ''
   },
   bookingNotice: `[예약 및 환불 규정]
 - 예약금 입금 후 예약이 확정됩니다.
