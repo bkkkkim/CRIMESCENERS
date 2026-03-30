@@ -99,12 +99,28 @@ const HeroBanner = ({ slides }: { slides: HeroSlide[] }) => {
     }, 5000); // Change slide every 5 seconds
 
     return () => clearInterval(interval);
-  }, [slides]);
+  }, [slides, currentSlide]);
 
   if (!slides || slides.length === 0) return null;
 
+  const handlePanEnd = (e: any, info: any) => {
+    if (slides.length <= 1) return;
+    
+    const isLeftSwipe = info.offset.x < -50;
+    const isRightSwipe = info.offset.x > 50;
+    
+    if (isLeftSwipe) {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    } else if (isRightSwipe) {
+      setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    }
+  };
+
   return (
-    <div className="relative w-full h-[600px] md:h-[800px] overflow-hidden flex items-center justify-center">
+    <motion.div 
+      className="relative w-full h-[600px] md:h-[800px] overflow-hidden flex items-center justify-center touch-pan-y"
+      onPanEnd={handlePanEnd}
+    >
       {slides.map((slide, index) => (
         <div 
           key={slide.id}
@@ -206,7 +222,7 @@ const HeroBanner = ({ slides }: { slides: HeroSlide[] }) => {
           <ChevronDown size={48} strokeWidth={1} className="text-white/40 hover:text-white transition-colors" />
         </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

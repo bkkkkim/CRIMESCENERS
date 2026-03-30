@@ -20,7 +20,11 @@ const ThemeReservation = () => {
   
   const [selectedStoreId, setSelectedStoreId] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('latest');
-  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const today = new Date();
+    const offset = today.getTimezoneOffset() * 60000;
+    return new Date(today.getTime() - offset).toISOString().split('T')[0];
+  });
   const [selectedTime, setSelectedTime] = useState<string>('');
 
   // Check/Cancel state
@@ -52,6 +56,69 @@ const ThemeReservation = () => {
     };
     loadData();
   }, []);
+
+  const availableTimes = useMemo(() => {
+    if (!selectedDate) return [];
+
+    const dateObj = new Date(selectedDate);
+    dateObj.setHours(0, 0, 0, 0);
+    const isWeekend = isWeekendOrHoliday(dateObj);
+
+    const times = new Set<string>();
+
+    themes.forEach(theme => {
+      if (selectedStoreId !== 'all' && theme.storeId !== selectedStoreId) return;
+
+      const start = theme.startDate ? new Date(theme.startDate) : null;
+      const end = theme.endDate ? new Date(theme.endDate) : null;
+      if (start) start.setHours(0, 0, 0, 0);
+      if (end) end.setHours(0, 0, 0, 0);
+      
+      if (start && dateObj < start) return;
+      if (end && dateObj > end) return;
+
+      let baseSlots: string[] = [];
+      if (theme.useSeparateWeekdaySlots) {
+        baseSlots = isWeekend ? (theme.customSlots || []) : (theme.weekdaySlots || []);
+      } else {
+        baseSlots = theme.customSlots || [];
+      }
+
+      baseSlots.forEach(time => {
+        if (!time) return;
+        
+        // Check if theme is closed on this date/time
+        const isClosed = closedSlots.some(cs => 
+          cs.themeId === theme.id && 
+          cs.date === selectedDate && 
+          (cs.time === 'all' || cs.time === time)
+        );
+        if (isClosed) return;
+
+        // Check availability
+        const slotBookings = bookings.filter(b => 
+          b.themeId === theme.id && 
+          b.date === selectedDate && 
+          b.time === time && 
+          b.status !== 'cancelled'
+        );
+        const bookedPlayers = slotBookings.reduce((sum, b) => sum + b.participantCount, 0);
+        const isCloseRequested = slotBookings.some(b => b.isCloseRequested);
+        
+        if (!isCloseRequested && bookedPlayers < theme.maxPlayers) {
+          times.add(time);
+        }
+      });
+    });
+
+    return Array.from(times).sort();
+  }, [themes, selectedStoreId, selectedDate, closedSlots, bookings]);
+
+  useEffect(() => {
+    if (selectedTime && !availableTimes.includes(selectedTime)) {
+      setSelectedTime('');
+    }
+  }, [availableTimes, selectedTime]);
 
   const filteredAndSortedThemes = useMemo(() => {
     let result = [...themes];
@@ -225,16 +292,7 @@ const ThemeReservation = () => {
                     <span className="truncate">{selectedStoreId === 'all' ? '전체 매장' : stores.find(s => s.id === selectedStoreId)?.name}</span>
                   </div>
                   <div className="shrink-0 flex items-center justify-center w-4 h-4">
-                    {selectedStoreId === 'all' ? (
-                      <ChevronDown size={12} className="opacity-50" />
-                    ) : (
-                      <button 
-                        onClick={(e) => { e.preventDefault(); setSelectedStoreId('all'); }} 
-                        className="relative z-10 hover:text-[#dc2626] transition-colors flex items-center justify-center w-full h-full"
-                      >
-                        <X size={14} />
-                      </button>
-                    )}
+                    <ChevronDown size={12} className="opacity-50" />
                   </div>
                   <select 
                     value={selectedStoreId} 
@@ -259,22 +317,23 @@ const ThemeReservation = () => {
                     <span className="truncate">{selectedDate ? selectedDate.substring(2).replace(/-/g, '.') : '날짜 선택'}</span>
                   </div>
                   <div className="shrink-0 flex items-center justify-center w-4 h-4">
-                    {!selectedDate ? (
-                      <ChevronDown size={12} className="opacity-50" />
-                    ) : (
-                      <button 
-                        onClick={(e) => { e.preventDefault(); setSelectedDate(''); }} 
-                        className="relative z-10 hover:text-[#dc2626] transition-colors flex items-center justify-center w-full h-full"
-                      >
-                        <X size={14} />
-                      </button>
-                    )}
+                    <ChevronDown size={12} className="opacity-50" />
                   </div>
                   <input 
                     type="date"
                     min={new Date().toISOString().split('T')[0]}
                     value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val) {
+                        setSelectedDate(val);
+                      } else {
+                        const today = new Date();
+                        const offset = today.getTimezoneOffset() * 60000;
+                        setSelectedDate(new Date(today.getTime() - offset).toISOString().split('T')[0]);
+                      }
+                      setSelectedTime('');
+                    }}
                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                   />
                 </div>
@@ -290,40 +349,23 @@ const ThemeReservation = () => {
                     <span className="truncate">{selectedTime || '시간 선택'}</span>
                   </div>
                   <div className="shrink-0 flex items-center justify-center w-4 h-4">
-                    {!selectedTime ? (
-                      <ChevronDown size={12} className="opacity-50" />
-                    ) : (
-                      <button 
-                        onClick={(e) => { e.preventDefault(); setSelectedTime(''); }} 
-                        className="relative z-10 hover:text-[#dc2626] transition-colors flex items-center justify-center w-full h-full"
-                      >
-                        <X size={14} />
-                      </button>
-                    )}
+                    <ChevronDown size={12} className="opacity-50" />
                   </div>
                   <select 
                     value={selectedTime}
                     onChange={(e) => setSelectedTime(e.target.value)}
                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                   >
-                    <option value="" className="bg-[#1a1a1a] text-white">시간 선택</option>
-                    {Array.from(new Set(themes.flatMap(theme => {
-                      if (selectedStoreId !== 'all' && theme.storeId !== selectedStoreId) return [];
-                      
-                      const now = new Date();
-                      now.setHours(0, 0, 0, 0);
-                      const start = theme.startDate ? new Date(theme.startDate) : null;
-                      const end = theme.endDate ? new Date(theme.endDate) : null;
-                      if (start) start.setHours(0, 0, 0, 0);
-                      if (end) end.setHours(0, 0, 0, 0);
-                      const isComingSoon = (start && now < start) || (end && now > end);
-                      if (isComingSoon) return [];
-
-                      const slots = [...(theme.weekdaySlots || []), ...(theme.customSlots || [])];
-                      return slots.filter(s => s);
-                    }))).sort().map((time, index) => (
-                      <option key={`${time}-${index}`} value={time} className="bg-[#1a1a1a] text-white">{time}</option>
-                    ))}
+                    {availableTimes.length === 0 ? (
+                      <option value="" className="bg-[#1a1a1a] text-white">선택 가능한 시간 없음</option>
+                    ) : (
+                      <>
+                        <option value="" className="bg-[#1a1a1a] text-white">시간 선택</option>
+                        {availableTimes.map((time, index) => (
+                          <option key={`${time}-${index}`} value={time} className="bg-[#1a1a1a] text-white">{time}</option>
+                        ))}
+                      </>
+                    )}
                   </select>
                 </div>
               </div>
