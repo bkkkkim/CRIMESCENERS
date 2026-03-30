@@ -258,11 +258,8 @@ const ThemeReservation = () => {
 
   return (
     <div className="pt-32 md:pt-40 pb-24 px-4 md:px-6 max-w-7xl mx-auto">
-      <div className="mb-8 md:mb-10 text-center flex flex-col items-center gap-8">
-        <div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tighter uppercase font-en">#RESERVATION</h1>
-          <p className="text-[#d1d1d1] text-sm md:text-base opacity-60">원하시는 시나리오를 선택하여 사건 현장으로 입장하세요.</p>
-        </div>
+      <div className="mb-8 md:mb-10 text-center flex flex-col items-center gap-6">
+        <h1 className="text-4xl md:text-5xl font-bold tracking-tighter uppercase font-en">#RESERVATION</h1>
         
         <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 w-full max-w-md">
           <button

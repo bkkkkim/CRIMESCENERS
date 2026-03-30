@@ -40,12 +40,9 @@ const NoticeBoard = () => {
 
   return (
     <div className={`pt-32 md:pt-40 pb-24 px-6 max-w-7xl mx-auto ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100 transition-opacity duration-500'}`}>
-      <div className="text-center mb-8 md:mb-10">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 uppercase tracking-tighter font-en">Information</h1>
-        <p className="text-[#d1d1d1] text-sm md:text-base opacity-60">크라임씬 이용 안내 및 매장 정보</p>
-      </div>
-
-      <div className="flex justify-center mb-8 md:mb-10">
+      <div className="mb-8 md:mb-10 text-center flex flex-col items-center gap-6">
+        <h1 className="text-4xl md:text-5xl font-bold tracking-tighter uppercase font-en">Information</h1>
+        
         <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 w-full max-w-md">
           <button
             onClick={() => setActiveTab('method')}
