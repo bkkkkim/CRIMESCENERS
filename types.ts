@@ -59,6 +59,12 @@ export interface PopupSettings {
   linkUrl: string;
 }
 
+export interface IntroPoint {
+  title: string;
+  description: string;
+  imageUrl: string;
+}
+
 export interface AdminSettings {
   managerPhone: string;
   managerEmail: string;
@@ -91,10 +97,14 @@ export interface AdminSettings {
     heroSlides: HeroSlide[];
     introTitle: string;
     introDescription: string;
-    introImages: string[];
+    introPoints: IntroPoint[];
   };
   popupSettings: PopupSettings;
   bookingNotice: string;
+  advanceDepositDiscount?: {
+    enabled: boolean;
+    discountAmount: number;
+  };
 }
 
 export interface BookingData {

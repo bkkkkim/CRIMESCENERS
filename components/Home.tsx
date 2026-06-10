@@ -1,9 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { THEMES, INTRO_POINTS, STORE_INFO, DEFAULT_ADMIN_SETTINGS, STORES } from '../constants';
 import { Clock, Phone, MapPin, ChevronRight, Users, ChevronDown } from 'lucide-react';
-import { Theme, AdminSettings, Store, HeroSlide, PopupSettings } from '../types';
+import { Theme, AdminSettings, Store, HeroSlide, PopupSettings, IntroPoint } from '../types';
 import { motion } from 'framer-motion';
 import { dataService } from '../src/services/dataService';
 import LoadingScreen from './LoadingScreen';
@@ -123,7 +123,7 @@ const HeroBanner = ({ slides }: { slides: HeroSlide[] }) => {
     >
       {slides.map((slide, index) => (
         <div 
-          key={slide.id}
+          key={`${slide.id}-${index}`}
           className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
         >
           <div className="absolute inset-0 z-0">
@@ -226,44 +226,66 @@ const HeroBanner = ({ slides }: { slides: HeroSlide[] }) => {
   );
 };
 
-const IntroSection = ({ images, title, description }: { images: string[], title: string, description: string }) => (
-  <section className="py-16 md:py-24 px-4 md:px-6 bg-[#121212]">
-    <div className="max-w-7xl mx-auto">
-      <div className="text-center mb-8 md:mb-12">
-        <TypingTitle title={title || 'CRIME SCENERS?'} />
-        <motion.p 
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 0.6, y: 0 }}
-          viewport={{ once: true }}
-          className="text-[#d1d1d1] text-sm md:text-base leading-relaxed whitespace-pre-line"
-        >
-          {description || '스릴러 매니아들이 설계한 몰입형 추리 게임 카페\n\'크라임 씨너스\' 에 오신것을 환영합니다!'}
-        </motion.p>
-      </div>
-      <div className="mobile-snap-container hide-scrollbar md:grid md:grid-cols-3 md:gap-8 items-start">
-        {INTRO_POINTS.map((point, i) => (
-          <div key={i} className="mobile-snap-item-2-5 group flex-shrink-0 flex flex-col">
-            <div className="overflow-hidden rounded-[24px] md:rounded-[32px] mb-4 md:mb-6 aspect-square md:aspect-[4/5] border border-white/5 shrink-0">
-              <img 
-                src={images[i] || point.img} 
-                alt={point.title} 
-                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
-                loading="lazy"
-                referrerPolicy="no-referrer"
-              />
+const IntroSection = ({ points, title, description, legacyImages }: { points: IntroPoint[], title: string, description: string, legacyImages?: string[] }) => {
+  const displayPoints = useMemo(() => {
+    if (points && points.length > 0) return points;
+    
+    // Fallback to legacy images if points are missing
+    if (legacyImages && legacyImages.length > 0) {
+      return legacyImages.map((img, i) => ({
+        title: INTRO_POINTS[i]?.title || '',
+        description: INTRO_POINTS[i]?.desc || '',
+        imageUrl: img || INTRO_POINTS[i]?.img || ''
+      }));
+    }
+    
+    // Final fallback to defaults
+    return INTRO_POINTS.map(p => ({
+      title: p.title,
+      description: p.desc,
+      imageUrl: p.img
+    }));
+  }, [points, legacyImages]);
+
+  return (
+    <section className="py-16 md:py-24 px-4 md:px-6 bg-[#121212]">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-8 md:mb-12">
+          <TypingTitle title={title || 'CRIME SCENERS?'} />
+          <motion.p 
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 0.6, y: 0 }}
+            viewport={{ once: true }}
+            className="text-[#d1d1d1] text-sm md:text-base leading-relaxed whitespace-pre-line"
+          >
+            {description || '스릴러 매니아들이 설계한 몰입형 추리 게임 카페\n\'크라임 씨너스\' 에 오신것을 환영합니다!'}
+          </motion.p>
+        </div>
+        <div className="mobile-snap-container hide-scrollbar md:grid md:grid-cols-3 md:gap-8 items-start">
+          {displayPoints.map((point, i) => (
+            <div key={i} className="mobile-snap-item-2-5 group flex-shrink-0 flex flex-col">
+              <div className="overflow-hidden rounded-[24px] md:rounded-[32px] mb-4 md:mb-6 aspect-square md:aspect-[4/5] border border-white/5 shrink-0">
+                <img 
+                  src={point.imageUrl} 
+                  alt={point.title} 
+                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+              <div className="text-left flex-grow">
+                <h3 className="text-lg md:text-xl font-bold mb-2 md:mb-3 tracking-tight whitespace-nowrap md:whitespace-normal">{point.title}</h3>
+                <p className="text-[#d1d1d1] text-xs md:text-sm leading-relaxed opacity-60">
+                  {point.description}
+                </p>
+              </div>
             </div>
-            <div className="text-left flex-grow">
-              <h3 className="text-lg md:text-xl font-bold mb-2 md:mb-3 tracking-tight whitespace-nowrap md:whitespace-normal">{point.title}</h3>
-              <p className="text-[#d1d1d1] text-xs md:text-sm leading-relaxed opacity-60">
-                {point.desc}
-              </p>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -586,9 +608,18 @@ const Home = () => {
           onClose={() => setShowPopup(false)} 
         />
       )}
-      <HeroBanner slides={settings.homeConfig.heroSlides || []} />
+      {loading ? (
+        <div className="w-full h-[600px] md:h-[800px] bg-black/40 animate-pulse flex flex-col items-center justify-center border-b border-white/5">
+          <div className="text-white/20 text-sm font-bold tracking-widest font-en uppercase">
+            LOADING CASE HISTORY...
+          </div>
+        </div>
+      ) : (
+        <HeroBanner slides={settings.homeConfig.heroSlides || []} />
+      )}
       <IntroSection 
-        images={settings.homeConfig.introImages} 
+        points={settings.homeConfig.introPoints || []} 
+        legacyImages={(settings.homeConfig as any).introImages || []}
         title={settings.homeConfig.introTitle}
         description={settings.homeConfig.introDescription}
       />

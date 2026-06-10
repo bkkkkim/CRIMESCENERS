@@ -45,7 +45,18 @@ const AdminDashboard = () => {
           dataService.getStores()
         ]);
         
-        setSettings(s);
+        // Migrate introImages to introPoints if needed
+        const processedSettings = { ...s };
+        if (!processedSettings.homeConfig.introPoints || processedSettings.homeConfig.introPoints.length === 0) {
+          const introImages = (processedSettings.homeConfig as any).introImages || [];
+          processedSettings.homeConfig.introPoints = [0, 1, 2].map(i => ({
+            title: DEFAULT_ADMIN_SETTINGS.homeConfig.introPoints[i].title,
+            description: DEFAULT_ADMIN_SETTINGS.homeConfig.introPoints[i].description,
+            imageUrl: introImages[i] || DEFAULT_ADMIN_SETTINGS.homeConfig.introPoints[i].imageUrl
+          }));
+        }
+        
+        setSettings(processedSettings);
         setThemes(t);
         setBookings(b);
         setClosedSlots(c);
@@ -62,6 +73,16 @@ const AdminDashboard = () => {
 
   const handlePublish = async () => {
     if (isPublishing) return;
+    
+    // Validate advance deposit discount settings
+    if (settings.advanceDepositDiscount?.enabled) {
+      const amount = settings.advanceDepositDiscount.discountAmount;
+      if (!amount || isNaN(amount) || amount <= 0) {
+        alert('선입금 할인 금액을 입력하세요.');
+        return;
+      }
+    }
+
     setIsPublishing(true);
     try {
       await Promise.all([
@@ -966,7 +987,7 @@ const AdminDashboard = () => {
                     <div className="space-y-4">
                       {(settings.homeConfig.heroSlides || []).map((slide, index) => (
                         <div 
-                          key={slide.id} 
+                          key={`${slide.id}-${index}`} 
                           className={`p-4 pl-10 bg-black rounded-xl border border-white/10 space-y-4 relative transition-all ${draggedSlideIndex === index ? 'opacity-50 scale-[0.98] border-white/40 z-10' : 'opacity-100'}`}
                           draggable
                           onDragStart={(e) => {
@@ -1124,31 +1145,88 @@ const AdminDashboard = () => {
 
                   <div className="w-full h-px bg-white/5 my-8" />
 
-                  {/* Intro Images */}
+                  {/* Intro Points */}
                   <div className="space-y-4">
-                    <label className="text-sm font-bold block">인트로 포인트 이미지</label>
+                    <label className="text-sm font-bold block">인트로 포인트 관리 (이미지 및 문구)</label>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {settings.homeConfig.introImages.map((url, i) => (
-                        <div key={i} className="space-y-2">
-                          <label className="text-xs text-white/40">인트로 포인트 {i+1} 이미지</label>
-                          <div className="aspect-[4/3] rounded-lg overflow-hidden border border-white/10 relative group">
-                            {url ? <img src={url} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-black flex items-center justify-center text-white/20 text-xs">이미지 없음</div>}
-                            <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                              <Upload size={20} />
-                              <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                                handleFileUpload(e, 'home', url, (newUrl) => {
-                                  setSettings(prev => {
-                                    const updatedImages = [...prev.homeConfig.introImages];
-                                    updatedImages[i] = newUrl;
-                                    return { ...prev, homeConfig: { ...prev.homeConfig, introImages: updatedImages } };
+                      {[0, 1, 2].map((i) => {
+                        const point = (settings.homeConfig.introPoints || [])[i] || {
+                          title: DEFAULT_ADMIN_SETTINGS.homeConfig.introPoints[i].title,
+                          description: DEFAULT_ADMIN_SETTINGS.homeConfig.introPoints[i].description,
+                          imageUrl: DEFAULT_ADMIN_SETTINGS.homeConfig.introPoints[i].imageUrl
+                        };
+                        
+                        return (
+                          <div key={i} className="space-y-4 bg-black/40 p-4 rounded-xl border border-white/5">
+                            <label className="text-[10px] text-white/40 font-bold uppercase tracking-widest">포인트 {i+1}</label>
+                            <div className="aspect-[4/3] rounded-lg overflow-hidden border border-white/10 relative group bg-black">
+                              {point.imageUrl ? <img src={point.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">이미지 없음</div>}
+                              <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                                <Upload size={20} />
+                                <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                                  handleFileUpload(e, 'home', point.imageUrl, (newUrl) => {
+                                    setSettings(prev => {
+                                      const updatedPoints = [...(prev.homeConfig.introPoints || [])];
+                                      // Fill preceding empty slots if needed
+                                      for (let j = 0; j <= i; j++) {
+                                        if (!updatedPoints[j]) {
+                                          updatedPoints[j] = { ...DEFAULT_ADMIN_SETTINGS.homeConfig.introPoints[j] };
+                                        }
+                                      }
+                                      updatedPoints[i] = { ...updatedPoints[i], imageUrl: newUrl };
+                                      return { ...prev, homeConfig: { ...prev.homeConfig, introPoints: updatedPoints } };
+                                    });
+                                    setIsDirty(true);
                                   });
-                                  setIsDirty(true);
-                                });
-                              }} />
-                            </label>
+                                }} />
+                              </label>
+                            </div>
+                            <div className="space-y-2">
+                              <div>
+                                <label className="text-[9px] text-white/40 uppercase font-bold">타이틀</label>
+                                <input 
+                                  className="w-full bg-black border border-white/10 p-2 rounded text-xs outline-none focus:border-white/40" 
+                                  value={point.title} 
+                                  onChange={e => {
+                                    setSettings(prev => {
+                                      const updatedPoints = [...(prev.homeConfig.introPoints || [])];
+                                      for (let j = 0; j <= i; j++) {
+                                        if (!updatedPoints[j]) {
+                                          updatedPoints[j] = { ...DEFAULT_ADMIN_SETTINGS.homeConfig.introPoints[j] };
+                                        }
+                                      }
+                                      updatedPoints[i] = { ...updatedPoints[i], title: e.target.value };
+                                      return { ...prev, homeConfig: { ...prev.homeConfig, introPoints: updatedPoints } };
+                                    });
+                                    setIsDirty(true);
+                                  }}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[9px] text-white/40 uppercase font-bold">서브 문구</label>
+                                <textarea 
+                                  className="w-full bg-black border border-white/10 p-2 rounded text-xs outline-none focus:border-white/40 resize-none" 
+                                  rows={2}
+                                  value={point.description} 
+                                  onChange={e => {
+                                    setSettings(prev => {
+                                      const updatedPoints = [...(prev.homeConfig.introPoints || [])];
+                                      for (let j = 0; j <= i; j++) {
+                                        if (!updatedPoints[j]) {
+                                          updatedPoints[j] = { ...DEFAULT_ADMIN_SETTINGS.homeConfig.introPoints[j] };
+                                        }
+                                      }
+                                      updatedPoints[i] = { ...updatedPoints[i], description: e.target.value };
+                                      return { ...prev, homeConfig: { ...prev.homeConfig, introPoints: updatedPoints } };
+                                    });
+                                    setIsDirty(true);
+                                  }}
+                                />
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -1215,6 +1293,53 @@ const AdminDashboard = () => {
               </div>
 
               <div className="space-y-10">
+                <section className="bg-[#1a1a1a] p-8 rounded-3xl border border-white/5 space-y-6">
+                  <h2 className="text-xl font-bold border-l-4 border-white pl-3 flex items-center gap-2"><CreditCard size={20}/> 선입금 할인 설정</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-black/40 p-6 rounded-2xl border border-white/5">
+                    <div className="flex items-center gap-3">
+                      <input 
+                        type="checkbox" 
+                        id="advanceDiscountEnabled"
+                        checked={settings.advanceDepositDiscount?.enabled || false} 
+                        onChange={e => {
+                          setSettings(prev => ({
+                            ...prev, 
+                            advanceDepositDiscount: {
+                              enabled: e.target.checked,
+                              discountAmount: prev.advanceDepositDiscount?.discountAmount ?? 2000
+                            }
+                          }));
+                          setIsDirty(true);
+                        }} 
+                        className="accent-white w-5 h-5 cursor-pointer"
+                      />
+                      <label htmlFor="advanceDiscountEnabled" className="text-sm font-bold text-white/80 cursor-pointer selection:bg-transparent">
+                        선입금 할인 활성화 (계좌이체 선택 시)
+                      </label>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-white/40 block">할인 금액 (원 단위, 숫자만 입력)</label>
+                      <input 
+                        type="number"
+                        className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none text-sm placeholder-white/20 focus:border-white" 
+                        placeholder="예: 2000"
+                        value={settings.advanceDepositDiscount?.discountAmount ?? ''} 
+                        onChange={e => {
+                          const val = e.target.value === '' ? '' : parseInt(e.target.value);
+                          setSettings(prev => ({
+                            ...prev, 
+                            advanceDepositDiscount: {
+                              enabled: prev.advanceDepositDiscount?.enabled ?? false,
+                              discountAmount: val as number
+                            }
+                          }));
+                          setIsDirty(true);
+                        }} 
+                      />
+                    </div>
+                  </div>
+                </section>
+
                 <section className="bg-[#1a1a1a] p-8 rounded-3xl border border-white/5 space-y-6">
                   <h2 className="text-xl font-bold border-l-4 border-white pl-3 flex items-center gap-2"><CreditCard size={20}/> 계좌 정보 설정</h2>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

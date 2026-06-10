@@ -54,17 +54,17 @@ export const INTRO_POINTS = [
   {
     title: '탄탄한 시나리오',
     desc: '씨네마광 공대박사의 탄탄한 시나리오',
-    img: '/intro1.jpg'
+    img: 'https://images.unsplash.com/photo-1517400508447-f8dd518b86db?auto=format&fit=crop&q=80'
   },
   {
     title: '몰입도 높은 현장',
     desc: '미대생 출신이 직접 연출한 크라임씬',
-    img: '/intro2.jpg'
+    img: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&q=80'
   },
   {
     title: '다양한 롤플레잉',
     desc: '각기 다른 사연과 비밀을 가진 캐릭터들',
-    img: '/intro3.jpg'
+    img: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80'
   }
 ];
 
@@ -103,11 +103,11 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
     }
   },
   homeConfig: {
-    heroImageUrl: '/hero.jpg',
+    heroImageUrl: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&q=80',
     heroSlides: [
       {
         id: '1',
-        imageUrl: '/hero.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&q=80',
         title: 'CRIME SCENERS',
         subtitle: '사건 현장에 있는 우리 모두 SCENERS 입니다.',
         buttonText: '지금 예약하기',
@@ -116,10 +116,22 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
     ],
     introTitle: 'CRIME SCENERS?',
     introDescription: '스릴러 매니아들이 설계한 몰입형 추리 게임 카페\n\'크라임 씨너스\' 에 오신것을 환영합니다!',
-    introImages: [
-      '/intro1.jpg',
-      '/intro2.jpg',
-      '/intro3.jpg'
+    introPoints: [
+      {
+        title: '탄탄한 시나리오',
+        description: '씨네마광 공대박사의 탄탄한 시나리오',
+        imageUrl: 'https://images.unsplash.com/photo-1517400508447-f8dd518b86db?auto=format&fit=crop&q=80'
+      },
+      {
+        title: '몰입도 높은 현장',
+        description: '미대생 출신이 직접 연출한 크라임씬',
+        imageUrl: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&q=80'
+      },
+      {
+        title: '다양한 롤플레잉',
+        description: '각기 다른 사연과 비밀을 가진 캐릭터들',
+        imageUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80'
+      }
     ]
   },
   popupSettings: {
@@ -131,7 +143,11 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
 - 예약금 입금 후 예약이 확정됩니다.
 - 이용일 3일 전 취소 시 100% 환불
 - 이용일 2일 전 취소 시 50% 환불
-- 이용일 1일 전 및 당일 취소 시 환불 불가`
+- 이용일 1일 전 및 당일 취소 시 환불 불가`,
+  advanceDepositDiscount: {
+    enabled: true,
+    discountAmount: 2000
+  }
 };
 
 export const INITIAL_NOTICES: Notice[] = [

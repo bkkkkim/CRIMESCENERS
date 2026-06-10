@@ -33,6 +33,7 @@ const BookingForm = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [showOnSiteModal, setShowOnSiteModal] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -210,12 +211,12 @@ const BookingForm = () => {
         <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-12">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div ref={nameRef} className="space-y-3">
-              <label className="text-xs font-medium text-white/40 tracking-normal uppercase">예약자 성함</label>
+              <label className="text-sm font-bold text-white/80 tracking-normal uppercase">예약자 성함</label>
               {errors.name && <p className="text-[10px] text-red-500 font-bold animate-pulse">{errors.name}</p>}
               <input 
                 type="text" 
                 placeholder="성함을 입력해주세요"
-                className={`w-full bg-black/40 border rounded-xl p-4 focus:outline-none transition-colors text-white placeholder:text-white/20 ${errors.name ? 'border-red-500' : 'border-white/10 focus:border-white'}`}
+                className={`w-full bg-black/40 border rounded-xl p-4 focus:outline-none transition-colors text-white placeholder:text-white/40 text-base ${errors.name ? 'border-red-500' : 'border-white/20 focus:border-white'}`}
                 value={formData.name}
                 onChange={(e) => {
                   setFormData({...formData, name: e.target.value});
@@ -224,12 +225,12 @@ const BookingForm = () => {
               />
             </div>
             <div ref={phoneRef} className="space-y-3">
-              <label className="text-xs font-medium text-white/40 tracking-normal uppercase">휴대폰 번호</label>
+              <label className="text-sm font-bold text-white/80 tracking-normal uppercase">휴대폰 번호</label>
               {errors.phone && <p className="text-[10px] text-red-500 font-bold animate-pulse">{errors.phone}</p>}
                 <input 
                   type="tel" 
                   placeholder="숫자만 입력해주세요 (하이픈 제외)"
-                  className={`w-full bg-black/40 border rounded-xl p-4 focus:outline-none transition-colors text-white placeholder:text-white/20 ${errors.phone ? 'border-red-500' : 'border-white/10 focus:border-white'}`}
+                  className={`w-full bg-black/40 border rounded-xl p-4 focus:outline-none transition-colors text-white placeholder:text-white/40 text-base ${errors.phone ? 'border-red-500' : 'border-white/20 focus:border-white'}`}
                   value={formData.phone}
                   onChange={(e) => {
                     const value = e.target.value.replace(/[^0-9]/g, '');
@@ -241,10 +242,10 @@ const BookingForm = () => {
           </div>
 
           <div ref={participantsRef} className="space-y-6">
-            <div className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/10">
-              <label className="text-xs font-medium text-white/40 tracking-normal uppercase">참여 인원 선택</label>
+            <div className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/25">
+              <label className="text-sm font-bold text-white/80 tracking-normal uppercase">참여 인원 선택</label>
               <div className="flex items-center gap-3">
-                <p className="text-xs font-medium text-white/60">
+                <p className="text-sm font-bold text-white">
                   <span className="text-[#dc2626]">{remainingCapacity}</span> / {theme.maxPlayers}명 가능
                 </p>
               </div>
@@ -285,26 +286,46 @@ const BookingForm = () => {
           </div>
 
           <div className="space-y-6">
-            <label className="text-xs font-medium text-white/40 tracking-normal uppercase">결제 방식</label>
+            <div className="flex justify-between items-center relative">
+              <label className="text-sm font-bold text-white/80 tracking-normal uppercase">결제 방식</label>
+            </div>
+            
             <div className="grid grid-cols-2 gap-4">
+              <div className="relative">
+                {/* ADVANCE DEPOSIT TOOLTIP / SPEECH BUBBLE */}
+                {settings?.advanceDepositDiscount?.enabled && (
+                  <div className="absolute -top-11 left-1/2 -translate-x-1/2 z-10 animate-bounce">
+                    <div className="relative bg-[#dc2626] text-white text-[10px] md:text-xs font-black px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap border border-white/15">
+                      인당 {settings.advanceDepositDiscount.discountAmount.toLocaleString()}원 할인!
+                      {/* speech bubble triangle */}
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#dc2626] rotate-45 border-r border-b border-white/10"></div>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, paymentMethod: 'bank-transfer'})}
+                  className={`w-full py-5 rounded-2xl border font-bold transition-all flex items-center justify-center gap-2 relative ${
+                    formData.paymentMethod === 'bank-transfer'
+                      ? 'bg-white border-white text-black shadow-xl scale-[1.02]'
+                      : 'bg-transparent border-white/15 text-white/70 hover:border-white/35'
+                  }`}
+                >
+                  선입금 (계좌이체)
+                </button>
+              </div>
+
               <button
                 type="button"
-                onClick={() => setFormData({...formData, paymentMethod: 'bank-transfer'})}
-                className={`py-5 rounded-2xl border font-bold transition-all flex items-center justify-center gap-2 ${
-                  formData.paymentMethod === 'bank-transfer'
-                    ? 'bg-white border-white text-black shadow-xl'
-                    : 'bg-transparent border-white/10 text-[#b3b3b3] hover:border-white/30'
-                }`}
-              >
-                선입금 (계좌이체)
-              </button>
-              <button
-                type="button"
-                onClick={() => setFormData({...formData, paymentMethod: 'on-site'})}
+                onClick={() => {
+                  setFormData({...formData, paymentMethod: 'on-site'});
+                  setShowOnSiteModal(true);
+                }}
                 className={`py-5 rounded-2xl border font-bold transition-all flex items-center justify-center gap-2 ${
                   formData.paymentMethod === 'on-site'
-                    ? 'bg-white border-white text-black shadow-xl'
-                    : 'bg-transparent border-white/10 text-[#b3b3b3] hover:border-white/30'
+                    ? 'bg-white border-white text-black shadow-xl scale-[1.02]'
+                    : 'bg-transparent border-white/15 text-white/70 hover:border-white/35'
                 }`}
               >
                 현장 결제
@@ -312,23 +333,55 @@ const BookingForm = () => {
             </div>
 
             {formData.paymentMethod === 'bank-transfer' && (
-              <div className="p-8 bg-white/5 rounded-[32px] border border-white/10 animate-in fade-in slide-in-from-top-4 duration-500">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-white/40 tracking-normal uppercase mb-2">Deposit Account</p>
-                    <div className="text-xl font-bold tracking-tight">
-                      {settings.bankInfo.bankName} {settings.bankInfo.accountNumber}
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="p-8 bg-white/5 rounded-[32px] border border-white/20 shadow-xl">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-white/55 tracking-normal uppercase mb-2">Deposit Account</p>
+                      <div className="text-xl font-bold tracking-tight text-white mb-1">
+                        {settings.bankInfo.bankName} {settings.bankInfo.accountNumber}
+                      </div>
+                      <p className="text-sm font-semibold text-white/80">예금주: {settings.bankInfo.holderName}</p>
                     </div>
-                    <p className="text-sm text-white/60">예금주: {settings.bankInfo.holderName}</p>
+                    <button
+                      type="button"
+                      onClick={handleCopyBank}
+                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-all text-white border border-white/10"
+                    >
+                      {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                      {copied ? 'COPIED' : 'COPY'}
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleCopyBank}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-all"
-                  >
-                    {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
-                    {copied ? 'COPIED' : 'COPY'}
-                  </button>
+                </div>
+
+                {/* ADVANCE DEPOSIT PRECAUTION NOTICE */}
+                <div className="p-6 bg-[#dc2626]/5 border border-[#dc2626]/20 rounded-2xl space-y-3 shadow-md">
+                  <p className="text-xs text-[#dc2626] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                    ⚠️ 선입금 계좌이체 유의사항
+                  </p>
+                  <ul className="text-sm text-white/95 font-semibold space-y-2 list-none pl-0 leading-relaxed">
+                    <li>1) 예약자명과 입금자명이 동일해야 예약확인이 가능합니다.</li>
+                    <li>2) 당일 환불은 불가합니다.</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {formData.paymentMethod === 'on-site' && (
+              <div className="p-6 bg-white/[0.02] border border-white/20 rounded-2xl space-y-3 animate-in fade-in duration-300 shadow-md">
+                <p className="text-xs text-white/60 font-bold uppercase tracking-widest">
+                  ⚠️ 현장 결제 유의사항
+                </p>
+                <div className="space-y-2 text-sm text-white font-medium leading-relaxed">
+                  <p className="text-[#dc2626] font-bold">
+                    * 현장결제의 경우 선입금 할인 혜택 적용이 불가합니다.
+                  </p>
+                  <p>
+                    현장 결제 선택 후, 노쇼로 인해 다른 고객님들의 게임 예약 및 참여에 지장되지 않도록 가급적 <span className="text-[#dc2626] font-bold">&apos;선입금&apos;</span>으로 예약을 권장드립니다.
+                  </p>
+                  <p>
+                    현장 결제 예약 후 부득이한 사정으로 <span className="text-[#dc2626] font-bold">&apos;노쇼&apos;</span>하신 경우 추후 게임 예약에 지장이 있으실 수 있습니다.
+                  </p>
                 </div>
               </div>
             )}
@@ -367,20 +420,20 @@ const BookingForm = () => {
 
           <div className="space-y-8 pt-8 border-t border-white/5">
             <div className="space-y-4">
-                <h4 className="text-sm font-bold text-white/60">예약 유의사항</h4>
+                <h4 className="text-base font-extrabold text-white">예약 유의사항</h4>
                 {settings.bookingNotice ? (
-                  <div className="text-xs text-[#b3b3b3] space-y-2 leading-relaxed whitespace-pre-wrap">
+                  <div className="text-sm text-white/80 space-y-2 leading-relaxed whitespace-pre-wrap font-medium">
                     {settings.bookingNotice}
                   </div>
                 ) : (
-                  <ul className="text-xs text-[#b3b3b3] space-y-2 list-disc pl-4 leading-relaxed">
+                  <ul className="text-sm text-white/80 space-y-2 list-disc pl-4 leading-relaxed font-medium">
                       <li>예약 완료 즉시 입력하신 연락처로 안내해 드리며, 만약 연락처 정보를 잘못 입력하시거나 연락을 못받으신 경우 매장으로 연락해주세요.</li>
                       <li>예약일 전날 밤 10시까지 입금안내와 매장 이용 안내 전달할 예정입니다. 당일 예약 후 반복하여 취소하시는 경우 향후 매장 이용에 제한이 생길 수 있습니다.</li>
                   </ul>
                 )}
             </div>
 
-            <div ref={privacyRef} className="flex items-start gap-4 p-6 bg-white/5 rounded-2xl border border-white/5">
+            <div ref={privacyRef} className="flex items-start gap-4 p-6 bg-white/5 rounded-2xl border border-white/10">
                 <div className="pt-0.5">
                     <input 
                         type="checkbox" 
@@ -394,7 +447,7 @@ const BookingForm = () => {
                     />
                 </div>
                 <label htmlFor="privacyAgree" className="cursor-pointer">
-                    <p className={`text-sm font-bold transition-colors ${errors.agreed ? 'text-red-500' : 'text-white'}`}>
+                    <p className={`text-sm font-extrabold transition-colors ${errors.agreed ? 'text-red-500' : 'text-white'}`}>
                         개인정보수집 동의하며 유의사항 확인하였습니다 (필수)
                     </p>
                     {errors.agreed && <p className="text-[10px] text-red-500 mt-1">{errors.agreed}</p>}
@@ -417,6 +470,35 @@ const BookingForm = () => {
           </div>
         </form>
       </div>
+
+      {/* On-Site Payment warning modal */}
+      {showOnSiteModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
+          <div className="bg-[#1f1f1f] border border-white/15 p-8 rounded-3xl max-w-md w-full shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] relative animate-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-3 flex items-center gap-2">
+              ⚠️ 현장 결제 예약 시 유의사항
+            </h3>
+            <div className="space-y-4 text-white text-sm leading-relaxed mb-8 font-medium">
+              <p className="text-[#dc2626] font-bold">
+                * 현장결제의 경우 선입금 할인 혜택 적용이 불가합니다.
+              </p>
+              <p>
+                현장 결제 선택 후, 노쇼로 인해 다른 고객님들의 게임 예약 및 참여에 지장되지 않도록 가급적 <span className="text-[#dc2626] font-black">&apos;선입금&apos;</span>으로 예약을 권장드립니다.
+              </p>
+              <p>
+                현장 결제 예약 후 부득이한 사정으로 <span className="text-[#dc2626] font-black">&apos;노쇼&apos;</span>하신 경우 추후 게임 예약에 지장이 있으실 수 있습니다.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowOnSiteModal(false)}
+              className="w-full py-4 bg-white text-black font-extrabold rounded-2xl hover:bg-neutral-200 transition-all text-sm tracking-widest uppercase font-en"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

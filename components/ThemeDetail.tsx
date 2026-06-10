@@ -397,9 +397,19 @@ const ThemeDetail = () => {
                   <span>{theme.minPlayers}-{theme.maxPlayers}명</span>
                 </div>
               </div>
-              <div className="space-y-2">
-                <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase">1인</p>
-                <p className="text-white font-bold text-sm">{theme.price.toLocaleString()}원</p>
+              <div className="space-y-1">
+                <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase">1인 가격</p>
+                {settings?.advanceDepositDiscount?.enabled ? (
+                  <div className="flex flex-row md:flex-col items-center md:items-start gap-1">
+                    <p className="text-white/40 text-sm font-bold line-through decoration-white/20 leading-none">{theme.price.toLocaleString()}원</p>
+                    <p className="text-white font-bold text-sm flex items-center gap-1.5 leading-tight">
+                      {(theme.price - settings.advanceDepositDiscount.discountAmount).toLocaleString()}원
+                      <span className="text-[9px] font-bold bg-[#dc2626]/10 text-[#dc2626] px-1 py-0.5 rounded uppercase tracking-wider">선입금가</span>
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-white font-bold text-sm">{theme.price.toLocaleString()}원</p>
+                )}
               </div>
             </div>
           </div>
