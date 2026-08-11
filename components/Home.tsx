@@ -44,7 +44,7 @@ const TypingTitle = ({ title }: { title: string }) => {
 };
 
 const PopupModal = ({ settings, onClose }: { settings: PopupSettings, onClose: () => void }) => {
-  if (!settings.isEnabled) return null;
+  if (!settings.isEnabled || !settings.imageUrl) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 px-4">
@@ -58,7 +58,7 @@ const PopupModal = ({ settings, onClose }: { settings: PopupSettings, onClose: (
         {settings.linkUrl ? (
           <a href={settings.linkUrl} target="_blank" rel="noopener noreferrer" className="block">
             <img 
-              src={settings.imageUrl || "https://picsum.photos/seed/popup/600/800"} 
+              src={settings.imageUrl} 
               alt="Popup" 
               className="w-full h-auto max-h-[70vh] object-cover"
               referrerPolicy="no-referrer"
@@ -66,7 +66,7 @@ const PopupModal = ({ settings, onClose }: { settings: PopupSettings, onClose: (
           </a>
         ) : (
           <img 
-            src={settings.imageUrl || "https://picsum.photos/seed/popup/600/800"} 
+            src={settings.imageUrl} 
             alt="Popup" 
             className="w-full h-auto max-h-[70vh] object-cover"
             referrerPolicy="no-referrer"
@@ -264,14 +264,19 @@ const IntroSection = ({ points, title, description, legacyImages }: { points: In
         <div className="mobile-snap-container hide-scrollbar md:grid md:grid-cols-3 md:gap-8 items-start">
           {displayPoints.map((point, i) => (
             <div key={i} className="mobile-snap-item-2-5 group flex-shrink-0 flex flex-col">
-              <div className="overflow-hidden rounded-[24px] md:rounded-[32px] mb-4 md:mb-6 aspect-square md:aspect-[4/5] border border-white/5 shrink-0">
-                <img 
-                  src={point.imageUrl} 
-                  alt={point.title} 
-                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
-                />
+              <div className="overflow-hidden rounded-[24px] md:rounded-[32px] mb-4 md:mb-6 aspect-square md:aspect-[4/5] border border-white/5 bg-[#1a1a1a] shrink-0 relative">
+                {point.imageUrl ? (
+                  <img 
+                    src={point.imageUrl} 
+                    alt={point.title} 
+                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : null}
               </div>
               <div className="text-left flex-grow">
                 <h3 className="text-lg md:text-xl font-bold mb-2 md:mb-3 tracking-tight whitespace-nowrap md:whitespace-normal">{point.title}</h3>
@@ -360,7 +365,12 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                 if (startDate) startDate.setHours(0, 0, 0, 0);
                 if (endDate) endDate.setHours(0, 0, 0, 0);
 
-                const isComingSoon = (startDate && now < startDate) || (endDate && now > endDate);
+                const mode = theme.futureDisplayMode || 'coming_soon';
+                const isFuture = startDate && now < startDate;
+                const isExpired = endDate && now > endDate;
+
+                const isComingSoon = isExpired || (isFuture && mode === 'coming_soon');
+                const isOpenFuture = isFuture && mode === 'open_calendar';
 
                 return (
                   <Link 
@@ -376,13 +386,16 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                     `}
                     onClick={(e) => isComingSoon && e.preventDefault()}
                   >
-                    <div className="relative aspect-[2/3] overflow-hidden rounded-2xl mb-3 md:mb-8 shadow-2xl border border-white/5">
+                    <div className="relative aspect-[2/3] overflow-hidden rounded-2xl mb-3 md:mb-8 shadow-2xl border border-white/5 bg-[#1a1a1a]">
                       <img 
                         src={theme.posterUrl} 
                         alt={theme.title} 
                         className={`w-full h-full object-cover transition-transform duration-1000 ${isComingSoon ? 'grayscale opacity-50' : 'group-hover:scale-110'}`}
                         loading="lazy"
                         referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
                       />
                       {isComingSoon && (
                         <div className="absolute inset-0 bg-black/20 z-10" />
@@ -390,6 +403,11 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                       {isComingSoon && (
                         <div className="absolute inset-0 flex items-center justify-center z-20">
                           <span className="text-2xl font-bold tracking-wider text-white font-en drop-shadow-lg">COMING SOON</span>
+                        </div>
+                      )}
+                      {isOpenFuture && (
+                        <div className="absolute top-3 left-3 z-20 bg-[#dc2626] text-white font-extrabold text-[10px] md:text-xs px-2.5 py-1 rounded-md shadow-lg border border-red-500/30">
+                          {theme.startDate} 오픈예정
                         </div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 z-0" />
@@ -505,14 +523,24 @@ const StoreSection = ({ stores }: { stores: Store[] }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-20 items-center">
-        <div className="rounded-[32px] md:rounded-[40px] overflow-hidden aspect-video shadow-2xl border border-white/5">
-          <img 
-            src={selectedStore.imageUrl || "https://picsum.photos/id/1031/800/600?grayscale"} 
-            alt={selectedStore.name} 
-            className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
-            loading="lazy"
-            referrerPolicy="no-referrer"
-          />
+        <div className="rounded-[32px] md:rounded-[40px] overflow-hidden aspect-video shadow-2xl border border-white/5 bg-[#1a1a1a] flex items-center justify-center relative">
+          {selectedStore.imageUrl ? (
+            <img 
+              src={selectedStore.imageUrl} 
+              alt={selectedStore.name} 
+              className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center p-6 text-center text-white/30 space-y-2">
+              <MapPin size={48} className="text-white/20" />
+              <span className="text-sm font-bold">{selectedStore.name}</span>
+            </div>
+          )}
         </div>
         <div className="flex flex-col items-start text-left">
           <div className="space-y-6 md:space-y-8 w-full">

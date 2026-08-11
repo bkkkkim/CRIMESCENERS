@@ -192,7 +192,12 @@ const ThemeReservation = () => {
         const end = theme.endDate ? new Date(theme.endDate) : null;
         if (start) start.setHours(0, 0, 0, 0);
         if (end) end.setHours(0, 0, 0, 0);
-        return (start && now < start) || (end && now > end);
+
+        const mode = theme.futureDisplayMode || 'coming_soon';
+        const isFuture = start && now < start;
+        const isExpired = end && now > end;
+
+        return isExpired || (isFuture && mode === 'coming_soon');
       };
 
       const aComing = getIsComingSoon(a);
@@ -414,7 +419,12 @@ const ThemeReservation = () => {
               if (startDate) startDate.setHours(0, 0, 0, 0);
               if (endDate) endDate.setHours(0, 0, 0, 0);
 
-              const isComingSoon = (startDate && now < startDate) || (endDate && now > endDate);
+              const mode = theme.futureDisplayMode || 'coming_soon';
+              const isFuture = startDate && now < startDate;
+              const isExpired = endDate && now > endDate;
+
+              const isComingSoon = isExpired || (isFuture && mode === 'coming_soon');
+              const isOpenFuture = isFuture && mode === 'open_calendar';
 
               const isDateAndTimeSelected = selectedDate && selectedTime;
 
@@ -440,9 +450,9 @@ const ThemeReservation = () => {
                         <span className="text-2xl font-bold tracking-wider text-white font-en drop-shadow-lg">COMING SOON</span>
                       </div>
                     )}
-                    {theme.storeId && store && (
-                      <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-[10px] font-medium text-white flex items-center gap-1.5 border border-white/10 z-30">
-                        <MapPin size={12} /> {store.name}
+                    {isOpenFuture && (
+                      <div className="absolute top-3 left-3 md:top-4 md:left-4 bg-[#dc2626] text-white font-extrabold text-[10px] md:text-xs px-2.5 py-1 rounded-md shadow-lg z-30 border border-red-500/30">
+                        {theme.startDate} 오픈예정
                       </div>
                     )}
                     {!isComingSoon && (
@@ -456,6 +466,9 @@ const ThemeReservation = () => {
                   
                   <div className="space-y-4 px-0 pb-6 pt-4 md:p-0">
                     <div className="flex flex-col gap-1">
+                      {theme.storeId && store && (
+                        <span className="text-white/40 text-xs font-medium uppercase tracking-normal">{store.name}</span>
+                      )}
                       <h3 className="text-2xl font-bold group-hover:text-white transition-colors flex items-center gap-2">
                         {theme.title}
                       </h3>

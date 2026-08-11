@@ -79,7 +79,18 @@ const ThemeDetail = () => {
         setStores(storeList);
         
         const found = themeList.find((t: Theme) => t.id === id);
-        if (found) setTheme(found);
+        if (found) {
+          setTheme(found);
+          if (found.startDate) {
+            const start = new Date(found.startDate);
+            const now = new Date();
+            now.setHours(0,0,0,0);
+            start.setHours(0,0,0,0);
+            if (now < start) {
+              setCurrentMonth(new Date(start.getFullYear(), start.getMonth(), 1));
+            }
+          }
+        }
       } catch (error) {
         console.error("Failed to load theme detail data:", error);
       } finally {
@@ -200,7 +211,11 @@ const ThemeDetail = () => {
   if (startDate) startDate.setHours(0, 0, 0, 0);
   if (endDate) endDate.setHours(0, 0, 0, 0);
 
-  const isComingSoon = (startDate && now < startDate) || (endDate && now > endDate);
+  const mode = theme.futureDisplayMode || 'coming_soon';
+  const isFuture = startDate && now < startDate;
+  const isExpired = endDate && now > endDate;
+
+  const isComingSoon = isExpired || (isFuture && mode === 'coming_soon');
   let dDayText = '';
   if (!isComingSoon && endDate && now <= endDate) {
     const diffTime = Math.abs(endDate.getTime() - now.getTime());

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { THEMES, DEFAULT_ADMIN_SETTINGS } from '../constants';
-import { ChevronLeft, CheckCircle2, Copy, Check } from 'lucide-react';
+import { ChevronLeft, CheckCircle2, Copy, Check, AlertTriangle } from 'lucide-react';
 import { Theme, AdminSettings, BookingData } from '../types';
 import { dataService } from '../src/services/dataService';
 import LoadingScreen from './LoadingScreen';
@@ -209,6 +209,18 @@ const BookingForm = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-12">
+          {/* PROMINENT DEPOSIT NOTICE BANNER */}
+          <div className="p-6 bg-[#dc2626]/10 border-2 border-[#dc2626] rounded-2xl space-y-2 shadow-xl">
+            <div className="flex items-center gap-2 text.text-[#dc2626] text-base md:text-lg font-black">
+              <AlertTriangle size={22} className="shrink-0 text-[#dc2626]" />
+              <span className="text-[#dc2626]">📢 예약 확정 필수 안내 (선입금 필수)</span>
+            </div>
+            <p className="text-sm text-white/95 font-semibold leading-relaxed">
+              예약 신청 후 <span className="text-[#dc2626] font-black underline underline-offset-4">예약금을 선입금(계좌이체)하셔야 예약이 최종 확정</span>됩니다.<br />
+              입금 확인 후 안내 문자가 발송되며, 미입금 시 예약이 자동 취소될 수 있습니다.
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div ref={nameRef} className="space-y-3">
               <label className="text-sm font-bold text-white/80 tracking-normal uppercase">예약자 성함</label>

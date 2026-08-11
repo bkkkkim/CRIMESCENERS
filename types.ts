@@ -16,6 +16,7 @@ export interface Theme {
   storeId?: string;
   startDate?: string;
   endDate?: string;
+  futureDisplayMode?: 'coming_soon' | 'open_calendar';
   showOnMain?: boolean;
 }
 

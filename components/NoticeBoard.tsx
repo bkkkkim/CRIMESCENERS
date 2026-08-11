@@ -72,34 +72,59 @@ const NoticeBoard = () => {
             exit={{ opacity: 0, y: -20 }}
             className="space-y-12"
           >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="bg-[#1a1a1a] p-10 rounded-[40px] border border-white/5">
-                <h3 className="text-2xl font-bold mb-8 uppercase tracking-tighter font-en">How to Play</h3>
-                <div className="space-y-8">
-                  {[
-                    { step: '01', title: '역할 선정', desc: '각 플레이어는 용의자 또는 탐정 역할을 부여받습니다.' },
-                    { step: '02', title: '현장 조사', desc: '사건 현장을 돌아다니며 단서를 수집하고 증거를 찾습니다.' },
-                    { step: '03', title: '알리바이 확인', desc: '서로의 알리바이를 확인하고 모순점을 찾아냅니다.' },
-                    { step: '04', title: '최종 투표', desc: '모든 증거를 종합하여 진범을 지목합니다.' }
-                  ].map((item, i) => (
-                    <div key={i} className="flex gap-6">
-                      <span className="text-4xl font-bold text-white/10 font-en">{item.step}</span>
-                      <div>
-                        <h4 className="font-bold text-lg mb-2">{item.title}</h4>
-                        <p className="text-sm text-[#b3b3b3] opacity-60 leading-relaxed">{item.desc}</p>
-                      </div>
-                    </div>
-                  ))}
+            {/* How To Play Section */}
+            <div className="bg-[#1a1a1a] p-4 sm:p-6 md:p-8 rounded-[24px] sm:rounded-[32px] md:rounded-[40px] border border-white/5 space-y-5 md:space-y-6">
+              <div className="text-center md:text-left space-y-2 border-b border-white/5 pb-4 md:pb-5">
+                <div className="flex items-center gap-2 justify-center md:justify-start">
+                  <span className="bg-[#dc2626] text-[10px] font-bold px-2 py-0.5 rounded tracking-widest uppercase font-en">GAME GUIDE</span>
                 </div>
+                <h3 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-tighter font-en text-white">How to Play</h3>
+                <p className="text-xs sm:text-sm md:text-base text-[#d1d1d1] font-medium opacity-90 leading-relaxed">
+                  크라임 씨너스는 게임 몰입도를 위해, 충분한 사전 정보와 역할 숙지 시간을 제공합니다.
+                </p>
               </div>
-              <div className="bg-white/5 p-10 rounded-[40px] border border-white/5 flex flex-col justify-center items-center text-center">
-                <Gamepad2 size={64} className="text-white/20 mb-8" />
-                <h3 className="text-2xl font-bold mb-4">준비되셨나요?</h3>
-                <p className="text-[#d1d1d1] mb-10 opacity-60">지금 바로 사건 현장으로 떠나보세요.</p>
-                <Link to="/reservation" className="px-12 py-5 bg-white text-black font-bold rounded-none hover:bg-neutral-200 transition-all tracking-normal uppercase text-sm font-en">
-                  Book Now
-                </Link>
+
+              {/* 8 Steps Grid - 2 columns on mobile */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5">
+                {[
+                  { step: '01', title: '사전 역할 파악', desc: '예약 인원 확정 시, 전달되는 롤카드를 게임 전 미리 숙지해주세요.' },
+                  { step: '02', title: '역할 선정', desc: '플레이어는 용의자나 탐정을 맡으며, 전날 미리 상의해 정할 수 있습니다.' },
+                  { step: '03', title: '역할 숙지', desc: '이용 당일, 현장에서 각자의 역할을 이해하는 시간을 갖습니다.' },
+                  { step: '04', title: '자기소개 및 현장 조사', desc: '간단한 자기소개와 함께 1차 현장조사를 진행합니다.' },
+                  { step: '05', title: '회의 및 중간 투표', desc: '각자 찾은 단서에 대해 논의하고 중간 범인 투표를 진행합니다.' },
+                  { step: '06', title: '2차 현장 조사 및 회의', desc: '추가 현장 조사를 통해 좀 더 사건의 진실에 가까워집니다.' },
+                  { step: '07', title: '최종 현장 검증', desc: '마지막으로 추가 현장을 검증합니다.' },
+                  { step: '08', title: '최종 투표', desc: '모든 증거와 정황을 종합하여 진범을 지목합니다.' }
+                ].map((item, i) => (
+                  <div 
+                    key={i} 
+                    className="bg-white/5 border border-white/5 rounded-xl sm:rounded-2xl md:rounded-3xl p-3.5 sm:p-4 md:p-5 flex flex-col justify-between hover:bg-white/10 hover:border-white/20 transition-all group"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-lg sm:text-2xl font-black text-[#dc2626] font-en">{item.step}</span>
+                        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/20 group-hover:bg-[#dc2626] transition-colors" />
+                      </div>
+                      <h4 className="font-bold text-xs sm:text-sm md:text-base mb-1 sm:mb-1.5 text-white leading-snug break-keep">{item.title}</h4>
+                      <p className="text-[11px] sm:text-xs md:text-sm text-[#b3b3b3] opacity-80 leading-snug sm:leading-relaxed break-keep">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
+            </div>
+
+            {/* Standalone CTA Banner Section */}
+            <div className="bg-gradient-to-r from-[#1a1a1a] via-[#222222] to-[#1a1a1a] p-6 sm:p-8 md:p-10 rounded-[24px] sm:rounded-[32px] md:rounded-[40px] border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left shadow-2xl">
+              <div className="space-y-1.5">
+                <h4 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight">준비되셨나요?</h4>
+                <p className="text-[#d1d1d1] text-xs sm:text-sm md:text-base opacity-85">지금 바로 사건 현장으로 떠나보세요!</p>
+              </div>
+              <Link 
+                to="/reservation" 
+                className="w-full sm:w-auto text-center px-8 md:px-10 py-3.5 bg-white text-black font-bold rounded-full hover:bg-neutral-200 transition-all tracking-normal uppercase text-xs md:text-sm font-en shrink-0 shadow-lg hover:scale-105"
+              >
+                Book Now
+              </Link>
             </div>
 
             <div className="space-y-4">
@@ -179,14 +204,24 @@ const NoticeBoard = () => {
           >
             {stores.map((store, index) => (
               <div key={`${store.id}-${index}`} className="bg-[#1a1a1a] rounded-[40px] overflow-hidden border border-white/5 group">
-                <div className="aspect-video overflow-hidden">
-                  <img 
-                    src={store.imageUrl || "https://picsum.photos/id/1031/800/600?grayscale"} 
-                    alt={store.name} 
-                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000"
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                  />
+                <div className="aspect-video overflow-hidden bg-[#1a1a1a] flex items-center justify-center relative">
+                  {store.imageUrl ? (
+                    <img 
+                      src={store.imageUrl} 
+                      alt={store.name} 
+                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center p-6 text-center text-white/30 space-y-2">
+                      <MapPin size={48} className="text-white/20" />
+                      <span className="text-sm font-bold">{store.name}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="p-10">
                   <h3 className="text-3xl font-black mb-8 tracking-tighter">{store.name}</h3>

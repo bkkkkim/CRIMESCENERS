@@ -608,7 +608,7 @@ const AdminDashboard = () => {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="text-xs text-white/40 mb-1 block">노출 시작일 (Coming Soon 해제)</label>
+                          <label className="text-xs text-white/40 mb-1 block">노출 시작일 (오픈 예정일)</label>
                           <input type="date" className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none focus:border-white text-sm" 
                             value={theme.startDate || ''} onChange={e => {
                               setThemes(prev => {
@@ -632,6 +632,57 @@ const AdminDashboard = () => {
                             }} />
                         </div>
                       </div>
+
+                      {theme.startDate && (
+                        <div className="p-4 bg-white/5 rounded-xl border border-white/10 space-y-2">
+                          <label className="text-xs font-bold text-white block">미래 오픈일 노출 설정 (시작일 설정 시)</label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                            <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${(!theme.futureDisplayMode || theme.futureDisplayMode === 'coming_soon') ? 'bg-white/10 border-white text-white font-bold' : 'bg-black/40 border-white/10 text-white/60'}`}>
+                              <input 
+                                type="radio" 
+                                name={`futureDisplayMode-${theme.id}`} 
+                                value="coming_soon" 
+                                checked={!theme.futureDisplayMode || theme.futureDisplayMode === 'coming_soon'}
+                                onChange={() => {
+                                  setThemes(prev => {
+                                    const updated = [...prev];
+                                    updated[idx] = { ...updated[idx], futureDisplayMode: 'coming_soon' };
+                                    setIsDirty(true);
+                                    return updated;
+                                  });
+                                }}
+                                className="accent-white"
+                              />
+                              <div>
+                                <span className="text-xs block">Coming Soon 띄우기</span>
+                                <span className="text-[10px] text-white/50 block font-normal">오픈 전까지 테마 클릭 및 예약 불가</span>
+                              </div>
+                            </label>
+                            
+                            <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${theme.futureDisplayMode === 'open_calendar' ? 'bg-white/10 border-white text-white font-bold' : 'bg-black/40 border-white/10 text-white/60'}`}>
+                              <input 
+                                type="radio" 
+                                name={`futureDisplayMode-${theme.id}`} 
+                                value="open_calendar" 
+                                checked={theme.futureDisplayMode === 'open_calendar'}
+                                onChange={() => {
+                                  setThemes(prev => {
+                                    const updated = [...prev];
+                                    updated[idx] = { ...updated[idx], futureDisplayMode: 'open_calendar' };
+                                    setIsDirty(true);
+                                    return updated;
+                                  });
+                                }}
+                                className="accent-white"
+                              />
+                              <div>
+                                <span className="text-xs block">테마 공개 & 오픈일부터 예약</span>
+                                <span className="text-[10px] text-white/50 block font-normal">캘린더에서 오픈일({theme.startDate})부터만 예약 가능</span>
+                              </div>
+                            </label>
+                          </div>
+                        </div>
+                      )}
 
                       <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/5">
                         <input 
