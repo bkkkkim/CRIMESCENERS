@@ -5,8 +5,8 @@ import { fileURLToPath } from "url";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const _filename = typeof __filename !== "undefined" ? __filename : (import.meta?.url ? fileURLToPath(import.meta.url) : "");
+const _dirname = typeof __dirname !== "undefined" ? __dirname : path.dirname(_filename);
 
 // Supabase Setup
 const SUPABASE_URL = 'https://gkkgprsflomawizioiao.supabase.co';
@@ -110,7 +110,7 @@ async function startServer() {
           const { data } = await supabase.from('site_contents').select('value').eq('key', 'settings').single();
           const settings = data?.value;
           
-          let html = fs.readFileSync(path.join(__dirname, "index.html"), "utf-8");
+          let html = fs.readFileSync(path.join(_dirname, "index.html"), "utf-8");
           html = await vite.transformIndexHtml(req.url, html);
           
           if (settings) {
@@ -147,10 +147,11 @@ async function startServer() {
       }
     });
   } else {
-    app.use(express.static(path.join(__dirname, "dist"), { index: false }));
+    const distPath = path.join(process.cwd(), "dist");
+    app.use(express.static(distPath, { index: false }));
     
     app.get('*all', async (req, res) => {
-      let html = fs.readFileSync(path.join(__dirname, "dist", "index.html"), "utf-8");
+      let html = fs.readFileSync(path.join(distPath, "index.html"), "utf-8");
       
       try {
         const { data } = await supabase.from('site_contents').select('value').eq('key', 'settings').single();

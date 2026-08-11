@@ -32,6 +32,18 @@ const setCachedData = (key: string, data: any) => {
   cache[key] = { data, timestamp: Date.now() };
 };
 
+const BRAND_DEFAULT_IMAGE = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
+
+const isUnsplashOrDummy = (url?: string | null) => {
+  if (!url) return true;
+  return url.includes('unsplash.com') || url.includes('picsum.photos') || url === '/logo.jpg' || url === '/hero.jpg';
+};
+
+const sanitizeImageUrl = (url?: string | null, fallback: string = BRAND_DEFAULT_IMAGE): string => {
+  if (isUnsplashOrDummy(url)) return fallback;
+  return url!;
+};
+
 export const dataService = {
   // --- Site Contents (Settings, Themes, etc.) ---
   getSettings: async (): Promise<AdminSettings> => {
@@ -44,7 +56,23 @@ export const dataService = {
       .eq('key', SITE_CONTENT_KEYS.SETTINGS)
       .single();
     
-    const result = (error || !data) ? DEFAULT_ADMIN_SETTINGS : data.value as AdminSettings;
+    const rawResult = (error || !data) ? DEFAULT_ADMIN_SETTINGS : data.value as AdminSettings;
+    const result: AdminSettings = {
+      ...rawResult,
+      logoUrl: sanitizeImageUrl(rawResult.logoUrl, BRAND_DEFAULT_IMAGE),
+      homeConfig: rawResult.homeConfig ? {
+        ...rawResult.homeConfig,
+        heroImageUrl: sanitizeImageUrl(rawResult.homeConfig.heroImageUrl, BRAND_DEFAULT_IMAGE),
+        heroSlides: (rawResult.homeConfig.heroSlides || []).map(s => ({
+          ...s,
+          imageUrl: sanitizeImageUrl(s.imageUrl, BRAND_DEFAULT_IMAGE)
+        })),
+        introPoints: (rawResult.homeConfig.introPoints || []).map(p => ({
+          ...p,
+          imageUrl: isUnsplashOrDummy(p.imageUrl) ? '' : p.imageUrl
+        }))
+      } : rawResult.homeConfig
+    };
     setCachedData(SITE_CONTENT_KEYS.SETTINGS, result);
     return result;
   },
@@ -66,7 +94,11 @@ export const dataService = {
       .eq('key', SITE_CONTENT_KEYS.THEMES)
       .single();
     
-    const result = (error || !data) ? THEMES : data.value as Theme[];
+    const rawResult = (error || !data) ? THEMES : data.value as Theme[];
+    const result = rawResult.map(t => ({
+      ...t,
+      posterUrl: sanitizeImageUrl(t.posterUrl, BRAND_DEFAULT_IMAGE)
+    }));
     setCachedData(SITE_CONTENT_KEYS.THEMES, result);
     return result;
   },

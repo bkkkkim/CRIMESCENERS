@@ -139,11 +139,14 @@ const HeroBanner = ({ slides }: { slides: HeroSlide[] }) => {
                 repeat: Infinity, 
                 ease: "linear" 
               }}
-              src={slide.imageUrl || "/hero.jpg"}
+              src={slide.imageUrl || "https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp"}
               alt={slide.title}
               className="w-full h-full object-cover"
               loading={index === 0 ? "eager" : "lazy"}
               referrerPolicy="no-referrer"
+              onError={(e) => {
+                e.currentTarget.src = "https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp";
+              }}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#121212]" />
             <div className="absolute inset-0 bg-black/40" />
@@ -345,13 +348,13 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
             </>
           )}
 
-          <div className={`mobile-snap-container hide-scrollbar ${displayThemes.length < itemsPerView + 1 ? 'flex justify-center' : 'md:overflow-hidden'}`}>
+          <div className={`${displayThemes.length === 1 ? 'w-full flex justify-center' : 'mobile-snap-container hide-scrollbar md:overflow-hidden'}`}>
             <motion.div 
-              className={`flex gap-6 md:gap-8 ${displayThemes.length === 1 ? 'justify-center' : ''}`}
-              animate={showArrows || (displayThemes.length > itemsPerView) ? { x: `calc(-${currentIndex * (100 / itemsPerView)}% - ${currentIndex * (32 / itemsPerView)}px)` } : {}}
+              className={`flex gap-6 md:gap-8 w-full ${displayThemes.length === 1 ? 'justify-center items-center' : ''}`}
+              animate={showArrows && displayThemes.length > itemsPerView ? { x: `calc(-${currentIndex * (100 / itemsPerView)}% - ${currentIndex * (32 / itemsPerView)}px)` } : {}}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               style={{ 
-                width: displayThemes.length === 1 ? 'auto' : '100%',
+                width: '100%',
                 display: 'flex',
               }}
             >
@@ -372,13 +375,17 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                 const isComingSoon = isExpired || (isFuture && mode === 'coming_soon');
                 const isOpenFuture = isFuture && mode === 'open_calendar';
 
+                const posterImage = (theme.posterUrl && !theme.posterUrl.startsWith('/theme')) 
+                  ? theme.posterUrl 
+                  : 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
+
                 return (
                   <Link 
                     key={`${theme.id}-${index}`} 
                     to={isComingSoon ? '#' : `/theme/${theme.id}`}
                     className={`
                       ${displayThemes.length === 1 
-                        ? 'w-[85%] md:w-[450px] mx-auto' 
+                        ? 'w-full max-w-[340px] sm:max-w-[400px] md:max-w-[450px] mx-auto' 
                         : (itemsPerView === 2 
                             ? 'mobile-snap-item-1-5 md:w-[calc(50%-16px)]' 
                             : 'mobile-snap-item-1-5 md:w-[calc(33.333%-21.333px)]')}
@@ -388,13 +395,14 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                   >
                     <div className="relative aspect-[2/3] overflow-hidden rounded-2xl mb-3 md:mb-8 shadow-2xl border border-white/5 bg-[#1a1a1a]">
                       <img 
-                        src={theme.posterUrl} 
+                        src={posterImage} 
                         alt={theme.title} 
                         className={`w-full h-full object-cover transition-transform duration-1000 ${isComingSoon ? 'grayscale opacity-50' : 'group-hover:scale-110'}`}
                         loading="lazy"
                         referrerPolicy="no-referrer"
                         onError={(e) => {
-                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.src = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
+                          e.currentTarget.style.display = 'block';
                         }}
                       />
                       {isComingSoon && (

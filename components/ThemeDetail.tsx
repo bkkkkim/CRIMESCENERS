@@ -430,7 +430,14 @@ const ThemeDetail = () => {
           </div>
 
           <div className="relative aspect-[2/3] overflow-hidden rounded-none md:rounded-[40px] shadow-2xl mt-6 md:mt-12 mb-12 border border-white/5">
-            <img src={theme.posterUrl} className="w-full h-full object-cover" />
+            <img 
+              src={(theme.posterUrl && !theme.posterUrl.startsWith('/theme')) ? theme.posterUrl : 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp'} 
+              alt={theme.title}
+              className="w-full h-full object-cover" 
+              onError={(e) => {
+                e.currentTarget.src = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
+              }}
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-transparent md:hidden" />
           </div>
         </div>

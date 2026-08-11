@@ -5,7 +5,7 @@ export const THEMES: Theme[] = [
   {
     id: 'theme-1',
     title: '박수무당 살인사건',
-    posterUrl: '/theme1.jpg',
+    posterUrl: 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp',
     synopsis: '신비로운 무당의 집에서 벌어진 참혹한 살인사건. 당신은 이 미스터리를 풀고 범인을 잡을 수 있을 것인가?',
     minPlayers: 4,
     maxPlayers: 5,
@@ -22,7 +22,7 @@ export const THEMES: Theme[] = [
   {
     id: 'theme-2',
     title: '미대생 살인사건',
-    posterUrl: '/theme2.jpg',
+    posterUrl: 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp',
     synopsis: '화려한 예술의 이면에 숨겨진 어두운 진실. 미대 작업실에서 발견된 사체와 얽히고설킨 인물들.',
     minPlayers: 5,
     maxPlayers: 6,
@@ -54,17 +54,17 @@ export const INTRO_POINTS = [
   {
     title: '탄탄한 시나리오',
     desc: '씨네마광 공대박사의 탄탄한 시나리오',
-    img: 'https://images.unsplash.com/photo-1517400508447-f8dd518b86db?auto=format&fit=crop&q=80'
+    img: ''
   },
   {
     title: '몰입도 높은 현장',
     desc: '미대생 출신이 직접 연출한 크라임씬',
-    img: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&q=80'
+    img: ''
   },
   {
     title: '다양한 롤플레잉',
     desc: '각기 다른 사연과 비밀을 가진 캐릭터들',
-    img: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80'
+    img: ''
   }
 ];
 
@@ -103,11 +103,11 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
     }
   },
   homeConfig: {
-    heroImageUrl: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&q=80',
+    heroImageUrl: '',
     heroSlides: [
       {
         id: '1',
-        imageUrl: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&q=80',
+        imageUrl: '',
         title: 'CRIME SCENERS',
         subtitle: '사건 현장에 있는 우리 모두 SCENERS 입니다.',
         buttonText: '지금 예약하기',
@@ -120,17 +120,17 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
       {
         title: '탄탄한 시나리오',
         description: '씨네마광 공대박사의 탄탄한 시나리오',
-        imageUrl: 'https://images.unsplash.com/photo-1517400508447-f8dd518b86db?auto=format&fit=crop&q=80'
+        imageUrl: ''
       },
       {
         title: '몰입도 높은 현장',
         description: '미대생 출신이 직접 연출한 크라임씬',
-        imageUrl: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&q=80'
+        imageUrl: ''
       },
       {
         title: '다양한 롤플레잉',
         description: '각기 다른 사연과 비밀을 가진 캐릭터들',
-        imageUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80'
+        imageUrl: ''
       }
     ]
   },

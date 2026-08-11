@@ -436,11 +436,15 @@ const ThemeReservation = () => {
                     onClick={(e) => isComingSoon && e.preventDefault()}
                   >
                     <img 
-                      src={theme.posterUrl} 
+                      src={(theme.posterUrl && !theme.posterUrl.startsWith('/theme')) ? theme.posterUrl : 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp'} 
                       alt={theme.title} 
                       className={`w-full h-full object-cover transition-transform duration-700 ${isComingSoon ? 'grayscale opacity-50' : 'group-hover:scale-110'}`}
                       loading="lazy"
                       referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
+                        e.currentTarget.style.display = 'block';
+                      }}
                     />
                     {isComingSoon && (
                       <div className="absolute inset-0 bg-black/20 z-10" />

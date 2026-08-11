@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { dataService } from '../src/services/dataService';
 import { Notice, Store, AdminSettings } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Phone, Clock, ChevronRight, Info, Gamepad2, X } from 'lucide-react';
+import { MapPin, Phone, Clock, ChevronRight, Info, Gamepad2, X, FileText, Users, Target, Search, MessageSquare, KeyRound, CheckCircle2, Vote } from 'lucide-react';
 import { DEFAULT_ADMIN_SETTINGS } from '../constants';
 import LoadingScreen from './LoadingScreen';
 
@@ -15,6 +15,15 @@ const NoticeBoard = () => {
   const [activeTab, setActiveTab] = useState<'method' | 'stores'>('method');
   const [expandedNotice, setExpandedNotice] = useState<string | null>('admin');
   const [loading, setLoading] = useState(false);
+  const [showStickyBanner, setShowStickyBanner] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowStickyBanner(window.scrollY > 250);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -87,44 +96,35 @@ const NoticeBoard = () => {
               {/* 8 Steps Grid - 2 columns on mobile */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5">
                 {[
-                  { step: '01', title: '사전 역할 파악', desc: '예약 인원 확정 시, 전달되는 롤카드를 게임 전 미리 숙지해주세요.' },
-                  { step: '02', title: '역할 선정', desc: '플레이어는 용의자나 탐정을 맡으며, 전날 미리 상의해 정할 수 있습니다.' },
-                  { step: '03', title: '역할 숙지', desc: '이용 당일, 현장에서 각자의 역할을 이해하는 시간을 갖습니다.' },
-                  { step: '04', title: '자기소개 및 현장 조사', desc: '간단한 자기소개와 함께 1차 현장조사를 진행합니다.' },
-                  { step: '05', title: '회의 및 중간 투표', desc: '각자 찾은 단서에 대해 논의하고 중간 범인 투표를 진행합니다.' },
-                  { step: '06', title: '2차 현장 조사 및 회의', desc: '추가 현장 조사를 통해 좀 더 사건의 진실에 가까워집니다.' },
-                  { step: '07', title: '최종 현장 검증', desc: '마지막으로 추가 현장을 검증합니다.' },
-                  { step: '08', title: '최종 투표', desc: '모든 증거와 정황을 종합하여 진범을 지목합니다.' }
-                ].map((item, i) => (
-                  <div 
-                    key={i} 
-                    className="bg-white/5 border border-white/5 rounded-xl sm:rounded-2xl md:rounded-3xl p-3.5 sm:p-4 md:p-5 flex flex-col justify-between hover:bg-white/10 hover:border-white/20 transition-all group"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-lg sm:text-2xl font-black text-[#dc2626] font-en">{item.step}</span>
-                        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/20 group-hover:bg-[#dc2626] transition-colors" />
+                  { step: '01', title: '사전 역할 파악', desc: '예약 인원 확정 시, 전달되는 롤카드를 게임 전 미리 숙지해주세요.', icon: FileText },
+                  { step: '02', title: '역할 선정', desc: '플레이어는 용의자나 탐정을 맡으며, 전날 미리 상의해 정할 수 있습니다.', icon: Users },
+                  { step: '03', title: '역할 숙지', desc: '이용 당일, 현장에서 각자의 역할을 이해하는 시간을 갖습니다.', icon: Target },
+                  { step: '04', title: '자기소개 및 현장 조사', desc: '간단한 자기소개와 함께 1차 현장조사를 진행합니다.', icon: Search },
+                  { step: '05', title: '회의 및 중간 투표', desc: '각자 찾은 단서에 대해 논의하고 중간 범인 투표를 진행합니다.', icon: MessageSquare },
+                  { step: '06', title: '2차 현장 조사 및 회의', desc: '추가 현장 조사를 통해 좀 더 사건의 진실에 가까워집니다.', icon: KeyRound },
+                  { step: '07', title: '최종 현장 검증', desc: '마지막으로 추가 현장을 검증합니다.', icon: CheckCircle2 },
+                  { step: '08', title: '최종 투표', desc: '모든 증거와 정황을 종합하여 진범을 지목합니다.', icon: Vote, iconClass: 'scale-125' }
+                ].map((item, i) => {
+                  const IconComponent = item.icon;
+                  return (
+                    <div 
+                      key={i} 
+                      className="bg-white/5 border border-white/5 rounded-xl sm:rounded-2xl md:rounded-3xl p-3.5 sm:p-4 md:p-5 flex flex-col justify-between hover:bg-white/10 hover:border-white/20 transition-all group"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-lg sm:text-2xl font-black text-[#dc2626] font-en">{item.step}</span>
+                          <div className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center shrink-0">
+                            <IconComponent className={`w-5 h-5 sm:w-6 sm:h-6 text-white/40 group-hover:text-[#dc2626] transition-colors ${item.iconClass || ''}`} />
+                          </div>
+                        </div>
+                        <h4 className="font-bold text-xs sm:text-sm md:text-base mb-1 sm:mb-1.5 text-white leading-snug break-keep">{item.title}</h4>
+                        <p className="text-[11px] sm:text-xs md:text-sm text-[#b3b3b3] opacity-80 leading-snug sm:leading-relaxed break-keep">{item.desc}</p>
                       </div>
-                      <h4 className="font-bold text-xs sm:text-sm md:text-base mb-1 sm:mb-1.5 text-white leading-snug break-keep">{item.title}</h4>
-                      <p className="text-[11px] sm:text-xs md:text-sm text-[#b3b3b3] opacity-80 leading-snug sm:leading-relaxed break-keep">{item.desc}</p>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-            </div>
-
-            {/* Standalone CTA Banner Section */}
-            <div className="bg-gradient-to-r from-[#1a1a1a] via-[#222222] to-[#1a1a1a] p-6 sm:p-8 md:p-10 rounded-[24px] sm:rounded-[32px] md:rounded-[40px] border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left shadow-2xl">
-              <div className="space-y-1.5">
-                <h4 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight">준비되셨나요?</h4>
-                <p className="text-[#d1d1d1] text-xs sm:text-sm md:text-base opacity-85">지금 바로 사건 현장으로 떠나보세요!</p>
-              </div>
-              <Link 
-                to="/reservation" 
-                className="w-full sm:w-auto text-center px-8 md:px-10 py-3.5 bg-white text-black font-bold rounded-full hover:bg-neutral-200 transition-all tracking-normal uppercase text-xs md:text-sm font-en shrink-0 shadow-lg hover:scale-105"
-              >
-                Book Now
-              </Link>
             </div>
 
             <div className="space-y-4">
@@ -251,6 +251,34 @@ const NoticeBoard = () => {
                 </div>
               </div>
             ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Floating Sticky Bottom Banner */}
+      <AnimatePresence>
+        {showStickyBanner && activeTab !== 'stores' && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            className="fixed bottom-3 left-2.5 right-2.5 sm:bottom-4 sm:left-4 sm:right-4 md:bottom-8 md:left-1/2 md:-translate-x-1/2 z-50 md:w-full md:max-w-2xl"
+          >
+            <Link
+              to="/reservation"
+              className="w-full bg-[#121212]/95 backdrop-blur-2xl border border-white/20 shadow-2xl shadow-black rounded-2xl md:rounded-full p-2.5 px-3.5 sm:px-6 md:px-8 md:py-4 flex items-center justify-between gap-2.5 sm:gap-3 hover:border-red-500/60 hover:bg-[#1a1a1a] transition-all group cursor-pointer"
+            >
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[#dc2626] animate-pulse shrink-0 shadow-lg shadow-red-500/50" />
+                <p className="text-[13px] sm:text-base md:text-lg font-black text-white tracking-tight leading-none whitespace-nowrap">
+                  지금 사건현장으로 떠나보세요!
+                </p>
+              </div>
+              <div className="shrink-0 px-3.5 sm:px-5 md:px-7 py-2 sm:py-2.5 md:py-3 bg-[#dc2626] text-white font-black rounded-xl md:rounded-full group-hover:bg-red-700 transition-all text-[12px] sm:text-sm md:text-base flex items-center gap-1 sm:gap-1.5 shadow-xl shadow-red-950/60 group-hover:scale-105 active:scale-95 uppercase tracking-wide font-en whitespace-nowrap">
+                예약하기 <ChevronRight size={15} className="stroke-[3] sm:w-5 sm:h-5" />
+              </div>
+            </Link>
           </motion.div>
         )}
       </AnimatePresence>

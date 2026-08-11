@@ -1,23 +1,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { dataService } from '../src/services/dataService';
-import { DEFAULT_ADMIN_SETTINGS } from '../constants';
 
 interface LoadingScreenProps {
   logoUrl?: string | null;
 }
 
+const DEFAULT_LOGO = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
+
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ logoUrl }) => {
-  const [isImageLoaded, setIsImageLoaded] = useState(false);
-  const [useTextFallback, setUseTextFallback] = useState(false);
-  const defaultLogo = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
-  const [displayUrl, setDisplayUrl] = useState<string>(logoUrl || defaultLogo);
+  const [displayUrl, setDisplayUrl] = useState<string>(logoUrl || DEFAULT_LOGO);
 
   useEffect(() => {
-    if (logoUrl) {
+    if (logoUrl && !logoUrl.includes('unsplash.com')) {
       setDisplayUrl(logoUrl);
-      setUseTextFallback(false);
+    } else {
+      setDisplayUrl(DEFAULT_LOGO);
     }
   }, [logoUrl]);
 
@@ -38,38 +36,31 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ logoUrl }) => {
             repeat: Infinity, 
             ease: "easeInOut" 
           }}
-          className="relative z-10"
+          className="relative z-10 flex items-center justify-center min-h-[64px]"
         >
-          {!useTextFallback && displayUrl ? (
-            <img 
-              key={displayUrl}
-              src={displayUrl} 
-              alt="" 
-              className={`h-16 md:h-20 w-auto object-contain transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`} 
-              onLoad={() => setIsImageLoaded(true)}
-              onError={() => {
-                setUseTextFallback(true);
-              }}
-              loading="eager"
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <span className="text-2xl md:text-3xl font-black tracking-tighter text-white font-en uppercase">
-              Crime Sceners
-            </span>
-          )}
+          <img 
+            key={displayUrl}
+            src={displayUrl} 
+            alt="Crime Sceners Logo" 
+            className="h-16 md:h-20 w-auto object-contain opacity-100" 
+            onError={(e) => {
+              if (e.currentTarget.src !== DEFAULT_LOGO) {
+                e.currentTarget.src = DEFAULT_LOGO;
+              }
+            }}
+            loading="eager"
+            referrerPolicy="no-referrer"
+          />
         </motion.div>
 
-        {(isImageLoaded || useTextFallback) && (
-          <motion.div 
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mt-3 text-center"
-          >
-            <p className="text-white/30 text-[8px] md:text-[9px] tracking-widest uppercase font-en animate-pulse">Investigating the scene...</p>
-          </motion.div>
-        )}
+        <motion.div 
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mt-3 text-center"
+        >
+          <p className="text-white/30 text-[8px] md:text-[9px] tracking-widest uppercase font-en animate-pulse">Investigating the scene...</p>
+        </motion.div>
       </div>
     </motion.div>
   );
