@@ -27,13 +27,15 @@
             --font-kr: 'Noto Sans KR', sans-serif;
             --font-en: 'Poppins', sans-serif;
         }
-        body {
+        html, body {
             font-family: var(--font-kr);
             background-color: #121212;
             color: #FFFFFF;
             margin: 0;
             overflow-x: hidden;
             word-break: keep-all;
+            overscroll-behavior-y: none;
+            -webkit-overscroll-behavior-y: none;
         }
         .font-en {
             font-family: var(--font-en);
@@ -93,7 +95,6 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
 <body>
     <div id="root"></div>

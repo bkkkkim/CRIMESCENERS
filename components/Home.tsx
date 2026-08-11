@@ -645,10 +645,12 @@ const Home = () => {
         />
       )}
       {loading ? (
-        <div className="w-full h-[600px] md:h-[800px] bg-black/40 animate-pulse flex flex-col items-center justify-center border-b border-white/5">
-          <div className="text-white/20 text-sm font-bold tracking-widest font-en uppercase">
-            LOADING CASE HISTORY...
-          </div>
+        <div className="w-full h-[600px] md:h-[800px] bg-[#121212] flex flex-col items-center justify-center border-b border-white/5">
+          <img 
+            src="https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp" 
+            alt="Crime Sceners" 
+            className="h-12 md:h-16 w-auto object-contain animate-pulse opacity-40" 
+          />
         </div>
       ) : (
         <HeroBanner slides={settings.homeConfig.heroSlides || []} />
