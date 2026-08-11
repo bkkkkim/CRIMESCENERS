@@ -38,12 +38,20 @@ const ThemeReservation = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [t, st, cs, bk] = await Promise.all([
+        const [t, st, cs, bk, s] = await Promise.all([
           dataService.getThemes(),
           dataService.getStores(),
           dataService.getClosedSlots(),
-          dataService.getBookings()
+          dataService.getBookings(),
+          dataService.getSettings()
         ]);
+        
+        // If reservationLandingUrl is set to a specific theme page (e.g. /theme/theme-1), redirect automatically
+        if (s.reservationLandingUrl && s.reservationLandingUrl !== '/reservation') {
+          navigate(s.reservationLandingUrl, { replace: true });
+          return;
+        }
+
         setThemes(t);
         setStores(st);
         setClosedSlots(cs);
@@ -55,7 +63,7 @@ const ThemeReservation = () => {
       }
     };
     loadData();
-  }, []);
+  }, [navigate]);
 
   const availableTimes = useMemo(() => {
     if (!selectedDate) return [];
@@ -488,7 +496,7 @@ const ThemeReservation = () => {
                       <span>난이도</span>
                       <div className="flex gap-0.5">
                         {[...Array(5)].map((_, i) => (
-                          <div key={i} className={`w-2 h-2 rounded-full ${i < theme.difficulty ? 'bg-white' : 'bg-white/10'}`} />
+                          <div key={`rdiff-${i}`} className={`w-2 h-2 rounded-full ${i < theme.difficulty ? 'bg-white' : 'bg-white/10'}`} />
                         ))}
                       </div>
                     </div>
@@ -496,7 +504,7 @@ const ThemeReservation = () => {
                       <span>공포도</span>
                       <div className="flex gap-0.5">
                         {[...Array(5)].map((_, i) => (
-                          <div key={i} className={`w-2 h-2 rounded-full ${i < theme.fearLevel ? 'bg-[#dc2626]' : 'bg-white/10'}`} />
+                          <div key={`rfear-${i}`} className={`w-2 h-2 rounded-full ${i < theme.fearLevel ? 'bg-[#dc2626]' : 'bg-white/10'}`} />
                         ))}
                       </div>
                     </div>

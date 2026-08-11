@@ -266,7 +266,7 @@ const IntroSection = ({ points, title, description, legacyImages }: { points: In
         </div>
         <div className="mobile-snap-container hide-scrollbar md:grid md:grid-cols-3 md:gap-8 items-start">
           {displayPoints.map((point, i) => (
-            <div key={i} className="mobile-snap-item-2-5 group flex-shrink-0 flex flex-col">
+            <div key={`home-point-${i}`} className="mobile-snap-item-2-5 group flex-shrink-0 flex flex-col">
               <div className="overflow-hidden rounded-[24px] md:rounded-[32px] mb-4 md:mb-6 aspect-square md:aspect-[4/5] border border-white/5 bg-[#1a1a1a] shrink-0 relative">
                 {point.imageUrl ? (
                   <img 
@@ -276,7 +276,8 @@ const IntroSection = ({ points, title, description, legacyImages }: { points: In
                     loading="lazy"
                     referrerPolicy="no-referrer"
                     onError={(e) => {
-                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.src = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
+                      e.currentTarget.className = 'w-full h-full object-contain p-8 opacity-40 animate-pulse';
                     }}
                   />
                 ) : null}
@@ -402,7 +403,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                         referrerPolicy="no-referrer"
                         onError={(e) => {
                           e.currentTarget.src = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
-                          e.currentTarget.style.display = 'block';
+                          e.currentTarget.className = 'w-full h-full object-contain p-8 bg-[#1a1a1a] opacity-40 animate-pulse';
                         }}
                       />
                       {isComingSoon && (
@@ -443,7 +444,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                             <span>난이도</span>
                             <div className="flex gap-0.5">
                               {[...Array(5)].map((_, i) => (
-                                <div key={i} className={`w-2 h-2 rounded-full ${i < theme.difficulty ? 'bg-white' : 'bg-white/10'}`} />
+                                <div key={`diff-${i}`} className={`w-2 h-2 rounded-full ${i < theme.difficulty ? 'bg-white' : 'bg-white/10'}`} />
                               ))}
                             </div>
                           </div>
@@ -451,7 +452,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                             <span>공포도</span>
                             <div className="flex gap-0.5">
                               {[...Array(5)].map((_, i) => (
-                                <div key={i} className={`w-2 h-2 rounded-full ${i < theme.fearLevel ? 'bg-[#dc2626]' : 'bg-white/10'}`} />
+                                <div key={`fear-${i}`} className={`w-2 h-2 rounded-full ${i < theme.fearLevel ? 'bg-[#dc2626]' : 'bg-white/10'}`} />
                               ))}
                             </div>
                           </div>

@@ -20,6 +20,7 @@ const ThemeDetail = () => {
   
   const [showStoreInfo, setShowStoreInfo] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
   
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -81,14 +82,27 @@ const ThemeDetail = () => {
         const found = themeList.find((t: Theme) => t.id === id);
         if (found) {
           setTheme(found);
+          
+          const now = new Date();
+          now.setHours(0,0,0,0);
+          let isBeforeStartDate = false;
+
           if (found.startDate) {
             const start = new Date(found.startDate);
-            const now = new Date();
-            now.setHours(0,0,0,0);
             start.setHours(0,0,0,0);
             if (now < start) {
+              isBeforeStartDate = true;
               setCurrentMonth(new Date(start.getFullYear(), start.getMonth(), 1));
             }
+          }
+
+          // Check if coming soon modal should be displayed:
+          // 1) explicitly marked as isComingSoon
+          // 2) startDate is in the future AND futureDisplayMode is not 'open_calendar'
+          const isComingSoonMode = found.isComingSoon || (isBeforeStartDate && (!found.futureDisplayMode || found.futureDisplayMode === 'coming_soon'));
+
+          if (isComingSoonMode) {
+            setShowComingSoonModal(true);
           }
         }
       } catch (error) {
@@ -110,7 +124,7 @@ const ThemeDetail = () => {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     
     const days = [];
-    for (let i = 0; i < firstDay; i++) days.push(<div key={`empty-${i}`} className="p-4" />);
+    for (let i = 0; i < firstDay; i++) days.push(<div key={`empty-${year}-${month}-${i}`} className="p-4" />);
     for (let d = 1; d <= daysInMonth; d++) {
       const date = new Date(year, month, d);
       const isSelected = selectedDate?.toDateString() === date.toDateString();
@@ -152,7 +166,7 @@ const ThemeDetail = () => {
       
       days.push(
         <button
-          key={d}
+          key={`day-${year}-${month}-${d}`}
           disabled={isDisabled}
           onClick={() => handleDateSelect(date)}
           className={`aspect-square rounded-xl border transition-all flex flex-col items-center justify-center relative group ${
@@ -386,7 +400,7 @@ const ThemeDetail = () => {
                 <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase">난이도</p>
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
-                    <div key={i} className={`w-3 h-3 rounded-full ${i < theme.difficulty ? 'bg-white' : 'bg-white/10'}`} />
+                    <div key={`tdiff-${i}`} className={`w-3 h-3 rounded-full ${i < theme.difficulty ? 'bg-white' : 'bg-white/10'}`} />
                   ))}
                 </div>
               </div>
@@ -394,7 +408,7 @@ const ThemeDetail = () => {
                 <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase">공포도</p>
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
-                    <div key={i} className={`w-3 h-3 rounded-full ${i < theme.fearLevel ? 'bg-[#dc2626]' : 'bg-white/10'}`} />
+                    <div key={`tfear-${i}`} className={`w-3 h-3 rounded-full ${i < theme.fearLevel ? 'bg-[#dc2626]' : 'bg-white/10'}`} />
                   ))}
                 </div>
               </div>
@@ -499,7 +513,7 @@ const ThemeDetail = () => {
                   const dateStr = selectedDate.getFullYear() + '-' + String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + String(selectedDate.getDate()).padStart(2, '0');
                   return (
                     <button
-                      key={`${slotInfo.time}-${index}`}
+                      key={`slot-${dateStr}-${slotInfo.time}-${index}`}
                       disabled={!slotInfo.isAvailable}
                       onClick={() => navigate(`/booking/${theme.id}/${dateStr}/${slotInfo.time}`)}
                       className={`w-full p-6 border rounded-2xl transition-all flex justify-between items-center group ${
@@ -581,6 +595,52 @@ const ThemeDetail = () => {
                 늘 새로운 경험을 제공하기 위해 재미있는 테마로 업데이트 하겠습니다.<br /><br />
                 영업 상황에 따라 기한은 상시 변동될 수 있습니다.
               </p>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Coming Soon Modal */}
+        {showComingSoonModal && (
+          <div className="fixed inset-0 z-[300] bg-black/90 backdrop-blur-md flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="bg-[#1a1a1a] border border-white/10 p-8 md:p-10 rounded-[32px] max-w-md w-full text-center space-y-6 shadow-2xl relative overflow-hidden"
+            >
+              <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mx-auto text-[#dc2626]">
+                <Clock size={32} />
+              </div>
+              
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-[#dc2626] tracking-widest uppercase font-en block">
+                  COMING SOON!
+                </span>
+                <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+                  곧 오픈예정입니다.
+                </h3>
+                <p className="text-white/60 text-sm pt-2 leading-relaxed whitespace-pre-line">
+                  {theme?.startDate 
+                    ? `'${theme.title}' 테마는 ${theme.startDate}에 오픈 예정입니다.\n조금만 기다려 주세요!`
+                    : `'${theme.title}' 테마는 현재 오픈 준비 중입니다.\n빠른 시일 내에 찾아뵙겠습니다.`}
+                </p>
+              </div>
+
+              <div className="pt-2">
+                <button 
+                  onClick={() => {
+                    setShowComingSoonModal(false);
+                    if (window.history.length > 2) {
+                      navigate(-1);
+                    } else {
+                      navigate('/');
+                    }
+                  }}
+                  className="w-full py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 transition-all text-sm font-en tracking-wide uppercase shadow-lg"
+                >
+                  확인
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

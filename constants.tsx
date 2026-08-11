@@ -17,7 +17,8 @@ export const THEMES: Theme[] = [
     customSlots: ['10:00', '12:30', '15:00', '17:30', '20:00'],
     weekdaySlots: ['20:00'],
     useSeparateWeekdaySlots: true,
-    showOnMain: true
+    showOnMain: true,
+    isComingSoon: false
   },
   {
     id: 'theme-2',
@@ -111,7 +112,7 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
         title: 'CRIME SCENERS',
         subtitle: '사건 현장에 있는 우리 모두 SCENERS 입니다.',
         buttonText: '지금 예약하기',
-        buttonLink: '/reservation'
+        buttonLink: '/theme/theme-1'
       }
     ],
     introTitle: 'CRIME SCENERS?',
@@ -144,6 +145,7 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
 - 이용일 3일 전 취소 시 100% 환불
 - 이용일 2일 전 취소 시 50% 환불
 - 이용일 1일 전 및 당일 취소 시 환불 불가`,
+  reservationLandingUrl: '/theme/theme-1',
   advanceDepositDiscount: {
     enabled: true,
     discountAmount: 2000

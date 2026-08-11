@@ -110,11 +110,13 @@ const Header = ({ settings }: { settings: AdminSettings }) => {
     ? (isScrolled || isMenuOpen ? 'bg-[#121212] border-b border-white/10' : 'bg-transparent')
     : 'bg-[#121212] border-b border-white/10';
 
+  const reservationPath = settings.reservationLandingUrl || '/theme/theme-1';
+
   const navItems = [
-    { name: '홈', path: '/' },
-    { name: '이용안내', path: '/info' },
-    { name: '예약하기', path: '/reservation' },
-    { name: '문의하기', path: '/contact' }
+    { name: '홈', enName: 'HOME', path: '/' },
+    { name: '이용안내', enName: 'INFO', path: '/info' },
+    { name: '예약하기', enName: 'RESERVATION', path: reservationPath },
+    { name: '문의하기', enName: 'CONTACT', path: '/contact' }
   ];
 
   return (
@@ -137,7 +139,7 @@ const Header = ({ settings }: { settings: AdminSettings }) => {
         </Link>
         <nav className="hidden md:flex space-x-12">
           {navItems.map((item) => (
-            <Link key={item.path} to={item.path} className="text-lg font-bold hover:text-white transition-colors tracking-tight">
+            <Link key={item.name} to={item.path} className="text-lg font-bold hover:text-white transition-colors tracking-tight">
               {item.name}
             </Link>
           ))}
@@ -155,9 +157,9 @@ const Header = ({ settings }: { settings: AdminSettings }) => {
             className="md:hidden fixed inset-0 bg-[#121212] z-[100] pt-24 p-6 flex flex-col space-y-6"
           >
             {navItems.map((item) => (
-              <Link key={item.path} to={item.path} className="text-2xl font-black border-b border-white/5 pb-6 flex justify-between items-center" onClick={() => setIsMenuOpen(false)}>
+              <Link key={item.name} to={item.path} className="text-2xl font-black border-b border-white/5 pb-6 flex justify-between items-center" onClick={() => setIsMenuOpen(false)}>
                 <span>{item.name}</span>
-                <span className="text-white/20 font-en text-xs font-bold tracking-normal uppercase">{item.path.replace('/', '') || 'HOME'}</span>
+                <span className="text-white/20 font-en text-xs font-bold tracking-normal uppercase">{item.enName}</span>
               </Link>
             ))}
           </motion.div>
@@ -259,7 +261,7 @@ const AdminGuard = ({ children }: { children: React.ReactNode }) => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === '1234') {
+    if (password === '0226') {
       console.log("Admin login successful");
       setIsAuthenticated(true);
       setError('');

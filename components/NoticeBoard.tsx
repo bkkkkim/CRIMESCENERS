@@ -108,7 +108,7 @@ const NoticeBoard = () => {
                   const IconComponent = item.icon;
                   return (
                     <div 
-                      key={i} 
+                      key={`step-${item.step}`} 
                       className="bg-white/5 border border-white/5 rounded-xl sm:rounded-2xl md:rounded-3xl p-3.5 sm:p-4 md:p-5 flex flex-col justify-between hover:bg-white/10 hover:border-white/20 transition-all group"
                     >
                       <div>
@@ -213,7 +213,8 @@ const NoticeBoard = () => {
                       loading="lazy"
                       referrerPolicy="no-referrer"
                       onError={(e) => {
-                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.src = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
+                        e.currentTarget.className = 'w-full h-full object-contain p-6 opacity-40 animate-pulse';
                       }}
                     />
                   ) : (
@@ -243,7 +244,7 @@ const NoticeBoard = () => {
                     </div>
                   </div>
                   <Link 
-                    to="/reservation" 
+                    to={settings.reservationLandingUrl || '/theme/theme-1'} 
                     className="flex items-center justify-center gap-3 w-full py-5 border-2 border-white/10 text-white font-bold rounded-none hover:bg-white hover:text-black transition-all tracking-normal uppercase text-sm font-en"
                   >
                     Reservation <ChevronRight size={18} />
@@ -266,7 +267,7 @@ const NoticeBoard = () => {
             className="fixed bottom-3 left-2.5 right-2.5 sm:bottom-4 sm:left-4 sm:right-4 md:bottom-8 md:left-1/2 md:-translate-x-1/2 z-50 md:w-full md:max-w-2xl"
           >
             <Link
-              to="/reservation"
+              to={settings.reservationLandingUrl || '/theme/theme-1'}
               className="w-full bg-[#121212]/95 backdrop-blur-2xl border border-white/20 shadow-2xl shadow-black rounded-2xl md:rounded-full p-2.5 px-3.5 sm:px-6 md:px-8 md:py-4 flex items-center justify-between gap-2.5 sm:gap-3 hover:border-red-500/60 hover:bg-[#1a1a1a] transition-all group cursor-pointer"
             >
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">

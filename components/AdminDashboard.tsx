@@ -346,7 +346,7 @@ const AdminDashboard = () => {
                               <div className="flex justify-center gap-2 pt-8">
                                 {[...Array(totalPages)].map((_, i) => (
                                   <button
-                                    key={i}
+                                    key={`pg-${i}`}
                                     onClick={() => setCurrentPage(i + 1)}
                                     className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
                                       currentPage === i + 1 ? 'bg-white text-black' : 'bg-white/5 text-white/40 hover:bg-white/10'
@@ -374,7 +374,7 @@ const AdminDashboard = () => {
                       <div key={`${t.id}-${index}`} className="space-y-4">
                         <h3 className="font-bold text-lg text-white/80">{t.title}</h3>
                         <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-8 gap-3">
-                          {[0, 1, 2, 3, 4, 5, 6].map(dayOffset => {
+                          {[0, 1, 2, 3, 4, 5, 6].flatMap(dayOffset => {
                             const date = new Date();
                             // Fix: Ensure we start from today correctly in local time
                             date.setHours(0, 0, 0, 0);
@@ -388,11 +388,11 @@ const AdminDashboard = () => {
                               slots = t.customSlots || [];
                             }
                             
-                            return slots.filter(s => s).map(time => {
+                            return slots.filter(s => s).map((time, slotIdx) => {
                               const isClosed = closedSlots.some(cs => cs.date === dateStr && cs.themeId === t.id && cs.time === time);
                               return (
                                 <button 
-                                  key={`${dateStr}-${time}`}
+                                  key={`slot-${t.id}-${dateStr}-${time}-${slotIdx}`}
                                   onClick={() => toggleClosure(dateStr, t.id, time)}
                                   className={`text-[10px] p-2 rounded-lg border transition-all flex flex-col items-center ${
                                     isClosed 
@@ -684,6 +684,28 @@ const AdminDashboard = () => {
                         </div>
                       )}
 
+                      <div className="flex flex-col gap-3 p-4 bg-white/5 rounded-xl border border-white/5">
+                        <div className="flex items-center gap-3">
+                          <input 
+                            type="checkbox" 
+                            id={`isComingSoon-${theme.id}`}
+                            className="w-5 h-5 rounded border-white/10 bg-black text-white focus:ring-0 accent-red-600"
+                            checked={theme.isComingSoon || false}
+                            onChange={e => {
+                              setThemes(prev => {
+                                const updated = [...prev];
+                                updated[idx] = { ...updated[idx], isComingSoon: e.target.checked };
+                                setIsDirty(true);
+                                return updated;
+                              });
+                            }}
+                          />
+                          <label htmlFor={`isComingSoon-${theme.id}`} className="text-sm font-bold cursor-pointer text-red-400">
+                            오픈 준비 중 (체크 시 테마 접근 시 'Coming Soon! 곧 오픈예정입니다.' 모달 팝업 표시)
+                          </label>
+                        </div>
+                      </div>
+
                       <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/5">
                         <input 
                           type="checkbox" 
@@ -960,6 +982,30 @@ const AdminDashboard = () => {
               <div className="space-y-8">
                 <h2 className="text-2xl font-bold">사이트 설정 및 브랜드 관리</h2>
                 
+                {/* Reservation Landing URL Setting */}
+                <div className="bg-[#1a1a1a] p-8 rounded-3xl border border-white/5 space-y-4">
+                  <h3 className="text-lg font-bold border-b border-white/5 pb-4">예약 랜딩 URL 일괄 설정</h3>
+                  <div>
+                    <label className="text-xs text-white/40 mb-2 block">
+                      사이트 전체 '예약하기' 버튼 클릭 시 이동할 랜딩 URL (기본값: <code className="text-white bg-black/60 px-1.5 py-0.5 rounded font-mono">/theme/theme-1</code>)
+                    </label>
+                    <input 
+                      type="text"
+                      className="w-full bg-black border border-white/10 p-3.5 rounded-xl outline-none focus:border-white font-mono text-sm text-white"
+                      placeholder="/theme/theme-1 또는 /reservation"
+                      value={settings.reservationLandingUrl || '/theme/theme-1'}
+                      onChange={e => {
+                        setSettings(prev => ({ ...prev, reservationLandingUrl: e.target.value }));
+                        setIsDirty(true);
+                      }}
+                    />
+                    <p className="text-xs text-white/40 mt-2 leading-relaxed">
+                      * 네비게이션 '예약하기', 메인 슬라이더 대배너, 이용안내 하단 버튼 등 사이트 전반의 '예약하기' 클릭 시 이동할 페이지입니다.<br />
+                      * 단일 테마 운영 시 해당 테마 상세페이지 (예: <code className="text-white/60">/theme/theme-1</code>)로 지정하고, 추후 지점/테마 확장 시 <code className="text-white/60">/reservation</code> 으로 일괄 변경할 수 있습니다.
+                    </p>
+                  </div>
+                </div>
+
                 <div className="bg-[#1a1a1a] p-8 rounded-3xl border border-white/5 space-y-8">
                   <h3 className="text-lg font-bold border-b border-white/5 pb-4">브랜드 이미지 (파일 업로드)</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -1208,7 +1254,7 @@ const AdminDashboard = () => {
                         };
                         
                         return (
-                          <div key={i} className="space-y-4 bg-black/40 p-4 rounded-xl border border-white/5">
+                          <div key={`intro-pt-${i}`} className="space-y-4 bg-black/40 p-4 rounded-xl border border-white/5">
                             <label className="text-[10px] text-white/40 font-bold uppercase tracking-widest">포인트 {i+1}</label>
                             <div className="aspect-[4/3] rounded-lg overflow-hidden border border-white/10 relative group bg-black">
                               {point.imageUrl ? <img src={point.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">이미지 없음</div>}

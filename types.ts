@@ -17,6 +17,7 @@ export interface Theme {
   startDate?: string;
   endDate?: string;
   futureDisplayMode?: 'coming_soon' | 'open_calendar';
+  isComingSoon?: boolean;
   showOnMain?: boolean;
 }
 
@@ -102,6 +103,7 @@ export interface AdminSettings {
   };
   popupSettings: PopupSettings;
   bookingNotice: string;
+  reservationLandingUrl?: string;
   advanceDepositDiscount?: {
     enabled: boolean;
     discountAmount: number;
