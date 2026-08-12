@@ -239,8 +239,18 @@ const NoticeBoard = () => {
                       <span className="text-sm text-[#b3b3b3] opacity-60 font-en">{store.phone}</span>
                     </div>
                     <div className="flex items-start gap-4">
-                      <MapPin size={18} className="text-white/40 mt-1" />
-                      <span className="text-sm text-[#b3b3b3] opacity-60 leading-relaxed">{store.address}</span>
+                      <MapPin size={18} className="text-white/40 mt-1 shrink-0" />
+                      <div className="flex flex-col gap-2.5">
+                        <span className="text-sm text-[#b3b3b3] opacity-60 leading-relaxed">{store.address}</span>
+                        <a 
+                          href={store.naverPlaceUrl || `https://map.naver.com/v5/search/${encodeURIComponent(store.address || store.name)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center px-3.5 py-1.5 border border-white/20 text-white font-medium rounded hover:bg-white hover:text-black transition-all tracking-tight uppercase text-xs w-fit"
+                        >
+                          네이버 지도 보기
+                        </a>
+                      </div>
                     </div>
                   </div>
                   <Link 

@@ -901,7 +901,8 @@ const AdminDashboard = () => {
                       phone: '', 
                       weekdayHours: '10:00~22:00', 
                       weekendHours: '10:00~23:00', 
-                      address: '' 
+                      address: '',
+                      naverPlaceUrl: '' 
                     };
                     setStores([...stores, newStore]);
                     setIsDirty(true);
@@ -979,6 +980,17 @@ const AdminDashboard = () => {
                           value={store.address} onChange={e => {
                             const updated = [...stores];
                             updated[idx] = { ...updated[idx], address: e.target.value };
+                            setStores(updated);
+                            setIsDirty(true);
+                          }} />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="text-xs text-white/40 mb-1 block">네이버 플레이스 LINK (URL)</label>
+                        <input className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none focus:border-white font-mono text-xs" 
+                          placeholder="https://m.place.naver.com/place/..."
+                          value={store.naverPlaceUrl || ''} onChange={e => {
+                            const updated = [...stores];
+                            updated[idx] = { ...updated[idx], naverPlaceUrl: e.target.value };
                             setStores(updated);
                             setIsDirty(true);
                           }} />

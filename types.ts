@@ -29,6 +29,7 @@ export interface Store {
   weekdayHours: string;
   weekendHours: string;
   address: string;
+  naverPlaceUrl?: string;
   imageUrl?: string;
 }
 

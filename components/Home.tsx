@@ -592,12 +592,12 @@ const StoreSection = ({ stores }: { stores: Store[] }) => {
               <div className="flex flex-col gap-3 flex-grow w-full pt-2 md:pt-3.5 pl-2">
                 <p className="text-[#b3b3b3] text-xs md:text-sm opacity-60 leading-relaxed text-left">{selectedStore.address}</p>
                 <a 
-                  href={`https://map.naver.com/v5/search/${encodeURIComponent(selectedStore.address)}`}
+                  href={selectedStore.naverPlaceUrl || `https://map.naver.com/v5/search/${encodeURIComponent(selectedStore.address || selectedStore.name)}`}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center justify-center px-4 py-2 border border-white/20 text-white font-medium rounded-none hover:bg-white hover:text-black transition-all tracking-tight uppercase text-[9px] w-fit shrink-0"
                 >
-                  네이버 지도로 보기
+                  네이버 지도 보기
                 </a>
               </div>
             </div>

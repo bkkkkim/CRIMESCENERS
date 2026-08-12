@@ -159,8 +159,8 @@ async function startServer() {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath, { index: false }));
     
-    app.get('*', async (req, res, next) => {
-      if (req.path.includes('.')) {
+    app.use(async (req, res, next) => {
+      if (req.method !== 'GET' || req.path.startsWith('/api') || req.path.includes('.')) {
         return next();
       }
       let html = fs.readFileSync(path.join(distPath, "index.html"), "utf-8");
