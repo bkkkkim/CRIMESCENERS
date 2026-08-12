@@ -374,11 +374,13 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                 const isExpired = endDate && now > endDate;
 
                 const isComingSoon = isExpired || (isFuture && mode === 'coming_soon');
-                const isOpenFuture = isFuture && mode === 'open_calendar';
+                const isOpenFuture = isFuture && mode === 'open_calendar' && (theme.showDDay ?? true);
 
-                const posterImage = (theme.posterUrl && !theme.posterUrl.startsWith('/theme')) 
+                const rawPoster = (theme.posterUrl && !theme.posterUrl.startsWith('/theme')) 
                   ? theme.posterUrl 
                   : 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
+
+                const isBrandFallback = !theme.posterUrl || rawPoster.includes('1772555492065') || rawPoster.includes('brand/');
 
                 return (
                   <Link 
@@ -394,16 +396,20 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                     `}
                     onClick={(e) => isComingSoon && e.preventDefault()}
                   >
-                    <div className="relative aspect-[2/3] overflow-hidden rounded-2xl mb-3 md:mb-8 shadow-2xl border border-white/5 bg-[#1a1a1a]">
+                    <div className="relative aspect-[2/3] overflow-hidden rounded-2xl mb-3 md:mb-8 shadow-2xl border border-white/5 bg-[#1a1a1a] flex items-center justify-center">
                       <img 
-                        src={posterImage} 
+                        src={rawPoster} 
                         alt={theme.title} 
-                        className={`w-full h-full object-cover transition-transform duration-1000 ${isComingSoon ? 'grayscale opacity-50' : 'group-hover:scale-110'}`}
+                        className={`w-full h-full transition-transform duration-1000 ${
+                          isBrandFallback 
+                            ? 'object-contain p-8 opacity-40' 
+                            : 'object-cover group-hover:scale-110'
+                        } ${isComingSoon ? 'grayscale opacity-50' : ''}`}
                         loading="lazy"
                         referrerPolicy="no-referrer"
                         onError={(e) => {
                           e.currentTarget.src = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
-                          e.currentTarget.className = 'w-full h-full object-contain p-8 bg-[#1a1a1a] opacity-40 animate-pulse';
+                          e.currentTarget.className = 'w-full h-full object-contain p-8 bg-[#1a1a1a] opacity-40';
                         }}
                       />
                       {isComingSoon && (

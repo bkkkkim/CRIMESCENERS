@@ -18,7 +18,7 @@ const SITE_CONTENT_KEYS = {
 
 // Simple in-memory cache
 const cache: Record<string, { data: any; timestamp: number }> = {};
-const CACHE_TTL = 5000; // 5 seconds
+const CACHE_TTL = 600000; // 10 minutes (static site config cached efficiently)
 
 const getCachedData = (key: string) => {
   const cached = cache[key];
@@ -30,6 +30,22 @@ const getCachedData = (key: string) => {
 
 const setCachedData = (key: string, data: any) => {
   cache[key] = { data, timestamp: Date.now() };
+};
+
+// Timeout helper to avoid infinite hanging if Supabase API slows down or fails
+const queryWithTimeout = async <T>(promise: PromiseLike<T>, timeoutMs = 4000): Promise<T | null> => {
+  let timeoutId: any;
+  const timeoutPromise = new Promise<null>((resolve) => {
+    timeoutId = setTimeout(() => resolve(null), timeoutMs);
+  });
+  try {
+    const result = await Promise.race([promise, timeoutPromise]);
+    clearTimeout(timeoutId);
+    return result;
+  } catch (err) {
+    clearTimeout(timeoutId);
+    return null;
+  }
 };
 
 const BRAND_DEFAULT_IMAGE = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
@@ -50,11 +66,16 @@ export const dataService = {
     const cached = getCachedData(SITE_CONTENT_KEYS.SETTINGS);
     if (cached) return cached;
 
-    const { data, error } = await supabase
-      .from('site_contents')
-      .select('value')
-      .eq('key', SITE_CONTENT_KEYS.SETTINGS)
-      .single();
+    const res = await queryWithTimeout(
+      supabase
+        .from('site_contents')
+        .select('value')
+        .eq('key', SITE_CONTENT_KEYS.SETTINGS)
+        .single()
+    );
+
+    const data = res?.data;
+    const error = res?.error;
     
     const rawResult = (error || !data) ? DEFAULT_ADMIN_SETTINGS : data.value as AdminSettings;
     const result: AdminSettings = {
@@ -88,11 +109,16 @@ export const dataService = {
     const cached = getCachedData(SITE_CONTENT_KEYS.THEMES);
     if (cached) return cached;
 
-    const { data, error } = await supabase
-      .from('site_contents')
-      .select('value')
-      .eq('key', SITE_CONTENT_KEYS.THEMES)
-      .single();
+    const res = await queryWithTimeout(
+      supabase
+        .from('site_contents')
+        .select('value')
+        .eq('key', SITE_CONTENT_KEYS.THEMES)
+        .single()
+    );
+
+    const data = res?.data;
+    const error = res?.error;
     
     const rawResult = (error || !data) ? THEMES : data.value as Theme[];
     const result = rawResult.map(t => ({
@@ -212,6 +238,11 @@ export const dataService = {
     }
   },
 
+  mapBookingData: (b: any): BookingData => ({
+    ...b,
+    requestPreRoleCard: b.requestPreRoleCard ?? (typeof b.notes === 'string' && b.notes.includes('[사전 롤카드 신청]'))
+  }),
+
   // --- Reservations ---
   getBookings: async (): Promise<BookingData[]> => {
     const { data, error } = await supabase
@@ -220,7 +251,7 @@ export const dataService = {
       .order('createdAt', { ascending: false });
     
     if (error) return [];
-    return data as BookingData[];
+    return (data || []).map(dataService.mapBookingData);
   },
   getBookingsBySlot: async (themeId: string, date: string, time: string): Promise<BookingData[]> => {
     const { data, error } = await supabase
@@ -232,7 +263,7 @@ export const dataService = {
       .neq('status', 'cancelled');
     
     if (error) return [];
-    return data as BookingData[];
+    return (data || []).map(dataService.mapBookingData);
   },
   getBookingsByTheme: async (themeId: string): Promise<BookingData[]> => {
     const { data, error } = await supabase
@@ -242,12 +273,20 @@ export const dataService = {
       .neq('status', 'cancelled');
     
     if (error) return [];
-    return data as BookingData[];
+    return (data || []).map(dataService.mapBookingData);
   },
   addBooking: async (booking: BookingData) => {
+    const { totalPrice, bookingNumber: omittedBookingNumber, requestPreRoleCard: omittedRequestPreRoleCard, ...insertData } = booking as any;
+    if (booking.requestPreRoleCard) {
+      if (!insertData.notes) {
+        insertData.notes = '[사전 롤카드 신청]';
+      } else if (!insertData.notes.includes('[사전 롤카드 신청]')) {
+        insertData.notes = `${insertData.notes} [사전 롤카드 신청]`;
+      }
+    }
     const { error } = await supabase
       .from('reservations')
-      .insert([booking]);
+      .insert([insertData]);
     if (error) throw error;
   },
   createBooking: async (booking: Omit<BookingData, 'id' | 'createdAt' | 'themeTitle' | 'themePoster'>): Promise<BookingData | null> => {
@@ -281,9 +320,16 @@ export const dataService = {
       status: booking.status || 'pending'
     };
 
-    // Omit columns that might not exist in the Supabase schema to avoid 400 errors
-    // BUT themeTitle and themePoster are required by the schema (not-null constraint)
-    const { totalPrice, bookingNumber: omittedBookingNumber, ...insertData } = newBooking as any;
+    // Omit columns that might not exist in the Supabase schema to avoid 400/PGRST204 errors
+    const { totalPrice, bookingNumber: omittedBookingNumber, requestPreRoleCard: omittedRequestPreRoleCard, ...insertData } = newBooking as any;
+
+    if (newBooking.requestPreRoleCard) {
+      if (!insertData.notes) {
+        insertData.notes = '[사전 롤카드 신청]';
+      } else if (!insertData.notes.includes('[사전 롤카드 신청]')) {
+        insertData.notes = `${insertData.notes} [사전 롤카드 신청]`;
+      }
+    }
 
     const { error } = await supabase
       .from('reservations')

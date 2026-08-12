@@ -9,6 +9,13 @@ import { AnimatePresence, motion } from 'framer-motion';
 import LoadingScreen from './components/LoadingScreen';
 
 import AdminDashboard from './components/AdminDashboard';
+import Home from './components/Home';
+import ThemeReservation from './components/ThemeReservation';
+import ThemeDetail from './components/ThemeDetail';
+import BookingForm from './components/BookingForm';
+import BookingSuccess from './components/BookingSuccess';
+import ContactForm from './components/ContactForm';
+import NoticeBoard from './components/NoticeBoard';
 
 class ErrorBoundary extends React.Component<any, any> {
   constructor(props: any) {
@@ -16,13 +23,12 @@ class ErrorBoundary extends React.Component<any, any> {
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: any) {
+  static getDerivedStateFromError() {
     return { hasError: true };
   }
 
   componentDidCatch(error: any, errorInfo: any) {
     console.error("Caught error:", error, errorInfo);
-    // If it's a chunk load error, reload the page
     if (error?.name === 'ChunkLoadError' || error?.message?.includes('dynamically imported module') || error?.message?.includes('Failed to fetch dynamically imported module')) {
       window.location.reload();
     }
@@ -46,16 +52,6 @@ class ErrorBoundary extends React.Component<any, any> {
     return this.props.children;
   }
 }
-
-// Lazy load components
-const Home = lazy(() => import('./components/Home'));
-const ThemeReservation = lazy(() => import('./components/ThemeReservation'));
-const ThemeDetail = lazy(() => import('./components/ThemeDetail'));
-const BookingForm = lazy(() => import('./components/BookingForm'));
-const BookingSuccess = lazy(() => import('./components/BookingSuccess'));
-const ContactForm = lazy(() => import('./components/ContactForm'));
-// AdminDashboard is imported directly to avoid lazy loading issues in production
-const NoticeBoard = lazy(() => import('./components/NoticeBoard'));
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -115,7 +111,7 @@ const Header = ({ settings }: { settings: AdminSettings }) => {
   const navItems = [
     { name: '홈', enName: 'HOME', path: '/' },
     { name: '이용안내', enName: 'INFO', path: '/info' },
-    { name: '예약하기', enName: 'RESERVATION', path: reservationPath },
+    { name: '예약하기', enName: 'RESERVATION', path: '/reservation' },
     { name: '문의하기', enName: 'CONTACT', path: '/contact' }
   ];
 
@@ -315,9 +311,15 @@ const App = () => {
   const [settings, setSettings] = useState<AdminSettings>(DEFAULT_ADMIN_SETTINGS);
 
   useEffect(() => {
+    let isMounted = true;
+    const safetyTimer = setTimeout(() => {
+      if (isMounted) setLoading(false);
+    }, 3000);
+
     const init = async () => {
       try {
         const saved = await dataService.getSettings();
+        if (!isMounted) return;
         const logoToPreload = saved.logoUrl || 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
         
         // Pre-load logo image to avoid flicker in LoadingScreen
@@ -328,6 +330,7 @@ const App = () => {
           img.onerror = resolve;
         });
         
+        if (!isMounted) return;
         setSettings(saved);
 
         // Update Favicon
@@ -361,10 +364,16 @@ const App = () => {
       } catch (e) {
         console.error("Init failed", e);
       } finally {
-        setLoading(false);
+        clearTimeout(safetyTimer);
+        if (isMounted) setLoading(false);
       }
     };
     init();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(safetyTimer);
+    };
   }, []);
 
   return (

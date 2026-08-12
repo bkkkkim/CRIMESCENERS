@@ -19,6 +19,7 @@ export interface Theme {
   futureDisplayMode?: 'coming_soon' | 'open_calendar';
   isComingSoon?: boolean;
   showOnMain?: boolean;
+  showDDay?: boolean;
 }
 
 export interface Store {
@@ -125,6 +126,7 @@ export interface BookingData {
   participantCount: number;
   isCloseRequested: boolean;
   notes: string;
+  requestPreRoleCard?: boolean;
   paymentMethod: 'on-site' | 'bank-transfer' | 'deposit' | 'onsite';
   status: 'confirmed' | 'cancelled' | 'paid' | 'pending';
   totalPrice?: number;

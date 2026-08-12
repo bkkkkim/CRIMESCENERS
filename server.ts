@@ -105,7 +105,16 @@ async function startServer() {
 
     // Inject OG Tags in Dev
     app.use(async (req, res, next) => {
-      if (req.method === 'GET' && req.headers.accept?.includes('text/html')) {
+      const reqPath = req.path;
+      // Skip static assets, JS/TS/CSS modules, and API routes
+      const isAssetOrApi = reqPath.startsWith('/api') || 
+                           reqPath.startsWith('/@') || 
+                           reqPath.startsWith('/node_modules') || 
+                           reqPath.startsWith('/src') || 
+                           reqPath.startsWith('/components') || 
+                           /\.(js|jsx|ts|tsx|css|json|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot)$/i.test(reqPath);
+
+      if (req.method === 'GET' && !isAssetOrApi && req.headers.accept?.includes('text/html')) {
         try {
           const { data } = await supabase.from('site_contents').select('value').eq('key', 'settings').single();
           const settings = data?.value;
@@ -150,7 +159,10 @@ async function startServer() {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath, { index: false }));
     
-    app.get('*all', async (req, res) => {
+    app.get('*', async (req, res, next) => {
+      if (req.path.includes('.')) {
+        return next();
+      }
       let html = fs.readFileSync(path.join(distPath, "index.html"), "utf-8");
       
       try {

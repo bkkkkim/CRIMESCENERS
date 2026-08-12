@@ -369,7 +369,7 @@ const ThemeDetail = () => {
                 {theme.title}
               </h1>
               <p className="text-[#b3b3b3] text-sm md:text-base leading-relaxed max-w-2xl opacity-80 mb-4">{theme.synopsis}</p>
-              {dDayText && (
+              {dDayText && (theme.showDDay ?? true) && (
                 <div className="flex items-center gap-2 mb-8">
                   <span className="text-sm md:text-base font-medium text-white/80">
                     시나리오 운영 기한 : <span className="text-[#dc2626] font-black">{dDayText}</span>
@@ -443,15 +443,22 @@ const ThemeDetail = () => {
             </div>
           </div>
 
-          <div className="relative aspect-[2/3] overflow-hidden rounded-none md:rounded-[40px] shadow-2xl mt-6 md:mt-12 mb-12 border border-white/5">
-            <img 
-              src={(theme.posterUrl && !theme.posterUrl.startsWith('/theme')) ? theme.posterUrl : 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp'} 
-              alt={theme.title}
-              className="w-full h-full object-cover" 
-              onError={(e) => {
-                e.currentTarget.src = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
-              }}
-            />
+          <div className="relative aspect-[2/3] overflow-hidden rounded-none md:rounded-[40px] shadow-2xl mt-6 md:mt-12 mb-12 border border-white/5 bg-[#1a1a1a] flex items-center justify-center">
+            {(() => {
+              const rawPoster = (theme.posterUrl && !theme.posterUrl.startsWith('/theme')) ? theme.posterUrl : 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
+              const isBrandFallback = !theme.posterUrl || rawPoster.includes('1772555492065') || rawPoster.includes('brand/');
+              return (
+                <img 
+                  src={rawPoster} 
+                  alt={theme.title}
+                  className={`w-full h-full ${isBrandFallback ? 'object-contain p-12 opacity-40' : 'object-cover'}`} 
+                  onError={(e) => {
+                    e.currentTarget.src = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
+                    e.currentTarget.className = 'w-full h-full object-contain p-12 bg-[#1a1a1a] opacity-40';
+                  }}
+                />
+              );
+            })()}
             <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-transparent md:hidden" />
           </div>
         </div>

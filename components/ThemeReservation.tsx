@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { THEMES, STORES } from '../constants';
 import { ChevronRight, Users, Clock, MapPin, Filter, ArrowUpDown, Calendar as CalendarIcon, Search, X, Ticket, SearchCheck, ChevronDown } from 'lucide-react';
-import { Theme, Store, ClosedSlot, BookingData } from '../types';
+import { Theme, Store, ClosedSlot, BookingData, AdminSettings } from '../types';
 import { dataService } from '../src/services/dataService';
 import { isWeekendOrHoliday } from '../src/utils/holiday';
 import LoadingScreen from './LoadingScreen';
@@ -14,6 +14,7 @@ const ThemeReservation = () => {
   const [stores, setStores] = useState<Store[]>(STORES);
   const [closedSlots, setClosedSlots] = useState<ClosedSlot[]>([]);
   const [bookings, setBookings] = useState<BookingData[]>([]);
+  const [settings, setSettings] = useState<AdminSettings | null>(null);
   const [loading, setLoading] = useState(true);
   
   const [activeTab, setActiveTab] = useState<'book' | 'check'>('book');
@@ -34,6 +35,8 @@ const ThemeReservation = () => {
   const [foundBooking, setFoundBooking] = useState<BookingData | null>(null);
   const [showNotFound, setShowNotFound] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  const contactPhone = settings?.managerPhone || stores[0]?.phone || '';
 
   useEffect(() => {
     const loadData = async () => {
@@ -56,6 +59,7 @@ const ThemeReservation = () => {
         setStores(st);
         setClosedSlots(cs);
         setBookings(bk);
+        setSettings(s);
       } catch (error) {
         console.error("Failed to load data:", error);
       } finally {
@@ -432,26 +436,36 @@ const ThemeReservation = () => {
               const isExpired = endDate && now > endDate;
 
               const isComingSoon = isExpired || (isFuture && mode === 'coming_soon');
-              const isOpenFuture = isFuture && mode === 'open_calendar';
+              const isOpenFuture = isFuture && mode === 'open_calendar' && (theme.showDDay ?? true);
 
               const isDateAndTimeSelected = selectedDate && selectedTime;
+
+              const rawPoster = (theme.posterUrl && !theme.posterUrl.startsWith('/theme')) 
+                ? theme.posterUrl 
+                : 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
+
+              const isBrandFallback = !theme.posterUrl || rawPoster.includes('1772555492065') || rawPoster.includes('brand/');
 
               return (
                 <div key={`${theme.id}-${index}`} className={`group flex flex-col mb-0 md:mb-0 ${isComingSoon ? 'opacity-60' : ''}`}>
                   <Link 
                     to={isComingSoon ? '#' : (isDateAndTimeSelected ? `/booking/${theme.id}/${selectedDate}/${selectedTime}` : `/theme/${theme.id}`)} 
-                    className={`relative aspect-[2/3] overflow-hidden rounded-none md:rounded-2xl mb-0 md:mb-6 shadow-xl block ${isComingSoon ? 'cursor-default' : ''}`}
+                    className={`relative aspect-[2/3] overflow-hidden rounded-none md:rounded-2xl mb-0 md:mb-6 shadow-xl block bg-[#1a1a1a] flex items-center justify-center ${isComingSoon ? 'cursor-default' : ''}`}
                     onClick={(e) => isComingSoon && e.preventDefault()}
                   >
                     <img 
-                      src={(theme.posterUrl && !theme.posterUrl.startsWith('/theme')) ? theme.posterUrl : 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp'} 
+                      src={rawPoster} 
                       alt={theme.title} 
-                      className={`w-full h-full object-cover transition-transform duration-700 ${isComingSoon ? 'grayscale opacity-50' : 'group-hover:scale-110'}`}
+                      className={`w-full h-full transition-transform duration-700 ${
+                        isBrandFallback 
+                          ? 'object-contain p-8 opacity-40' 
+                          : 'object-cover group-hover:scale-110'
+                      } ${isComingSoon ? 'grayscale opacity-50' : ''}`}
                       loading="lazy"
                       referrerPolicy="no-referrer"
                       onError={(e) => {
                         e.currentTarget.src = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
-                        e.currentTarget.style.display = 'block';
+                        e.currentTarget.className = 'w-full h-full object-contain p-8 bg-[#1a1a1a] opacity-40';
                       }}
                     />
                     {isComingSoon && (
@@ -579,6 +593,17 @@ const ThemeReservation = () => {
                 <Search size={18} />
                 예약 조회하기
               </button>
+              <p className="text-xs text-white/60 text-center mt-4 leading-relaxed">
+                예약 번호는 예약일에 발송된 문자에서 확인 가능합니다.<br />
+                예약 번호를 잊어버리신 분은{' '}
+                <a 
+                  href={contactPhone ? `tel:${contactPhone.replace(/[^0-9]/g, '')}` : '#'} 
+                  className="underline font-bold text-yellow-300 hover:text-yellow-200 transition-colors underline-offset-2"
+                >
+                  매장에 문의
+                </a>
+                해주세요.
+              </p>
             </form>
 
             {showNotFound && (
@@ -610,6 +635,12 @@ const ThemeReservation = () => {
                   <div className="flex justify-between">
                     <span className="text-white/60">결제금액</span>
                     <span className="font-bold">{foundBooking.totalPrice?.toLocaleString() || 0}원</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/60">사전 롤카드</span>
+                    <span className={`font-bold ${foundBooking.requestPreRoleCard ? 'text-yellow-400' : 'text-white/40'}`}>
+                      {foundBooking.requestPreRoleCard ? '신청함 (사전 발송)' : '미신청'}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-white/60">예약상태</span>

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { THEMES, DEFAULT_ADMIN_SETTINGS } from '../constants';
 import { ChevronLeft, CheckCircle2, Copy, Check, AlertTriangle } from 'lucide-react';
-import { Theme, AdminSettings, BookingData } from '../types';
+import { Theme, AdminSettings, BookingData, Store } from '../types';
 import { dataService } from '../src/services/dataService';
 import LoadingScreen from './LoadingScreen';
 
@@ -12,6 +12,7 @@ const BookingForm = () => {
   const navigate = useNavigate();
   const [theme, setTheme] = useState<Theme | null>(null);
   const [settings, setSettings] = useState<AdminSettings>(DEFAULT_ADMIN_SETTINGS);
+  const [stores, setStores] = useState<Store[]>([]);
   const [bookings, setBookings] = useState<BookingData[]>([]);
   const [copied, setCopied] = useState(false);
 
@@ -26,6 +27,7 @@ const BookingForm = () => {
     participants: 2,
     paymentMethod: 'bank-transfer' as 'on-site' | 'bank-transfer',
     isCloseRequested: false,
+    requestPreRoleCard: false,
     notes: ''
   });
 
@@ -33,19 +35,20 @@ const BookingForm = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [showOnSiteModal, setShowOnSiteModal] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Fetch settings and bookings in parallel
-        const [savedSettings, savedBookings] = await Promise.all([
+        // Fetch settings, bookings, stores in parallel
+        const [savedSettings, savedBookings, savedStores] = await Promise.all([
           dataService.getSettings(),
-          dataService.getBookingsBySlot(themeId!, date!, time!)
+          dataService.getBookingsBySlot(themeId!, date!, time!),
+          dataService.getStores()
         ]);
 
         setSettings(savedSettings);
         setBookings(savedBookings);
+        setStores(savedStores);
 
         // Get theme from local THEMES (very fast)
         const themeList = await dataService.getThemes();
@@ -68,6 +71,9 @@ const BookingForm = () => {
 
   if (isInitialLoading) return <LoadingScreen />;
   if (!theme) return null;
+
+  const matchedStore = stores.find(s => s.id === theme.storeId);
+  const contactPhone = matchedStore?.phone || settings.managerPhone || '';
 
   const existingBookings = bookings.filter(b => b.themeId === themeId && b.date === date && b.time === time && b.status !== 'cancelled');
   const bookedCount = existingBookings.reduce((sum, b) => sum + b.participantCount, 0);
@@ -114,6 +120,7 @@ const BookingForm = () => {
         paymentMethod: formData.paymentMethod,
         status: 'pending',
         isCloseRequested: formData.isCloseRequested,
+        requestPreRoleCard: formData.requestPreRoleCard,
         notes: formData.notes
       };
 
@@ -211,13 +218,12 @@ const BookingForm = () => {
         <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-12">
           {/* PROMINENT DEPOSIT NOTICE BANNER */}
           <div className="p-6 bg-[#dc2626]/10 border-2 border-[#dc2626] rounded-2xl space-y-2 shadow-xl">
-            <div className="flex items-center gap-2 text.text-[#dc2626] text-base md:text-lg font-black">
-              <AlertTriangle size={22} className="shrink-0 text-[#dc2626]" />
-              <span className="text-[#dc2626]">📢 예약 확정 필수 안내 (선입금 필수)</span>
+            <div className="flex items-center gap-2 text-[#dc2626] text-base md:text-lg font-black">
+              <span className="text-[#dc2626]">📢 예약 확정 안내 (선입금 필수)</span>
             </div>
             <p className="text-sm text-white/95 font-semibold leading-relaxed">
               예약 신청 후 <span className="text-[#dc2626] font-black underline underline-offset-4">예약금을 선입금(계좌이체)하셔야 예약이 최종 확정</span>됩니다.<br />
-              입금 확인 후 안내 문자가 발송되며, 미입금 시 예약이 자동 취소될 수 있습니다.
+              미입금 시 예약이 자동 취소될 수 있습니다.
             </p>
           </div>
 
@@ -297,12 +303,29 @@ const BookingForm = () => {
             )}
           </div>
 
+          {/* PRE-ROLECARD OPTION */}
+          <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-3 shadow-lg">
+            <label htmlFor="requestPreRoleCard" className="flex items-center gap-3 cursor-pointer select-none">
+              <input 
+                type="checkbox" 
+                id="requestPreRoleCard"
+                className="w-5 h-5 accent-[#dc2626] rounded cursor-pointer"
+                checked={formData.requestPreRoleCard}
+                onChange={(e) => setFormData({...formData, requestPreRoleCard: e.target.checked})}
+              />
+              <span className="text-base font-black text-white tracking-tight">사전 롤카드 받기</span>
+            </label>
+            <p className="text-xs text-white/70 font-medium leading-relaxed pl-8">
+              크라임 씨너스는 게임 몰입을 위해 롤카드에 크게 의존하지 않도록, 예약 인원 충족 시 사전 역할 숙지를 위한 롤카드를 발송해 드립니다.
+            </p>
+          </div>
+
           <div className="space-y-6">
             <div className="flex justify-between items-center relative">
               <label className="text-sm font-bold text-white/80 tracking-normal uppercase">결제 방식</label>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="w-full">
               <div className="relative">
                 {/* ADVANCE DEPOSIT TOOLTIP / SPEECH BUBBLE */}
                 {settings?.advanceDepositDiscount?.enabled && (
@@ -318,85 +341,55 @@ const BookingForm = () => {
                 <button
                   type="button"
                   onClick={() => setFormData({...formData, paymentMethod: 'bank-transfer'})}
-                  className={`w-full py-5 rounded-2xl border font-bold transition-all flex items-center justify-center gap-2 relative ${
-                    formData.paymentMethod === 'bank-transfer'
-                      ? 'bg-white border-white text-black shadow-xl scale-[1.02]'
-                      : 'bg-transparent border-white/15 text-white/70 hover:border-white/35'
-                  }`}
+                  className="w-full py-5 rounded-2xl border border-white font-bold transition-all flex items-center justify-center gap-2 bg-white text-black shadow-xl"
                 >
                   선입금 (계좌이체)
                 </button>
               </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setFormData({...formData, paymentMethod: 'on-site'});
-                  setShowOnSiteModal(true);
-                }}
-                className={`py-5 rounded-2xl border font-bold transition-all flex items-center justify-center gap-2 ${
-                  formData.paymentMethod === 'on-site'
-                    ? 'bg-white border-white text-black shadow-xl scale-[1.02]'
-                    : 'bg-transparent border-white/15 text-white/70 hover:border-white/35'
-                }`}
-              >
-                현장 결제
-              </button>
             </div>
 
-            {formData.paymentMethod === 'bank-transfer' && (
-              <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
-                <div className="p-8 bg-white/5 rounded-[32px] border border-white/20 shadow-xl">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-white/55 tracking-normal uppercase mb-2">Deposit Account</p>
-                      <div className="text-xl font-bold tracking-tight text-white mb-1">
-                        {settings.bankInfo.bankName} {settings.bankInfo.accountNumber}
-                      </div>
-                      <p className="text-sm font-semibold text-white/80">예금주: {settings.bankInfo.holderName}</p>
+            <div className="space-y-4 animate-in fade-in duration-300">
+              <div className="p-8 bg-white/5 rounded-[32px] border border-white/20 shadow-xl">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-white/55 tracking-normal uppercase mb-2">Deposit Account</p>
+                    <div className="text-xl font-bold tracking-tight text-white mb-1">
+                      {settings.bankInfo.bankName} {settings.bankInfo.accountNumber}
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleCopyBank}
-                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-all text-white border border-white/10"
-                    >
-                      {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
-                      {copied ? 'COPIED' : 'COPY'}
-                    </button>
+                    <p className="text-sm font-semibold text-white/80">예금주: {settings.bankInfo.holderName}</p>
                   </div>
-                </div>
-
-                {/* ADVANCE DEPOSIT PRECAUTION NOTICE */}
-                <div className="p-6 bg-[#dc2626]/5 border border-[#dc2626]/20 rounded-2xl space-y-3 shadow-md">
-                  <p className="text-xs text-[#dc2626] font-bold uppercase tracking-widest flex items-center gap-1.5">
-                    ⚠️ 선입금 계좌이체 유의사항
-                  </p>
-                  <ul className="text-sm text-white/95 font-semibold space-y-2 list-none pl-0 leading-relaxed">
-                    <li>1) 예약자명과 입금자명이 동일해야 예약확인이 가능합니다.</li>
-                    <li>2) 당일 환불은 불가합니다.</li>
-                  </ul>
+                  <button
+                    type="button"
+                    onClick={handleCopyBank}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-all text-white border border-white/10"
+                  >
+                    {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                    {copied ? 'COPIED' : 'COPY'}
+                  </button>
                 </div>
               </div>
-            )}
 
-            {formData.paymentMethod === 'on-site' && (
-              <div className="p-6 bg-white/[0.02] border border-white/20 rounded-2xl space-y-3 animate-in fade-in duration-300 shadow-md">
-                <p className="text-xs text-white/60 font-bold uppercase tracking-widest">
-                  ⚠️ 현장 결제 유의사항
+              {/* ADVANCE DEPOSIT PRECAUTION NOTICE */}
+              <div className="p-6 bg-[#dc2626]/5 border border-[#dc2626]/20 rounded-2xl space-y-3 shadow-md">
+                <p className="text-xs text-[#dc2626] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                  ⚠️ 선입금 계좌이체 유의사항
                 </p>
-                <div className="space-y-2 text-sm text-white font-medium leading-relaxed">
-                  <p className="text-[#dc2626] font-bold">
-                    * 현장결제의 경우 선입금 할인 혜택 적용이 불가합니다.
-                  </p>
-                  <p>
-                    현장 결제 선택 후, 노쇼로 인해 다른 고객님들의 게임 예약 및 참여에 지장되지 않도록 가급적 <span className="text-[#dc2626] font-bold">&apos;선입금&apos;</span>으로 예약을 권장드립니다.
-                  </p>
-                  <p>
-                    현장 결제 예약 후 부득이한 사정으로 <span className="text-[#dc2626] font-bold">&apos;노쇼&apos;</span>하신 경우 추후 게임 예약에 지장이 있으실 수 있습니다.
-                  </p>
-                </div>
+                <ul className="text-sm text-white/95 font-semibold space-y-2 list-none pl-0 leading-relaxed">
+                  <li>1) 예약자명과 입금자명이 동일해야 예약확인이 가능합니다.</li>
+                  <li>2) 당일 환불은 불가합니다.</li>
+                  <li>
+                    3) 당일 예약은{' '}
+                    <a 
+                      href={contactPhone ? `tel:${contactPhone.replace(/[^0-9]/g, '')}` : '#'} 
+                      className="underline font-black text-yellow-300 hover:text-yellow-200 underline-offset-4 transition-colors"
+                    >
+                      매장으로 연락
+                    </a>
+                    바랍니다. {contactPhone && <span className="text-xs text-white/70">({contactPhone})</span>}
+                  </li>
+                </ul>
               </div>
-            )}
+            </div>
           </div>
 
           {showCloseOption && (
@@ -482,35 +475,6 @@ const BookingForm = () => {
           </div>
         </form>
       </div>
-
-      {/* On-Site Payment warning modal */}
-      {showOnSiteModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
-          <div className="bg-[#1f1f1f] border border-white/15 p-8 rounded-3xl max-w-md w-full shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] relative animate-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-3 flex items-center gap-2">
-              ⚠️ 현장 결제 예약 시 유의사항
-            </h3>
-            <div className="space-y-4 text-white text-sm leading-relaxed mb-8 font-medium">
-              <p className="text-[#dc2626] font-bold">
-                * 현장결제의 경우 선입금 할인 혜택 적용이 불가합니다.
-              </p>
-              <p>
-                현장 결제 선택 후, 노쇼로 인해 다른 고객님들의 게임 예약 및 참여에 지장되지 않도록 가급적 <span className="text-[#dc2626] font-black">&apos;선입금&apos;</span>으로 예약을 권장드립니다.
-              </p>
-              <p>
-                현장 결제 예약 후 부득이한 사정으로 <span className="text-[#dc2626] font-black">&apos;노쇼&apos;</span>하신 경우 추후 게임 예약에 지장이 있으실 수 있습니다.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowOnSiteModal(false)}
-              className="w-full py-4 bg-white text-black font-extrabold rounded-2xl hover:bg-neutral-200 transition-all text-sm tracking-widest uppercase font-en"
-            >
-              확인
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

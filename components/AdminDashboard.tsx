@@ -304,6 +304,7 @@ const AdminDashboard = () => {
                                         {booking.status === 'paid' && <span className="bg-green-500 text-white text-[10px] px-2 py-0.5 rounded">결제 완료</span>}
                                         {booking.status === 'confirmed' && <span className="bg-blue-500 text-white text-[10px] px-2 py-0.5 rounded">예약 완료</span>}
                                         {booking.isCloseRequested && <span className="bg-[#dc2626] text-white text-[10px] font-bold px-2 py-0.5 rounded animate-pulse">마감 요청됨</span>}
+                                        {booking.requestPreRoleCard && <span className="bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">사전 롤카드</span>}
                                       </div>
                                       <h3 className="text-xl font-bold mb-2">
                                         {booking.themeTitle}
@@ -333,9 +334,10 @@ const AdminDashboard = () => {
                                     </select>
                                   </div>
                                 </div>
-                                {(booking.notes || booking.isCloseRequested) && (
-                                  <div className="p-4 bg-black/40 rounded-xl border border-white/5">
-                                    {booking.isCloseRequested && <p className="text-xs text-red-500 font-bold mb-2">⚠️ 마감 요청: 이 팀 외 추가 인원을 받지 않기를 원함</p>}
+                                {(booking.notes || booking.isCloseRequested || booking.requestPreRoleCard) && (
+                                  <div className="p-4 bg-black/40 rounded-xl border border-white/5 space-y-1">
+                                    {booking.requestPreRoleCard && <p className="text-xs text-purple-400 font-bold">📜 사전 롤카드 발송 신청됨</p>}
+                                    {booking.isCloseRequested && <p className="text-xs text-red-500 font-bold">⚠️ 마감 요청: 이 팀 외 추가 인원을 받지 않기를 원함</p>}
                                     {booking.notes && <p className="text-sm text-white/60 italic">"{booking.notes}"</p>}
                                   </div>
                                 )}
@@ -723,6 +725,26 @@ const AdminDashboard = () => {
                         />
                         <label htmlFor={`showOnMain-${theme.id}`} className="text-sm font-bold cursor-pointer">
                           메인 페이지에 진열 (체크 시 메인 화면 테마 리스트에 노출됩니다)
+                        </label>
+                      </div>
+
+                      <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/5">
+                        <input 
+                          type="checkbox" 
+                          id={`showDDay-${theme.id}`}
+                          className="w-5 h-5 rounded border-white/10 bg-black text-white focus:ring-0 accent-red-600"
+                          checked={theme.showDDay ?? true}
+                          onChange={e => {
+                            setThemes(prev => {
+                              const updated = [...prev];
+                              updated[idx] = { ...updated[idx], showDDay: e.target.checked };
+                              setIsDirty(true);
+                              return updated;
+                            });
+                          }}
+                        />
+                        <label htmlFor={`showDDay-${theme.id}`} className="text-sm font-bold cursor-pointer">
+                          운영기한 (D-Day) 노출 여부 (체크 시 상세 페이지 및 리스트에 운영기한 D-Day 문구가 표시됩니다)
                         </label>
                       </div>
                       <div>

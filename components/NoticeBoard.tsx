@@ -109,17 +109,17 @@ const NoticeBoard = () => {
                   return (
                     <div 
                       key={`step-${item.step}`} 
-                      className="bg-white/5 border border-white/5 rounded-xl sm:rounded-2xl md:rounded-3xl p-3.5 sm:p-4 md:p-5 flex flex-col justify-between hover:bg-white/10 hover:border-white/20 transition-all group"
+                      className="bg-white/5 border border-white/5 rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 flex flex-col justify-between hover:bg-white/10 hover:border-white/20 transition-all group"
                     >
                       <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-lg sm:text-2xl font-black text-[#dc2626] font-en">{item.step}</span>
+                        <div className="flex items-center justify-between mb-2 sm:mb-3">
+                          <span className="text-xl sm:text-2xl font-black text-[#dc2626] font-en">{item.step}</span>
                           <div className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center shrink-0">
                             <IconComponent className={`w-5 h-5 sm:w-6 sm:h-6 text-white/40 group-hover:text-[#dc2626] transition-colors ${item.iconClass || ''}`} />
                           </div>
                         </div>
-                        <h4 className="font-bold text-xs sm:text-sm md:text-base mb-1 sm:mb-1.5 text-white leading-snug break-keep">{item.title}</h4>
-                        <p className="text-[11px] sm:text-xs md:text-sm text-[#b3b3b3] opacity-80 leading-snug sm:leading-relaxed break-keep">{item.desc}</p>
+                        <h4 className="font-bold text-sm sm:text-base md:text-lg mb-1.5 sm:mb-2 text-white leading-snug break-keep">{item.title}</h4>
+                        <p className="text-xs sm:text-xs md:text-sm text-[#b3b3b3] opacity-80 leading-snug sm:leading-relaxed break-keep">{item.desc}</p>
                       </div>
                     </div>
                   );
@@ -259,28 +259,30 @@ const NoticeBoard = () => {
       {/* Floating Sticky Bottom Banner */}
       <AnimatePresence>
         {showStickyBanner && activeTab !== 'stores' && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            className="fixed bottom-3 left-2.5 right-2.5 sm:bottom-4 sm:left-4 sm:right-4 md:bottom-8 md:left-1/2 md:-translate-x-1/2 z-50 md:w-full md:max-w-2xl"
-          >
-            <Link
-              to={settings.reservationLandingUrl || '/theme/theme-1'}
-              className="w-full bg-[#121212]/95 backdrop-blur-2xl border border-white/20 shadow-2xl shadow-black rounded-2xl md:rounded-full p-2.5 px-3.5 sm:px-6 md:px-8 md:py-4 flex items-center justify-between gap-2.5 sm:gap-3 hover:border-red-500/60 hover:bg-[#1a1a1a] transition-all group cursor-pointer"
+          <div className="fixed bottom-3 left-0 right-0 sm:bottom-4 md:bottom-8 z-50 flex justify-center px-3 sm:px-4 pointer-events-none">
+            <motion.div
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              className="w-full max-w-2xl pointer-events-auto"
             >
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[#dc2626] animate-pulse shrink-0 shadow-lg shadow-red-500/50" />
-                <p className="text-[13px] sm:text-base md:text-lg font-black text-white tracking-tight leading-none whitespace-nowrap">
-                  지금 사건현장으로 떠나보세요!
-                </p>
-              </div>
-              <div className="shrink-0 px-3.5 sm:px-5 md:px-7 py-2 sm:py-2.5 md:py-3 bg-[#dc2626] text-white font-black rounded-xl md:rounded-full group-hover:bg-red-700 transition-all text-[12px] sm:text-sm md:text-base flex items-center gap-1 sm:gap-1.5 shadow-xl shadow-red-950/60 group-hover:scale-105 active:scale-95 uppercase tracking-wide font-en whitespace-nowrap">
-                예약하기 <ChevronRight size={15} className="stroke-[3] sm:w-5 sm:h-5" />
-              </div>
-            </Link>
-          </motion.div>
+              <Link
+                to={settings.reservationLandingUrl || '/theme/theme-1'}
+                className="w-full bg-[#121212]/95 backdrop-blur-2xl border border-white/20 shadow-2xl shadow-black rounded-2xl md:rounded-full p-2.5 px-3.5 sm:px-6 md:px-8 md:py-4 flex items-center justify-between gap-2.5 sm:gap-3 hover:border-red-500/60 hover:bg-[#1a1a1a] transition-all group cursor-pointer"
+              >
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[#dc2626] animate-pulse shrink-0 shadow-lg shadow-red-500/50" />
+                  <p className="text-[13px] sm:text-base md:text-lg font-black text-white tracking-tight leading-none whitespace-nowrap">
+                    지금 사건현장으로 떠나보세요!
+                  </p>
+                </div>
+                <div className="shrink-0 px-3.5 sm:px-5 md:px-7 py-2 sm:py-2.5 md:py-3 bg-[#dc2626] text-white font-black rounded-xl md:rounded-full group-hover:bg-red-700 transition-all text-[12px] sm:text-sm md:text-base flex items-center gap-1 sm:gap-1.5 shadow-xl shadow-red-950/60 group-hover:scale-105 active:scale-95 uppercase tracking-wide font-en whitespace-nowrap">
+                  예약하기 <ChevronRight size={15} className="stroke-[3] sm:w-5 sm:h-5" />
+                </div>
+              </Link>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

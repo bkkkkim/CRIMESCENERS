@@ -27,15 +27,21 @@
             --font-kr: 'Noto Sans KR', sans-serif;
             --font-en: 'Poppins', sans-serif;
         }
-        html, body {
+        html {
+            overflow-x: hidden;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        body {
             font-family: var(--font-kr);
             background-color: #121212;
             color: #FFFFFF;
             margin: 0;
+            padding: 0;
+            min-height: 100vh;
             overflow-x: hidden;
+            overflow-y: auto;
             word-break: keep-all;
-            overscroll-behavior-y: none;
-            -webkit-overscroll-behavior-y: none;
         }
         .font-en {
             font-family: var(--font-en);
