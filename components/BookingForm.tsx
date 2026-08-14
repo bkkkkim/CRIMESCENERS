@@ -490,17 +490,17 @@ const BookingForm = () => {
                 </label>
             </div>
 
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#1a1a1a] border-t border-white/10 z-50 md:relative md:p-0 md:bg-transparent md:border-none">
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#161616]/95 backdrop-blur-md border-t border-white/10 z-50 md:relative md:p-0 md:bg-transparent md:border-none">
               <button 
                 type="submit"
                 disabled={loading}
-                className={`w-full py-4 md:py-6 font-bold rounded-full md:rounded-none text-sm md:text-base transition-all shadow-2xl flex items-center justify-center gap-3 tracking-normal uppercase font-en ${
+                className={`w-full py-4 font-bold rounded-xl text-sm md:text-base transition-all shadow-xl flex items-center justify-center gap-2 cursor-pointer ${
                   isFormValid && !loading
-                      ? 'bg-white text-black hover:bg-neutral-200 shadow-black/50' 
+                      ? 'bg-white text-black hover:bg-neutral-200 active:scale-[0.99] shadow-black/50' 
                       : 'bg-white/5 text-white/20 cursor-not-allowed shadow-none'
                 }`}
               >
-                {loading ? 'PROCESSING...' : <><CheckCircle2 size={20} /> CONFIRM RESERVATION</>}
+                {loading ? '예약 처리 중...' : <><CheckCircle2 size={20} /> 예약 완료하기</>}
               </button>
             </div>
           </div>

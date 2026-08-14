@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { THEMES, DEFAULT_ADMIN_SETTINGS, STORES } from '../constants';
 import { isWeekendOrHoliday } from '../src/utils/holiday';
-import { Calendar as CalendarIcon, Clock, Users, ArrowLeft, ChevronLeft, ChevronRight, MapPin, X, Info, UserCheck } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Users, ArrowLeft, ChevronLeft, ChevronRight, MapPin, X, Info, UserCheck, ExternalLink } from 'lucide-react';
 import { AdminSettings, Theme, ClosedSlot, BookingData, Store } from '../types';
 import { dataService } from '../src/services/dataService';
 import LoadingScreen from './LoadingScreen';
@@ -269,48 +269,55 @@ const ThemeDetail = () => {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 10 }}
-                            className="hidden md:block absolute left-0 top-full mt-3 w-72 p-6 bg-[#1a1a1a] border border-white/10 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50"
+                            className="hidden md:block absolute left-0 top-full mt-3 w-80 p-5 bg-[#161616] border border-white/15 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-50"
                           >
-                            <div className="flex items-center justify-between mb-4">
-                              <h4 className="font-bold text-white tracking-tight">{store.name} 상세 정보</h4>
-                              <button onClick={() => setShowStoreInfo(false)} className="text-white/20 hover:text-white">
-                                <X size={16} />
+                            <div className="flex items-center justify-between mb-3.5 pb-2.5 border-b border-white/10">
+                              <h4 className="font-bold text-white text-sm tracking-tight flex items-center gap-1.5">
+                                <MapPin size={15} className="text-red-500" />
+                                {store.name} 상세 정보
+                              </h4>
+                              <button 
+                                onClick={() => setShowStoreInfo(false)} 
+                                className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors cursor-pointer"
+                              >
+                                <X size={14} />
                               </button>
                             </div>
-                            <div className="space-y-4 text-xs text-[#b3b3b3] leading-relaxed">
-                              <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-                                <p className="text-white/40 mb-1 uppercase tracking-normal text-[8px] font-medium">Address</p>
-                                <p>{store.address}</p>
+                            <div className="space-y-2.5 text-xs text-[#b3b3b3] leading-relaxed">
+                              <div className="p-3 bg-black/50 rounded-xl border border-white/5">
+                                <p className="text-white/40 mb-1 text-[10px] font-bold">주소</p>
+                                <p className="text-white/90">{store.address}</p>
                               </div>
-                              <div className="grid grid-cols-2 gap-3">
-                                <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-                                  <p className="text-white/40 mb-1 uppercase tracking-normal text-[8px] font-medium">Weekday</p>
-                                  <p>{store.weekdayHours}</p>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="p-3 bg-black/50 rounded-xl border border-white/5">
+                                  <p className="text-white/40 mb-1 text-[10px] font-bold">평일 영업</p>
+                                  <p className="text-white/90">{store.weekdayHours}</p>
                                 </div>
-                                <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-                                  <p className="text-white/40 mb-1 uppercase tracking-normal text-[8px] font-medium">Weekend</p>
-                                  <p>{store.weekendHours}</p>
+                                <div className="p-3 bg-black/50 rounded-xl border border-white/5">
+                                  <p className="text-white/40 mb-1 text-[10px] font-bold">주말 영업</p>
+                                  <p className="text-white/90">{store.weekendHours}</p>
                                 </div>
                               </div>
-                              <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-                                <p className="text-white/40 mb-1 uppercase tracking-normal text-[8px] font-medium">Contact</p>
-                                <p className="font-en">{store.phone}</p>
+                              <div className="p-3 bg-black/50 rounded-xl border border-white/5">
+                                <p className="text-white/40 mb-1 text-[10px] font-bold">전화번호</p>
+                                <p className="font-en text-white/90">{store.phone}</p>
                               </div>
                             </div>
-                            <div className="mt-6 pt-4 border-t border-white/5">
+                            <div className="mt-4 pt-3 border-t border-white/10">
                               <a 
-                                href={`https://map.naver.com/v5/search/${encodeURIComponent(store.address)}`}
+                                href={store.naverPlaceUrl && store.naverPlaceUrl.trim() ? store.naverPlaceUrl.trim() : `https://map.naver.com/v5/search/${encodeURIComponent(store.address)}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="block w-full text-center py-2.5 bg-white text-black text-[10px] font-medium rounded-xl hover:bg-neutral-200 transition-colors uppercase tracking-normal font-en"
+                                className="w-full py-3 px-4 bg-white text-black hover:bg-neutral-200 active:scale-[0.98] transition-all text-xs font-bold rounded-xl shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
                               >
-                                Naver Maps
+                                <ExternalLink size={14} />
+                                네이버 지도 바로가기
                               </a>
                             </div>
                           </motion.div>
 
                           {/* Mobile Modal */}
-                          <div className="md:hidden fixed inset-0 z-[200] flex items-center justify-center p-6">
+                          <div className="md:hidden fixed inset-0 z-[200] flex items-center justify-center p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] h-[100dvh]">
                             <motion.div 
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
@@ -319,44 +326,52 @@ const ThemeDetail = () => {
                               onClick={() => setShowStoreInfo(false)}
                             />
                             <motion.div 
-                              initial={{ scale: 0.9, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              exit={{ scale: 0.9, opacity: 0 }}
-                              className="relative w-full max-w-sm bg-[#1a1a1a] border border-white/10 rounded-[40px] p-8 shadow-2xl"
+                              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                              animate={{ scale: 1, opacity: 1, y: 0 }}
+                              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                              className="relative w-full max-w-sm max-h-[calc(100dvh-2.5rem)] overflow-y-auto bg-[#161616] border border-white/15 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl z-10 my-auto"
                             >
-                              <div className="flex items-center justify-between mb-6">
-                                <h4 className="text-xl font-bold text-white tracking-tight">{store.name}</h4>
-                                <button onClick={() => setShowStoreInfo(false)} className="p-2 hover:bg-white/5 rounded-full">
-                                  <X size={24} />
+                              <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
+                                <h4 className="text-lg font-bold text-white tracking-tight flex items-center gap-1.5">
+                                  <MapPin size={17} className="text-red-500" />
+                                  {store.name}
+                                </h4>
+                                <button 
+                                  onClick={() => setShowStoreInfo(false)} 
+                                  className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-colors cursor-pointer"
+                                  aria-label="닫기"
+                                >
+                                  <X size={16} />
                                 </button>
                               </div>
-                              <div className="space-y-4 text-sm text-[#b3b3b3] leading-relaxed">
-                                <div className="p-4 bg-black/40 rounded-2xl border border-white/5">
-                                  <p className="text-white/40 mb-1 uppercase tracking-normal text-[10px] font-medium">Address</p>
-                                  <p>{store.address}</p>
+                              <div className="space-y-3 text-xs sm:text-sm text-[#b3b3b3] leading-relaxed">
+                                <div className="p-3.5 bg-black/50 rounded-xl border border-white/5">
+                                  <p className="text-white/40 mb-1 text-[10px] sm:text-xs font-bold">매장 주소</p>
+                                  <p className="text-white/90">{store.address}</p>
                                 </div>
-                                <div className="grid grid-cols-1 gap-3">
-                                  <div className="p-4 bg-black/40 rounded-2xl border border-white/5">
-                                    <p className="text-white/40 mb-1 uppercase tracking-normal text-[10px] font-medium">Business Hours</p>
-                                    <div className="flex flex-col gap-1">
+                                <div className="grid grid-cols-1 gap-2.5">
+                                  <div className="p-3.5 bg-black/50 rounded-xl border border-white/5">
+                                    <p className="text-white/40 mb-1 text-[10px] sm:text-xs font-bold">운영 시간</p>
+                                    <div className="flex flex-col gap-1 text-white/90">
                                       <p>평일: {store.weekdayHours}</p>
                                       <p>주말: {store.weekendHours}</p>
                                     </div>
                                   </div>
                                 </div>
-                                <div className="p-4 bg-black/40 rounded-2xl border border-white/5">
-                                  <p className="text-white/40 mb-1 uppercase tracking-normal text-[10px] font-bold">Contact</p>
-                                  <p className="font-en">{store.phone}</p>
+                                <div className="p-3.5 bg-black/50 rounded-xl border border-white/5">
+                                  <p className="text-white/40 mb-1 text-[10px] sm:text-xs font-bold">전화번호</p>
+                                  <p className="font-en text-white/90">{store.phone}</p>
                                 </div>
                               </div>
-                              <div className="mt-8">
+                              <div className="mt-5 pt-3 border-t border-white/10">
                                 <a 
                                   href={store.naverPlaceUrl && store.naverPlaceUrl.trim() ? store.naverPlaceUrl.trim() : `https://map.naver.com/v5/search/${encodeURIComponent(store.address)}`}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="block w-full text-center py-4 bg-white text-black font-bold rounded-2xl hover:bg-neutral-200 transition-colors uppercase tracking-normal font-en text-sm"
+                                  className="w-full py-3 px-6 bg-white text-black hover:bg-neutral-200 active:scale-[0.98] transition-all text-sm font-bold rounded-xl shadow-md flex items-center justify-center gap-2 cursor-pointer"
                                 >
-                                  Naver Maps
+                                  <ExternalLink size={16} />
+                                  네이버 지도 바로가기
                                 </a>
                               </div>
                             </motion.div>
@@ -598,57 +613,67 @@ const ThemeDetail = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
               onClick={() => setShowInfoModal(false)}
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="relative bg-[#1a1a1a] border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl"
+              className="relative bg-[#161616] border border-white/15 rounded-2xl p-5 w-full max-w-sm shadow-2xl z-10 space-y-4"
             >
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex justify-between items-center pb-3 border-b border-white/10">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <Info size={16} className="text-[#dc2626]" />
                   시나리오 운영 기한 안내
                 </h3>
                 <button 
                   onClick={() => setShowInfoModal(false)}
-                  className="text-white/40 hover:text-white transition-colors"
+                  className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors cursor-pointer"
+                  aria-label="닫기"
                 >
-                  <X size={20} />
+                  <X size={14} />
                 </button>
               </div>
-              <p className="text-white/80 text-sm leading-relaxed break-keep">
+              <p className="text-white/80 text-xs sm:text-sm leading-relaxed break-keep">
                 예약하실 수 있는 테마 운영 기한입니다.<br /><br />
                 늘 새로운 경험을 제공하기 위해 재미있는 테마로 업데이트 하겠습니다.<br /><br />
                 영업 상황에 따라 기한은 상시 변동될 수 있습니다.
               </p>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowInfoModal(false)}
+                  className="w-full py-3 px-6 bg-white text-black hover:bg-neutral-200 active:scale-[0.98] transition-all text-xs sm:text-sm font-bold rounded-xl shadow-md cursor-pointer"
+                >
+                  확인 완료
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
 
         {/* Coming Soon Modal */}
         {showComingSoonModal && (
-          <div className="fixed inset-0 z-[300] bg-black/90 backdrop-blur-md flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-[300] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-[#1a1a1a] border border-white/10 p-8 md:p-10 rounded-[32px] max-w-md w-full text-center space-y-6 shadow-2xl relative overflow-hidden"
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              className="bg-[#161616] border border-white/15 p-6 sm:p-8 rounded-2xl sm:rounded-3xl max-w-md w-full text-center space-y-5 shadow-2xl relative overflow-hidden"
             >
-              <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mx-auto text-[#dc2626]">
-                <Clock size={32} />
+              <div className="w-14 h-14 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mx-auto text-[#dc2626]">
+                <Clock size={28} />
               </div>
               
               <div className="space-y-2">
                 <span className="text-xs font-bold text-[#dc2626] tracking-widest uppercase font-en block">
-                  COMING SOON!
+                  COMING SOON
                 </span>
-                <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight">
-                  곧 오픈예정입니다.
+                <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                  곧 오픈예정입니다
                 </h3>
-                <p className="text-white/60 text-sm pt-2 leading-relaxed whitespace-pre-line">
+                <p className="text-white/60 text-xs sm:text-sm pt-1 leading-relaxed whitespace-pre-line break-keep">
                   {theme?.startDate 
                     ? `'${theme.title}' 테마는 ${theme.startDate}에 오픈 예정입니다.\n조금만 기다려 주세요!`
                     : `'${theme.title}' 테마는 현재 오픈 준비 중입니다.\n빠른 시일 내에 찾아뵙겠습니다.`}
@@ -665,9 +690,9 @@ const ThemeDetail = () => {
                       navigate('/');
                     }
                   }}
-                  className="w-full py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 transition-all text-sm font-en tracking-wide uppercase shadow-lg"
+                  className="w-full py-3.5 px-6 bg-white text-black font-bold rounded-xl hover:bg-neutral-200 active:scale-[0.98] transition-all text-sm shadow-md cursor-pointer"
                 >
-                  확인
+                  확인 완료
                 </button>
               </div>
             </motion.div>

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { dataService } from '../src/services/dataService';
 import { Notice, Store, AdminSettings } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Phone, Clock, ChevronRight, Info, Gamepad2, X, FileText, Users, Target, Search, MessageSquare, KeyRound, CheckCircle2, Vote } from 'lucide-react';
+import { MapPin, Phone, Clock, ChevronRight, Info, Gamepad2, X, FileText, Users, Target, Search, MessageSquare, KeyRound, CheckCircle2, Vote, ExternalLink } from 'lucide-react';
 import { DEFAULT_ADMIN_SETTINGS } from '../constants';
 import LoadingScreen from './LoadingScreen';
 
@@ -247,18 +247,19 @@ const NoticeBoard = () => {
                           href={store.naverPlaceUrl || `https://map.naver.com/v5/search/${encodeURIComponent(store.address || store.name)}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center px-3.5 py-1.5 border border-white/20 text-white font-medium rounded hover:bg-white hover:text-black transition-all tracking-tight uppercase text-xs w-fit"
+                          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white text-white hover:text-black font-bold rounded-xl text-xs transition-all border border-white/15 w-fit cursor-pointer"
                         >
-                          네이버 지도 보기
+                          <ExternalLink size={13} />
+                          네이버 지도 바로가기
                         </a>
                       </div>
                     </div>
                   </div>
                   <Link 
                     to={settings.reservationLandingUrl || '/theme/theme-1'} 
-                    className="flex items-center justify-center gap-3 w-full py-5 border-2 border-white/10 text-white font-bold rounded-none hover:bg-white hover:text-black transition-all tracking-normal uppercase text-sm font-en"
+                    className="flex items-center justify-center gap-2 w-full py-4 bg-white text-black font-bold rounded-xl hover:bg-neutral-200 active:scale-[0.98] transition-all text-sm uppercase tracking-tight shadow-md"
                   >
-                    Reservation <ChevronRight size={18} />
+                    테마 예약하기 <ChevronRight size={16} />
                   </Link>
                 </div>
               </div>
