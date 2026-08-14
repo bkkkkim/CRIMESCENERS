@@ -274,7 +274,7 @@ const ThemeReservation = () => {
   if (loading) return <LoadingScreen />;
 
   return (
-    <div className="pt-32 md:pt-40 pb-24 px-4 md:px-6 max-w-7xl mx-auto">
+    <div className="pt-32 md:pt-40 pb-24 px-4 sm:px-6 md:px-8 max-w-7xl mx-auto">
       <div className="mb-8 md:mb-10 text-center flex flex-col items-center gap-6">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tighter uppercase font-en">#RESERVATION</h1>
         

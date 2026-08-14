@@ -49,16 +49,15 @@ const SuspectModal: React.FC<SuspectModalProps> = ({ isOpen, onClose, theme }) =
               <div className="min-w-0 flex-1 space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-[#dc2626] animate-pulse shrink-0" />
-                  <h3 className="text-base sm:text-xl font-black text-white tracking-tight truncate">
+                  <h3 className="text-lg sm:text-xl font-black text-white tracking-tight truncate">
                     사건 관계자 정보
                   </h3>
-                  <span className="text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-white/80 border border-white/10 font-en shrink-0">
-                    {suspects.length} CHARACTERS
-                  </span>
                 </div>
-                <p className="text-xs sm:text-sm font-medium text-white/50 pl-4 truncate">
-                  ({theme.title})
-                </p>
+                <div className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-white/50 pl-4 truncate">
+                  <span className="truncate">({theme.title})</span>
+                  <span className="w-1 h-1 rounded-full bg-white/30 shrink-0" />
+                  <span className="text-white/80 font-bold shrink-0">{suspects.length}명</span>
+                </div>
               </div>
               <button
                 type="button"
@@ -73,7 +72,7 @@ const SuspectModal: React.FC<SuspectModalProps> = ({ isOpen, onClose, theme }) =
             {/* Sub-banner notice */}
             <div className="px-4 sm:px-6 py-2 sm:py-2.5 bg-red-950/30 border-b border-red-900/30 text-[11px] sm:text-xs text-red-300 flex items-center gap-2 shrink-0">
               <ShieldAlert size={13} className="shrink-0 text-red-400" />
-              <span className="truncate sm:whitespace-normal">각 인물의 나이, 성별, 직업 및 특징을 확인하고 원하는 배역을 선택해 보세요.</span>
+              <span className="truncate">각 인물 정보를 확인하고 원하는 배역을 선택해 보세요.</span>
             </div>
 
             {/* Body / Suspect List */}

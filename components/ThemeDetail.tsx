@@ -30,7 +30,26 @@ const ThemeDetail = () => {
 
   const calendarRef = useRef<HTMLDivElement>(null);
   const timeSlotsRef = useRef<HTMLDivElement>(null);
+  const storeInfoRef = useRef<HTMLDivElement>(null);
   const [showFloatingBtn, setShowFloatingBtn] = useState(true);
+
+  // Close store info popup on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (storeInfoRef.current && !storeInfoRef.current.contains(event.target as Node)) {
+        setShowStoreInfo(false);
+      }
+    };
+
+    if (showStoreInfo) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [showStoreInfo]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -240,21 +259,21 @@ const ThemeDetail = () => {
   }
 
   return (
-    <div className="pt-24 md:pt-32 pb-0 px-0 md:px-6 max-w-7xl mx-auto">
-      <div className="px-6 md:px-0">
-        <Link to="/reservation" className="inline-flex items-center text-[#b3b3b3] hover:text-white mb-4 md:mb-8 gap-2 text-sm font-bold tracking-normal uppercase font-en">
+    <div className="pt-24 md:pt-32 pb-16 px-4 sm:px-6 md:px-8 max-w-7xl mx-auto">
+      <div className="mb-4 md:mb-8">
+        <Link to="/reservation" className="inline-flex items-center text-[#b3b3b3] hover:text-white gap-2 text-sm font-bold tracking-normal uppercase font-en">
           <ArrowLeft size={16} /> Back to Scenarios
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[500px_450px] gap-0 md:gap-8 lg:gap-16 justify-center">
-        <div className="px-6 md:px-0 mb-0 lg:mb-0 w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-[500px_450px] gap-8 lg:gap-10 xl:gap-16 justify-center items-start">
+        <div className="w-full mb-0 lg:mb-0">
           <div className="space-y-8">
             <div>
               <div className="flex items-center gap-3 mb-3 md:mb-6">
                 <span className="bg-[#dc2626] text-[10px] font-bold px-2 py-1 rounded tracking-widest uppercase font-en">BEST</span>
                 {store && (
-                  <div className="relative">
+                  <div className="relative" ref={storeInfoRef}>
                     <button 
                       onClick={() => setShowStoreInfo(!showStoreInfo)}
                       className="text-white text-sm font-bold uppercase flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full hover:bg-white hover:text-black transition-all border border-white/10"
@@ -264,6 +283,12 @@ const ThemeDetail = () => {
                     <AnimatePresence>
                       {showStoreInfo && (
                         <>
+                          {/* Desktop Backdrop for outside click */}
+                          <div 
+                            className="hidden md:block fixed inset-0 z-40 bg-transparent" 
+                            onClick={() => setShowStoreInfo(false)}
+                          />
+
                           {/* Desktop Tooltip */}
                           <motion.div 
                             initial={{ opacity: 0, y: 10 }}
@@ -332,13 +357,13 @@ const ThemeDetail = () => {
                               className="relative w-full max-w-sm max-h-[calc(100dvh-2.5rem)] overflow-y-auto bg-[#161616] border border-white/15 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl z-10 my-auto"
                             >
                               <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
-                                <h4 className="text-lg font-bold text-white tracking-tight flex items-center gap-1.5">
-                                  <MapPin size={17} className="text-red-500" />
+                                <h4 className="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
+                                  <MapPin size={18} className="text-red-500 shrink-0" />
                                   {store.name}
                                 </h4>
                                 <button 
                                   onClick={() => setShowStoreInfo(false)} 
-                                  className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-colors cursor-pointer"
+                                  className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-colors cursor-pointer active:scale-95"
                                   aria-label="닫기"
                                 >
                                   <X size={16} />
@@ -480,7 +505,7 @@ const ThemeDetail = () => {
             </div>
           </div>
 
-          <div className="relative aspect-[2/3] overflow-hidden rounded-none md:rounded-[40px] shadow-2xl mt-6 md:mt-12 mb-12 border border-white/5 bg-[#1a1a1a] flex items-center justify-center">
+          <div className="relative aspect-[2/3] overflow-hidden rounded-3xl md:rounded-[40px] shadow-2xl mt-6 md:mt-12 mb-8 md:mb-12 border border-white/5 bg-[#1a1a1a] flex items-center justify-center">
             {(() => {
               const rawPoster = (theme.posterUrl && !theme.posterUrl.startsWith('/theme')) ? theme.posterUrl : 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
               const isBrandFallback = !theme.posterUrl || rawPoster.includes('1772555492065') || rawPoster.includes('brand/');
@@ -500,7 +525,7 @@ const ThemeDetail = () => {
           </div>
         </div>
 
-        <div ref={calendarRef} className="bg-[#1a1a1a] p-6 md:p-10 rounded-none md:rounded-[40px] border-t md:border border-white/5 shadow-2xl lg:h-[calc(100%-3rem)]">
+        <div ref={calendarRef} className="bg-[#1a1a1a] p-6 md:p-8 lg:p-10 rounded-3xl md:rounded-[40px] border border-white/5 shadow-2xl w-full">
           <div className="flex items-center justify-between mb-10">
             <h2 className="text-xl font-bold flex items-center gap-2 tracking-tight"><CalendarIcon size={20}/> 날짜 선택</h2>
             <div className="flex items-center gap-6">

@@ -181,9 +181,9 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
     instagramUrl: '#',
     naverUrl: '#'
   },
-  logoUrl: '/logo.jpg',
+  logoUrl: 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp',
   faviconUrl: '/favicon.ico',
-  thumbnailUrl: '/thumbnail.jpg',
+  thumbnailUrl: 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1773142864574-640kfj.jpg',
   termsContent: `제1조 (목적)\n본 약관은 크라임씨너스(이하 "회사")가 제공하는 예약 서비스의 이용조건 및 절차에 관한 사항을 규정함을 목적으로 합니다...\n\n제2조 (예약 및 취소)\n1. 예약은 온라인 시스템을 통해 실시간으로 진행됩니다.\n2. 예약 취소는 방문 24시간 전까지 가능하며, 이후 취소 시 위약금이 발생할 수 있습니다.`,
   privacyContent: `1. 수집하는 개인정보 항목\n회사는 예약 서비스를 위해 성함, 연락처를 수집합니다.\n\n2. 개인정보의 수집 및 이용목적\n수집된 정보는 예약 확인, 서비스 안내, 본인 확인을 위해 사용됩니다.\n\n3. 개인정보의 보유 및 이용기간\n서비스 이용 목적 달성 후 해당 정보를 지체 없이 파기합니다.`,
   noticeTitle: '[필독] 크라임씨너스 이용 가이드 및 주의사항',
