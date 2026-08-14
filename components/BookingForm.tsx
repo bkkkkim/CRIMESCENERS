@@ -2,10 +2,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { THEMES, DEFAULT_ADMIN_SETTINGS } from '../constants';
-import { ChevronLeft, CheckCircle2, Copy, Check, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, CheckCircle2, Copy, Check, AlertTriangle, Users } from 'lucide-react';
 import { Theme, AdminSettings, BookingData, Store } from '../types';
 import { dataService } from '../src/services/dataService';
 import LoadingScreen from './LoadingScreen';
+import SuspectModal from './SuspectModal';
 
 const BookingForm = () => {
   const { themeId, date, time } = useParams();
@@ -15,6 +16,7 @@ const BookingForm = () => {
   const [stores, setStores] = useState<Store[]>([]);
   const [bookings, setBookings] = useState<BookingData[]>([]);
   const [copied, setCopied] = useState(false);
+  const [showSuspectModal, setShowSuspectModal] = useState(false);
 
   const nameRef = useRef<HTMLDivElement>(null);
   const phoneRef = useRef<HTMLDivElement>(null);
@@ -304,7 +306,7 @@ const BookingForm = () => {
           </div>
 
           {/* PRE-ROLECARD OPTION */}
-          <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-3 shadow-lg">
+          <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-3.5 shadow-lg">
             <label htmlFor="requestPreRoleCard" className="flex items-center gap-3 cursor-pointer select-none">
               <input 
                 type="checkbox" 
@@ -315,9 +317,38 @@ const BookingForm = () => {
               />
               <span className="text-base font-black text-white tracking-tight">사전 롤카드 받기</span>
             </label>
-            <p className="text-xs text-white/70 font-medium leading-relaxed pl-8">
-              크라임 씨너스는 게임 몰입을 위해 롤카드에 크게 의존하지 않도록, 예약 인원 충족 시 사전 역할 숙지를 위한 롤카드를 발송해 드립니다.
-            </p>
+
+            <div className="pl-8 space-y-3">
+              <p className="text-xs text-white/80 font-medium leading-relaxed break-keep">
+                원활한 플레이를 위해 예약 전날 사전 롤카드를 발송해 드립니다.<br className="hidden sm:block" />
+                <button
+                  type="button"
+                  onClick={() => setShowSuspectModal(true)}
+                  className="text-white underline underline-offset-4 hover:text-red-400 font-bold cursor-pointer inline-flex items-center gap-0.5 mr-1"
+                >
+                  사건 관계자 정보
+                </button>
+                확인 후, 전날 안내 문자에 배역과 이메일 주소를 회신해 주세요.
+              </p>
+
+              {(theme.useSuspects ?? true) && (
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setShowSuspectModal(true)}
+                    className="inline-flex items-center gap-2 px-3.5 py-2 bg-neutral-900 hover:bg-neutral-800 text-white border border-white/20 hover:border-white/40 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-sm"
+                  >
+                    <Users size={14} className="text-red-400" />
+                    <span className="text-white">사건 관계자 정보</span>
+                    {theme.suspects && theme.suspects.length > 0 && (
+                      <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-white/10 text-white/90 border border-white/10">
+                        {theme.suspects.length}명
+                      </span>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="space-y-6">
@@ -475,6 +506,13 @@ const BookingForm = () => {
           </div>
         </form>
       </div>
+
+      {/* Suspect Info Layer Popup */}
+      <SuspectModal
+        isOpen={showSuspectModal}
+        onClose={() => setShowSuspectModal(false)}
+        theme={theme}
+      />
     </div>
   );
 };

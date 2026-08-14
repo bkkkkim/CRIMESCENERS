@@ -308,28 +308,30 @@ const AdminGuard = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => {
   const [loading, setLoading] = useState(true);
-  const [settings, setSettings] = useState<AdminSettings>(DEFAULT_ADMIN_SETTINGS);
+  const [settings, setSettings] = useState<AdminSettings>(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const stored = localStorage.getItem('cs_cache_settings');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.data) return parsed.data;
+        }
+      } catch {
+        // fallback
+      }
+    }
+    return DEFAULT_ADMIN_SETTINGS;
+  });
 
   useEffect(() => {
     let isMounted = true;
     const safetyTimer = setTimeout(() => {
       if (isMounted) setLoading(false);
-    }, 3000);
+    }, 1200);
 
     const init = async () => {
       try {
         const saved = await dataService.getSettings();
-        if (!isMounted) return;
-        const logoToPreload = saved.logoUrl || 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
-        
-        // Pre-load logo image to avoid flicker in LoadingScreen
-        const img = new Image();
-        img.src = logoToPreload;
-        await new Promise((resolve) => {
-          img.onload = resolve;
-          img.onerror = resolve;
-        });
-        
         if (!isMounted) return;
         setSettings(saved);
 
@@ -355,12 +357,12 @@ const App = () => {
           meta.content = saved.thumbnailUrl;
         }
 
-        // Pre-fetch all data to populate cache and avoid loading in sub-pages
-        await Promise.all([
+        // Pre-fetch all data in parallel to populate cache
+        Promise.all([
           dataService.getThemes(),
           dataService.getNotices(),
           dataService.getStores()
-        ]);
+        ]).catch(() => {});
       } catch (e) {
         console.error("Init failed", e);
       } finally {
@@ -387,7 +389,7 @@ const AppContent = ({ loading, settings, setSettings }: { loading: boolean, sett
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
 
-  // Re-fetch settings on navigation to ensure sync
+  // Re-fetch settings on navigation in background
   useEffect(() => {
     const refreshSettings = async () => {
       const saved = await dataService.getSettings();
@@ -407,9 +409,10 @@ const AppContent = ({ loading, settings, setSettings }: { loading: boolean, sett
       <ErrorBoundary>
         <Suspense fallback={<LoadingScreen logoUrl={settings.logoUrl} />}>
           <motion.main 
+            key={location.pathname}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
             className="flex-grow"
           >
             <Routes>

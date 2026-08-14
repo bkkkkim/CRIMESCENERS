@@ -98,7 +98,7 @@ const NoticeBoard = () => {
                 {[
                   { step: '01', title: '사전 역할 파악', desc: '예약 인원 확정 시, 전달되는 롤카드를 게임 전 미리 숙지해주세요.', icon: FileText },
                   { step: '02', title: '역할 선정', desc: '플레이어는 용의자나 탐정을 맡으며, 전날 미리 상의해 정할 수 있습니다.', icon: Users },
-                  { step: '03', title: '역할 숙지', desc: '이용 당일, 현장에서 각자의 역할을 이해하는 시간을 갖습니다.', icon: Target },
+                  { step: '03', title: '역할 숙지', desc: '당일 현장에서 각자 역할을 숙지하며, 범인만 거짓말할 수 있습니다.', icon: Target },
                   { step: '04', title: '자기소개 및 현장 조사', desc: '간단한 자기소개와 함께 1차 현장조사를 진행합니다.', icon: Search },
                   { step: '05', title: '회의 및 중간 투표', desc: '각자 찾은 단서에 대해 논의하고 중간 범인 투표를 진행합니다.', icon: MessageSquare },
                   { step: '06', title: '2차 현장 조사 및 회의', desc: '추가 현장 조사를 통해 좀 더 사건의 진실에 가까워집니다.', icon: KeyRound },
@@ -211,10 +211,11 @@ const NoticeBoard = () => {
                       alt={store.name} 
                       className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000"
                       loading="lazy"
+                      decoding="async"
                       referrerPolicy="no-referrer"
                       onError={(e) => {
                         e.currentTarget.src = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
-                        e.currentTarget.className = 'w-full h-full object-contain p-6 opacity-40 animate-pulse';
+                        e.currentTarget.className = 'w-full h-full object-contain p-8 opacity-40';
                       }}
                     />
                   ) : (

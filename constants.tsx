@@ -18,7 +18,55 @@ export const THEMES: Theme[] = [
     weekdaySlots: ['20:00'],
     useSeparateWeekdaySlots: true,
     showOnMain: true,
-    isComingSoon: false
+    isComingSoon: false,
+    useSuspects: true,
+    suspects: [
+      {
+        id: 'suspect-1',
+        name: '강도령',
+        age: '28세',
+        gender: '남',
+        job: '박수무당 (피해자의 수제자)',
+        imageUrl: '',
+        description: '피해자 밑에서 5년간 신내림을 받고 무속 수련을 해온 제자. 최근 스승과 금전 문제로 잦은 다툼이 있었다.'
+      },
+      {
+        id: 'suspect-2',
+        name: '윤선녀',
+        age: '45세',
+        gender: '여',
+        job: '무속인 (경쟁 신당 원장)',
+        imageUrl: '',
+        description: '인근에서 가장 큰 신당을 운영하며 피해자와 오랜 기간 영적 라이벌 구도를 형성해 온 무속인.'
+      },
+      {
+        id: 'suspect-3',
+        name: '한재벌',
+        age: '53세',
+        gender: '남',
+        job: '대기업 임원 (단골 신도)',
+        imageUrl: '',
+        description: '거액의 복채를 내며 피해자에게 집안의 흉사를 상담해오던 VIP 고객. 최근 굿판의 효험에 불만을 품고 있었다.'
+      },
+      {
+        id: 'suspect-4',
+        name: '송기자',
+        age: '33세',
+        gender: '남',
+        job: '탐사보도 기자',
+        imageUrl: '',
+        description: '사이비 무속 사기 및 불법 부적 유통 실태를 취재 중이던 기자. 사건 당일 신당 주변에서 잠복 중이었다.'
+      },
+      {
+        id: 'suspect-5',
+        name: '배청소',
+        age: '61세',
+        gender: '여',
+        job: '신당 관리인',
+        imageUrl: '',
+        description: '신당의 청소와 잔심부름을 도맡아 하던 관리인. 신당 내부 사정과 신도들의 출입을 가장 잘 알고 있는 인물.'
+      }
+    ]
   },
   {
     id: 'theme-2',
@@ -35,7 +83,55 @@ export const THEMES: Theme[] = [
     customSlots: ['10:30', '13:00', '15:30', '18:00', '20:30'],
     weekdaySlots: ['20:00'],
     useSeparateWeekdaySlots: true,
-    showOnMain: true
+    showOnMain: true,
+    useSuspects: true,
+    suspects: [
+      {
+        id: 'suspect-2-1',
+        name: '민서우',
+        age: '23세',
+        gender: '여',
+        job: '회화과 4학년 (피해자의 동기)',
+        imageUrl: '',
+        description: '졸업 전시회 대상 후보로 피해자와 치열하게 경쟁하던 수석 학생.'
+      },
+      {
+        id: 'suspect-2-2',
+        name: '정하진',
+        age: '26세',
+        gender: '남',
+        job: '조소과 대학원생 (조교)',
+        imageUrl: '',
+        description: '작업실 열쇠를 관리하던 실습실 조교. 피해자와 사적인 비밀을 공유하고 있었다.'
+      },
+      {
+        id: 'suspect-2-3',
+        name: '강도일',
+        age: '50세',
+        gender: '남',
+        job: '미술대학 학과장 교수',
+        imageUrl: '',
+        description: '피해자의 지도교수이자 화단의 거물. 대작 논란과 공모전 비리 의혹에 휩싸여 있다.'
+      },
+      {
+        id: 'suspect-2-4',
+        name: '이수빈',
+        age: '22세',
+        gender: '여',
+        job: '조예과 3학년 (피해자의 후배)',
+        imageUrl: '',
+        description: '피해자의 작업을 도와주던 어시스턴트 후배. 사건 전날 큰 소리로 다투는 모습이 목격되었다.'
+      },
+      {
+        id: 'suspect-2-5',
+        name: '최유찬',
+        age: '24세',
+        gender: '남',
+        job: '타과생 (피해자의 전 연인)',
+        imageUrl: '',
+        description: '피해자와 최근 결별한 전 남자친구. 사건 당일 작업실 복도 CCTV에 찍혔다.'
+      }
+    ]
   }
 ];
 

@@ -1,4 +1,14 @@
 
+export interface Suspect {
+  id: string;
+  name: string;
+  age?: string;
+  gender?: string;
+  job?: string;
+  imageUrl?: string;
+  description?: string;
+}
+
 export interface Theme {
   id: string;
   title: string;
@@ -20,6 +30,8 @@ export interface Theme {
   isComingSoon?: boolean;
   showOnMain?: boolean;
   showDDay?: boolean;
+  useSuspects?: boolean;
+  suspects?: Suspect[];
 }
 
 export interface Store {

@@ -31,6 +31,7 @@ const AdminDashboard = () => {
   const [sortOrder, setSortOrder] = useState<'createdAt' | 'gameDate'>('createdAt');
   const [currentPage, setCurrentPage] = useState(1);
   const [draggedSlideIndex, setDraggedSlideIndex] = useState<number | null>(null);
+  const [draggedSuspectInfo, setDraggedSuspectInfo] = useState<{ themeIdx: number; suspectIdx: number } | null>(null);
   const itemsPerPage = 20;
 
   useEffect(() => {
@@ -865,6 +866,288 @@ const AdminDashboard = () => {
                               return updated;
                             });
                           }} />
+                      </div>
+
+                      {/* 사건 관계자 정보 (등장인물) 설정 */}
+                      <div className="p-6 bg-white/5 rounded-2xl border border-white/10 space-y-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <input 
+                              type="checkbox" 
+                              id={`useSuspects-${theme.id}`}
+                              className="w-5 h-5 rounded border-white/10 bg-black text-white focus:ring-0 accent-red-600 cursor-pointer"
+                              checked={theme.useSuspects ?? true}
+                              onChange={e => {
+                                setThemes(prev => {
+                                  const updated = [...prev];
+                                  updated[idx] = { ...updated[idx], useSuspects: e.target.checked };
+                                  setIsDirty(true);
+                                  return updated;
+                                });
+                              }}
+                            />
+                            <label htmlFor={`useSuspects-${theme.id}`} className="text-sm font-bold cursor-pointer text-white flex items-center gap-2">
+                              <span>사건 관계자 정보 (등장인물) 등록</span>
+                              <span className="text-xs font-normal text-white/50">(체크 시 상세 및 예약 페이지에 사건 관계자 정보 팝업 활성화)</span>
+                            </label>
+                          </div>
+
+                          {(theme.useSuspects ?? true) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newSuspect = {
+                                  id: `suspect-${Date.now()}`,
+                                  name: '',
+                                  age: '',
+                                  gender: '',
+                                  job: '',
+                                  imageUrl: '',
+                                  description: ''
+                                };
+                                setThemes(prev => {
+                                  const updated = [...prev];
+                                  const list = updated[idx].suspects ? [...updated[idx].suspects!] : [];
+                                  list.push(newSuspect);
+                                  updated[idx] = { ...updated[idx], suspects: list };
+                                  setIsDirty(true);
+                                  return updated;
+                                });
+                              }}
+                              className="px-3.5 py-2 bg-white text-black text-xs font-bold rounded-lg hover:bg-neutral-200 transition-colors flex items-center gap-1.5 self-start sm:self-auto shrink-0"
+                            >
+                              <Plus size={14} /> 인물 추가
+                            </button>
+                          )}
+                        </div>
+
+                        {(theme.useSuspects ?? true) && (
+                          <div className="space-y-4 pt-2">
+                            {(!theme.suspects || theme.suspects.length === 0) ? (
+                              <div className="p-6 bg-black/40 rounded-xl border border-white/5 text-center text-xs text-white/40">
+                                등록된 사건 관계자(등장인물)가 없습니다. '+ 인물 추가' 버튼을 눌러 등록해 주세요.
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-1 gap-4">
+                                {theme.suspects.map((suspect, sIdx) => (
+                                  <div 
+                                    key={suspect.id || `s-${sIdx}`}
+                                    draggable
+                                    onDragStart={() => {
+                                      setDraggedSuspectInfo({ themeIdx: idx, suspectIdx: sIdx });
+                                    }}
+                                    onDragOver={(e) => {
+                                      e.preventDefault();
+                                    }}
+                                    onDrop={(e) => {
+                                      e.preventDefault();
+                                      if (
+                                        !draggedSuspectInfo || 
+                                        draggedSuspectInfo.themeIdx !== idx || 
+                                        draggedSuspectInfo.suspectIdx === sIdx
+                                      ) return;
+
+                                      setThemes(prev => {
+                                        const updated = [...prev];
+                                        const list = [...(updated[idx].suspects || [])];
+                                        const draggedItem = list[draggedSuspectInfo.suspectIdx];
+                                        list.splice(draggedSuspectInfo.suspectIdx, 1);
+                                        list.splice(sIdx, 0, draggedItem);
+                                        updated[idx] = { ...updated[idx], suspects: list };
+                                        return updated;
+                                      });
+                                      setDraggedSuspectInfo(null);
+                                      setIsDirty(true);
+                                    }}
+                                    onDragEnd={() => setDraggedSuspectInfo(null)}
+                                    className={`p-5 bg-black/60 rounded-xl border space-y-4 relative transition-all ${
+                                      draggedSuspectInfo?.themeIdx === idx && draggedSuspectInfo?.suspectIdx === sIdx
+                                        ? 'opacity-40 border-dashed border-red-500'
+                                        : 'border-white/10 hover:border-white/20'
+                                    }`}
+                                  >
+                                    <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                                      <div className="flex items-center gap-2">
+                                        <div 
+                                          className="text-white/30 hover:text-white cursor-grab active:cursor-grabbing p-1 -ml-1 rounded hover:bg-white/5 transition-colors"
+                                          title="드래그하여 순서 변경"
+                                        >
+                                          <GripVertical size={16} />
+                                        </div>
+                                        <span className="text-xs font-black text-red-400 flex items-center gap-2">
+                                          <span className="w-2 h-2 rounded-full bg-red-500" />
+                                          인물 #{sIdx + 1} {suspect.name ? `- ${suspect.name}` : ''}
+                                        </span>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (window.confirm(`'${suspect.name || `용의자 #${sIdx + 1}`}'을(를) 삭제하시겠습니까?`)) {
+                                            if (suspect.imageUrl) {
+                                              dataService.deleteImage(suspect.imageUrl).catch(() => {});
+                                            }
+                                            setThemes(prev => {
+                                              const updated = [...prev];
+                                              const list = updated[idx].suspects!.filter((_, i) => i !== sIdx);
+                                              updated[idx] = { ...updated[idx], suspects: list };
+                                              setIsDirty(true);
+                                              return updated;
+                                            });
+                                          }
+                                        }}
+                                        className="text-white/40 hover:text-red-400 text-xs flex items-center gap-1 transition-colors cursor-pointer"
+                                      >
+                                        <Trash2 size={13} /> 삭제
+                                      </button>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-[110px_1fr] gap-4 items-start">
+                                      {/* 1:1 Image upload */}
+                                      <div className="space-y-1.5">
+                                        <label className="text-[10px] text-white/40 block">인물 사진 (1:1)</label>
+                                        <div className="aspect-square w-full max-w-[110px] rounded-xl overflow-hidden border border-white/10 bg-black flex items-center justify-center relative group">
+                                          {suspect.imageUrl ? (
+                                            <img src={suspect.imageUrl} alt={suspect.name} className="w-full h-full object-cover" />
+                                          ) : (
+                                            <div className="text-white/30 text-[10px] text-center p-2">사진 업로드</div>
+                                          )}
+                                          <label className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer">
+                                            <Upload size={18} className="mb-1 text-white" />
+                                            <span className="text-[9px] text-white">1:1 업로드</span>
+                                            <input 
+                                              type="file" 
+                                              className="hidden" 
+                                              accept="image/*" 
+                                              onChange={(e) => {
+                                                handleFileUpload(e, 'suspects', suspect.imageUrl, (url) => {
+                                                  setThemes(prev => {
+                                                    const updated = [...prev];
+                                                    const list = [...updated[idx].suspects!];
+                                                    list[sIdx] = { ...list[sIdx], imageUrl: url };
+                                                    updated[idx] = { ...updated[idx], suspects: list };
+                                                    return updated;
+                                                  });
+                                                });
+                                              }} 
+                                            />
+                                          </label>
+                                        </div>
+                                      </div>
+
+                                      {/* Fields: Name, Age, Gender, Job */}
+                                      <div className="space-y-3">
+                                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                                          <div className="sm:col-span-2">
+                                            <label className="text-[10px] text-white/40 mb-1 block">이름 / 배역명</label>
+                                            <input 
+                                              type="text" 
+                                              placeholder="예: 강도령"
+                                              className="w-full bg-black border border-white/10 p-2.5 rounded-lg text-xs outline-none focus:border-white text-white"
+                                              value={suspect.name || ''}
+                                              onChange={e => {
+                                                const val = e.target.value;
+                                                setThemes(prev => {
+                                                  const updated = [...prev];
+                                                  const list = [...updated[idx].suspects!];
+                                                  list[sIdx] = { ...list[sIdx], name: val };
+                                                  updated[idx] = { ...updated[idx], suspects: list };
+                                                  setIsDirty(true);
+                                                  return updated;
+                                                });
+                                              }}
+                                            />
+                                          </div>
+                                          <div>
+                                            <label className="text-[10px] text-white/40 mb-1 block">나이</label>
+                                            <input 
+                                              type="text" 
+                                              placeholder="예: 28세"
+                                              className="w-full bg-black border border-white/10 p-2.5 rounded-lg text-xs outline-none focus:border-white text-white"
+                                              value={suspect.age || ''}
+                                              onChange={e => {
+                                                const val = e.target.value;
+                                                setThemes(prev => {
+                                                  const updated = [...prev];
+                                                  const list = [...updated[idx].suspects!];
+                                                  list[sIdx] = { ...list[sIdx], age: val };
+                                                  updated[idx] = { ...updated[idx], suspects: list };
+                                                  setIsDirty(true);
+                                                  return updated;
+                                                });
+                                              }}
+                                            />
+                                          </div>
+                                          <div>
+                                            <label className="text-[10px] text-white/40 mb-1 block">성별</label>
+                                            <input 
+                                              type="text" 
+                                              placeholder="예: 남, 여"
+                                              className="w-full bg-black border border-white/10 p-2.5 rounded-lg text-xs outline-none focus:border-white text-white"
+                                              value={suspect.gender || ''}
+                                              onChange={e => {
+                                                const val = e.target.value;
+                                                setThemes(prev => {
+                                                  const updated = [...prev];
+                                                  const list = [...updated[idx].suspects!];
+                                                  list[sIdx] = { ...list[sIdx], gender: val };
+                                                  updated[idx] = { ...updated[idx], suspects: list };
+                                                  setIsDirty(true);
+                                                  return updated;
+                                                });
+                                              }}
+                                            />
+                                          </div>
+                                        </div>
+
+                                        <div>
+                                          <label className="text-[10px] text-white/40 mb-1 block">직업</label>
+                                          <input 
+                                            type="text" 
+                                            placeholder="예: 박수무당 (피해자의 수제자)"
+                                            className="w-full bg-black border border-white/10 p-2.5 rounded-lg text-xs outline-none focus:border-white text-white"
+                                            value={suspect.job || ''}
+                                            onChange={e => {
+                                              const val = e.target.value;
+                                              setThemes(prev => {
+                                                const updated = [...prev];
+                                                const list = [...updated[idx].suspects!];
+                                                list[sIdx] = { ...list[sIdx], job: val };
+                                                updated[idx] = { ...updated[idx], suspects: list };
+                                                setIsDirty(true);
+                                                return updated;
+                                              });
+                                            }}
+                                          />
+                                        </div>
+
+                                        <div>
+                                          <label className="text-[10px] text-white/40 mb-1 block">인물 소개 및 특징</label>
+                                          <textarea 
+                                            rows={2} 
+                                            placeholder="피해자와의 관계, 성격, 사건 당일 행적 등"
+                                            className="w-full bg-black border border-white/10 p-2.5 rounded-lg text-xs outline-none focus:border-white resize-none text-white"
+                                            value={suspect.description || ''}
+                                            onChange={e => {
+                                              const val = e.target.value;
+                                              setThemes(prev => {
+                                                const updated = [...prev];
+                                                const list = [...updated[idx].suspects!];
+                                                list[sIdx] = { ...list[sIdx], description: val };
+                                                updated[idx] = { ...updated[idx], suspects: list };
+                                                setIsDirty(true);
+                                                return updated;
+                                              });
+                                            }}
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                       <button 
                         type="button"

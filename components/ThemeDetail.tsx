@@ -3,10 +3,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { THEMES, DEFAULT_ADMIN_SETTINGS, STORES } from '../constants';
 import { isWeekendOrHoliday } from '../src/utils/holiday';
-import { Calendar as CalendarIcon, Clock, Users, ArrowLeft, ChevronLeft, ChevronRight, MapPin, X, Info } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Users, ArrowLeft, ChevronLeft, ChevronRight, MapPin, X, Info, UserCheck } from 'lucide-react';
 import { AdminSettings, Theme, ClosedSlot, BookingData, Store } from '../types';
 import { dataService } from '../src/services/dataService';
 import LoadingScreen from './LoadingScreen';
+import SuspectModal from './SuspectModal';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ThemeDetail = () => {
@@ -21,6 +22,7 @@ const ThemeDetail = () => {
   const [showStoreInfo, setShowStoreInfo] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showComingSoonModal, setShowComingSoonModal] = useState(false);
+  const [showSuspectModal, setShowSuspectModal] = useState(false);
   
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -349,7 +351,7 @@ const ThemeDetail = () => {
                               </div>
                               <div className="mt-8">
                                 <a 
-                                  href={`https://map.naver.com/v5/search/${encodeURIComponent(store.address)}`}
+                                  href={store.naverPlaceUrl && store.naverPlaceUrl.trim() ? store.naverPlaceUrl.trim() : `https://map.naver.com/v5/search/${encodeURIComponent(store.address)}`}
                                   target="_blank"
                                   rel="noreferrer"
                                   className="block w-full text-center py-4 bg-white text-black font-bold rounded-2xl hover:bg-neutral-200 transition-colors uppercase tracking-normal font-en text-sm"
@@ -369,6 +371,26 @@ const ThemeDetail = () => {
                 {theme.title}
               </h1>
               <p className="text-[#b3b3b3] text-sm md:text-base leading-relaxed max-w-2xl opacity-80 mb-4">{theme.synopsis}</p>
+              
+              {/* 사건 관계자 정보 (등장인물) 확인 버튼 */}
+              {(theme.useSuspects ?? true) && (
+                <div className="mb-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowSuspectModal(true)}
+                    className="inline-flex items-center gap-2.5 px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white border border-white/20 hover:border-white/40 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md group active:scale-95 cursor-pointer"
+                  >
+                    <Users size={16} className="text-red-400 group-hover:scale-110 transition-transform" />
+                    <span className="text-white">사건 관계자 정보</span>
+                    {theme.suspects && theme.suspects.length > 0 && (
+                      <span className="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded bg-white/10 text-white/90 border border-white/10 ml-0.5">
+                        {theme.suspects.length}명
+                      </span>
+                    )}
+                  </button>
+                </div>
+              )}
+
               {dDayText && (theme.showDDay ?? true) && (
                 <div className="flex items-center gap-2 mb-8">
                   <span className="text-sm md:text-base font-medium text-white/80">
@@ -652,6 +674,13 @@ const ThemeDetail = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Suspect Info Layer Popup */}
+      <SuspectModal
+        isOpen={showSuspectModal}
+        onClose={() => setShowSuspectModal(false)}
+        theme={theme}
+      />
     </div>
   );
 };

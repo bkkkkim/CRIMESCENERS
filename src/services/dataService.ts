@@ -16,24 +16,46 @@ const SITE_CONTENT_KEYS = {
   STORES: 'stores',
 };
 
-// Simple in-memory cache
+// LocalStorage + In-memory cache for instant loading & network resilience
 const cache: Record<string, { data: any; timestamp: number }> = {};
-const CACHE_TTL = 600000; // 10 minutes (static site config cached efficiently)
+const CACHE_TTL = 600000; // 10 minutes
 
 const getCachedData = (key: string) => {
   const cached = cache[key];
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return cached.data;
   }
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const stored = localStorage.getItem(`cs_cache_${key}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && Date.now() - parsed.timestamp < CACHE_TTL) {
+          cache[key] = parsed;
+          return parsed.data;
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
   return null;
 };
 
 const setCachedData = (key: string, data: any) => {
-  cache[key] = { data, timestamp: Date.now() };
+  const payload = { data, timestamp: Date.now() };
+  cache[key] = payload;
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      localStorage.setItem(`cs_cache_${key}`, JSON.stringify(payload));
+    } catch {
+      // ignore
+    }
+  }
 };
 
 // Timeout helper to avoid infinite hanging if Supabase API slows down or fails
-const queryWithTimeout = async <T>(promise: PromiseLike<T>, timeoutMs = 4000): Promise<T | null> => {
+const queryWithTimeout = async <T>(promise: PromiseLike<T>, timeoutMs = 3500): Promise<T | null> => {
   let timeoutId: any;
   const timeoutPromise = new Promise<null>((resolve) => {
     timeoutId = setTimeout(() => resolve(null), timeoutMs);
@@ -64,38 +86,50 @@ export const dataService = {
   // --- Site Contents (Settings, Themes, etc.) ---
   getSettings: async (): Promise<AdminSettings> => {
     const cached = getCachedData(SITE_CONTENT_KEYS.SETTINGS);
-    if (cached) return cached;
-
-    const res = await queryWithTimeout(
-      supabase
-        .from('site_contents')
-        .select('value')
-        .eq('key', SITE_CONTENT_KEYS.SETTINGS)
-        .single()
-    );
-
-    const data = res?.data;
-    const error = res?.error;
     
-    const rawResult = (error || !data) ? DEFAULT_ADMIN_SETTINGS : data.value as AdminSettings;
-    const result: AdminSettings = {
-      ...rawResult,
-      logoUrl: sanitizeImageUrl(rawResult.logoUrl, BRAND_DEFAULT_IMAGE),
-      homeConfig: rawResult.homeConfig ? {
-        ...rawResult.homeConfig,
-        heroImageUrl: sanitizeImageUrl(rawResult.homeConfig.heroImageUrl, BRAND_DEFAULT_IMAGE),
-        heroSlides: (rawResult.homeConfig.heroSlides || []).map(s => ({
-          ...s,
-          imageUrl: sanitizeImageUrl(s.imageUrl, BRAND_DEFAULT_IMAGE)
-        })),
-        introPoints: (rawResult.homeConfig.introPoints || []).map(p => ({
-          ...p,
-          imageUrl: isUnsplashOrDummy(p.imageUrl) ? '' : p.imageUrl
-        }))
-      } : rawResult.homeConfig
+    // Background fetch helper
+    const fetchLatest = async () => {
+      try {
+        const res = await queryWithTimeout(
+          supabase
+            .from('site_contents')
+            .select('value')
+            .eq('key', SITE_CONTENT_KEYS.SETTINGS)
+            .single()
+        );
+        const data = res?.data;
+        const error = res?.error;
+        const rawResult = (error || !data) ? DEFAULT_ADMIN_SETTINGS : data.value as AdminSettings;
+        const result: AdminSettings = {
+          ...rawResult,
+          logoUrl: sanitizeImageUrl(rawResult.logoUrl, BRAND_DEFAULT_IMAGE),
+          homeConfig: rawResult.homeConfig ? {
+            ...rawResult.homeConfig,
+            heroImageUrl: isUnsplashOrDummy(rawResult.homeConfig.heroImageUrl) ? '' : rawResult.homeConfig.heroImageUrl,
+            heroSlides: (rawResult.homeConfig.heroSlides || []).map(s => ({
+              ...s,
+              imageUrl: isUnsplashOrDummy(s.imageUrl) ? '' : s.imageUrl
+            })),
+            introPoints: (rawResult.homeConfig.introPoints || []).map(p => ({
+              ...p,
+              imageUrl: isUnsplashOrDummy(p.imageUrl) ? '' : p.imageUrl
+            }))
+          } : rawResult.homeConfig
+        };
+        setCachedData(SITE_CONTENT_KEYS.SETTINGS, result);
+        return result;
+      } catch {
+        return cached || DEFAULT_ADMIN_SETTINGS;
+      }
     };
-    setCachedData(SITE_CONTENT_KEYS.SETTINGS, result);
-    return result;
+
+    if (cached) {
+      // Trigger background revalidation
+      fetchLatest();
+      return cached;
+    }
+
+    return await fetchLatest();
   },
   saveSettings: async (settings: AdminSettings) => {
     setCachedData(SITE_CONTENT_KEYS.SETTINGS, settings);
@@ -107,27 +141,38 @@ export const dataService = {
 
   getThemes: async (): Promise<Theme[]> => {
     const cached = getCachedData(SITE_CONTENT_KEYS.THEMES);
-    if (cached) return cached;
-
-    const res = await queryWithTimeout(
-      supabase
-        .from('site_contents')
-        .select('value')
-        .eq('key', SITE_CONTENT_KEYS.THEMES)
-        .single()
-    );
-
-    const data = res?.data;
-    const error = res?.error;
     
-    const rawResult = (error || !data) ? THEMES : data.value as Theme[];
-    const result = rawResult.map(t => ({
-      ...t,
-      posterUrl: sanitizeImageUrl(t.posterUrl, BRAND_DEFAULT_IMAGE)
-    }));
-    setCachedData(SITE_CONTENT_KEYS.THEMES, result);
-    return result;
+    const fetchLatest = async () => {
+      try {
+        const res = await queryWithTimeout(
+          supabase
+            .from('site_contents')
+            .select('value')
+            .eq('key', SITE_CONTENT_KEYS.THEMES)
+            .single()
+        );
+        const data = res?.data;
+        const error = res?.error;
+        const rawResult = (error || !data) ? THEMES : data.value as Theme[];
+        const result = rawResult.map(t => ({
+          ...t,
+          posterUrl: sanitizeImageUrl(t.posterUrl, BRAND_DEFAULT_IMAGE)
+        }));
+        setCachedData(SITE_CONTENT_KEYS.THEMES, result);
+        return result;
+      } catch {
+        return cached || THEMES;
+      }
+    };
+
+    if (cached) {
+      fetchLatest();
+      return cached;
+    }
+
+    return await fetchLatest();
   },
+
   saveThemes: async (themes: Theme[]) => {
     setCachedData(SITE_CONTENT_KEYS.THEMES, themes);
     const { error } = await supabase
@@ -138,17 +183,32 @@ export const dataService = {
 
   getNotices: async (): Promise<Notice[]> => {
     const cached = getCachedData(SITE_CONTENT_KEYS.NOTICES);
-    if (cached) return cached;
 
-    const { data, error } = await supabase
-      .from('site_contents')
-      .select('value')
-      .eq('key', SITE_CONTENT_KEYS.NOTICES)
-      .single();
-    
-    const result = (error || !data) ? INITIAL_NOTICES : data.value as Notice[];
-    setCachedData(SITE_CONTENT_KEYS.NOTICES, result);
-    return result;
+    const fetchLatest = async () => {
+      try {
+        const res = await queryWithTimeout(
+          supabase
+            .from('site_contents')
+            .select('value')
+            .eq('key', SITE_CONTENT_KEYS.NOTICES)
+            .single()
+        );
+        const data = res?.data;
+        const error = res?.error;
+        const result = (error || !data) ? INITIAL_NOTICES : data.value as Notice[];
+        setCachedData(SITE_CONTENT_KEYS.NOTICES, result);
+        return result;
+      } catch {
+        return cached || INITIAL_NOTICES;
+      }
+    };
+
+    if (cached) {
+      fetchLatest();
+      return cached;
+    }
+
+    return await fetchLatest();
   },
   saveNotices: async (notices: Notice[]) => {
     setCachedData(SITE_CONTENT_KEYS.NOTICES, notices);
@@ -160,17 +220,32 @@ export const dataService = {
 
   getClosedSlots: async (): Promise<ClosedSlot[]> => {
     const cached = getCachedData(SITE_CONTENT_KEYS.CLOSED_SLOTS);
-    if (cached) return cached;
 
-    const { data, error } = await supabase
-      .from('site_contents')
-      .select('value')
-      .eq('key', SITE_CONTENT_KEYS.CLOSED_SLOTS)
-      .single();
-    
-    const result = (error || !data) ? [] : data.value as ClosedSlot[];
-    setCachedData(SITE_CONTENT_KEYS.CLOSED_SLOTS, result);
-    return result;
+    const fetchLatest = async () => {
+      try {
+        const res = await queryWithTimeout(
+          supabase
+            .from('site_contents')
+            .select('value')
+            .eq('key', SITE_CONTENT_KEYS.CLOSED_SLOTS)
+            .single()
+        );
+        const data = res?.data;
+        const error = res?.error;
+        const result = (error || !data) ? [] : data.value as ClosedSlot[];
+        setCachedData(SITE_CONTENT_KEYS.CLOSED_SLOTS, result);
+        return result;
+      } catch {
+        return cached || [];
+      }
+    };
+
+    if (cached) {
+      fetchLatest();
+      return cached;
+    }
+
+    return await fetchLatest();
   },
   saveClosedSlots: async (slots: ClosedSlot[]) => {
     setCachedData(SITE_CONTENT_KEYS.CLOSED_SLOTS, slots);
@@ -182,17 +257,32 @@ export const dataService = {
 
   getStores: async (): Promise<Store[]> => {
     const cached = getCachedData(SITE_CONTENT_KEYS.STORES);
-    if (cached) return cached;
 
-    const { data, error } = await supabase
-      .from('site_contents')
-      .select('value')
-      .eq('key', SITE_CONTENT_KEYS.STORES)
-      .single();
-    
-    const result = (error || !data) ? STORES : data.value as Store[];
-    setCachedData(SITE_CONTENT_KEYS.STORES, result);
-    return result;
+    const fetchLatest = async () => {
+      try {
+        const res = await queryWithTimeout(
+          supabase
+            .from('site_contents')
+            .select('value')
+            .eq('key', SITE_CONTENT_KEYS.STORES)
+            .single()
+        );
+        const data = res?.data;
+        const error = res?.error;
+        const result = (error || !data) ? STORES : data.value as Store[];
+        setCachedData(SITE_CONTENT_KEYS.STORES, result);
+        return result;
+      } catch {
+        return cached || STORES;
+      }
+    };
+
+    if (cached) {
+      fetchLatest();
+      return cached;
+    }
+
+    return await fetchLatest();
   },
   saveStores: async (stores: Store[]) => {
     setCachedData(SITE_CONTENT_KEYS.STORES, stores);

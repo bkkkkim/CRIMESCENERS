@@ -88,6 +88,74 @@ const PopupModal = ({ settings, onClose }: { settings: PopupSettings, onClose: (
   );
 };
 
+const BRAND_LOGO_URL = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
+
+const HeroSlideBackground = ({ 
+  imageUrl, 
+  title, 
+  isActive, 
+  isFirst 
+}: { 
+  imageUrl?: string; 
+  title: string; 
+  isActive: boolean; 
+  isFirst: boolean;
+}) => {
+  const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  const isBrandLogo = !imageUrl || imageUrl.includes('1772555492065') || imageUrl.includes('brand/') || imageUrl === BRAND_LOGO_URL;
+  const hasValidCustomImage = Boolean(imageUrl && !isBrandLogo && !imageError);
+
+  return (
+    <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#181818] via-[#121212] to-[#0a0a0a] overflow-hidden flex items-center justify-center">
+      {/* Cinematic Radial Spotlight */}
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,0.06)_0%,transparent_65%)]" />
+
+      {hasValidCustomImage ? (
+        <>
+          <motion.img 
+            initial={{ scale: 1, x: 0, y: 0 }}
+            animate={isActive ? { 
+              scale: [1, 1.08, 1.12, 1],
+              x: [0, 15, -15, 0],
+              y: [0, -8, 8, 0]
+            } : {}}
+            transition={{ 
+              duration: 20, 
+              repeat: Infinity, 
+              ease: "linear" 
+            }}
+            src={imageUrl}
+            alt={title}
+            className={`w-full h-full object-cover transition-opacity duration-700 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+            loading={isFirst ? "eager" : "lazy"}
+            decoding="async"
+            referrerPolicy="no-referrer"
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageError(true)}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#121212]" />
+          <div className="absolute inset-0 bg-black/40" />
+        </>
+      ) : (
+        /* Refined Brand Logo Placeholder (PC & Mobile proportional) */
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+          <img 
+            src={BRAND_LOGO_URL} 
+            alt="Crime Sceners" 
+            className="w-auto h-12 sm:h-16 md:h-20 max-w-[160px] sm:max-w-[220px] md:max-w-[280px] object-contain opacity-25 transform -translate-y-6"
+            loading={isFirst ? "eager" : "lazy"}
+            decoding="async"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#121212]" />
+        </div>
+      )}
+    </div>
+  );
+};
+
 const HeroBanner = ({ slides }: { slides: HeroSlide[] }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -124,33 +192,14 @@ const HeroBanner = ({ slides }: { slides: HeroSlide[] }) => {
       {slides.map((slide, index) => (
         <div 
           key={`${slide.id}-${index}`}
-          className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+          className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}
         >
-          <div className="absolute inset-0 z-0">
-            <motion.img 
-              initial={{ scale: 1, x: 0, y: 0 }}
-              animate={index === currentSlide ? { 
-                scale: [1, 1.1, 1.15, 1],
-                x: [0, 20, -20, 0],
-                y: [0, -10, 10, 0]
-              } : {}}
-              transition={{ 
-                duration: 20, 
-                repeat: Infinity, 
-                ease: "linear" 
-              }}
-              src={slide.imageUrl || "https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp"}
-              alt={slide.title}
-              className="w-full h-full object-cover"
-              loading={index === 0 ? "eager" : "lazy"}
-              referrerPolicy="no-referrer"
-              onError={(e) => {
-                e.currentTarget.src = "https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp";
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#121212]" />
-            <div className="absolute inset-0 bg-black/40" />
-          </div>
+          <HeroSlideBackground 
+            imageUrl={slide.imageUrl} 
+            title={slide.title} 
+            isActive={index === currentSlide} 
+            isFirst={index === 0} 
+          />
 
           <div className="relative z-10 text-center px-12 md:px-6 h-full flex flex-col items-center justify-center">
             <motion.h1 
@@ -644,29 +693,19 @@ const Home = () => {
   // if (loading) return <LoadingScreen />;
 
   return (
-    <div className={loading ? 'opacity-50 pointer-events-none' : 'opacity-100 transition-opacity duration-500'}>
+    <div className="transition-opacity duration-300">
       {showPopup && settings.popupSettings && (
         <PopupModal 
           settings={settings.popupSettings} 
           onClose={() => setShowPopup(false)} 
         />
       )}
-      {loading ? (
-        <div className="w-full h-[600px] md:h-[800px] bg-[#121212] flex flex-col items-center justify-center border-b border-white/5">
-          <img 
-            src="https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp" 
-            alt="Crime Sceners" 
-            className="h-12 md:h-16 w-auto object-contain animate-pulse opacity-40" 
-          />
-        </div>
-      ) : (
-        <HeroBanner slides={settings.homeConfig.heroSlides || []} />
-      )}
+      <HeroBanner slides={settings.homeConfig?.heroSlides || []} />
       <IntroSection 
-        points={settings.homeConfig.introPoints || []} 
-        legacyImages={(settings.homeConfig as any).introImages || []}
-        title={settings.homeConfig.introTitle}
-        description={settings.homeConfig.introDescription}
+        points={settings.homeConfig?.introPoints || []} 
+        legacyImages={(settings.homeConfig as any)?.introImages || []}
+        title={settings.homeConfig?.introTitle || ''}
+        description={settings.homeConfig?.introDescription || ''}
       />
       <PopularThemes themes={themes} stores={stores} />
       <StoreSection stores={stores} />
