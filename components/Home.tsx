@@ -445,7 +445,7 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                     `}
                     onClick={(e) => isComingSoon && e.preventDefault()}
                   >
-                    <div className="relative aspect-[2/3] overflow-hidden rounded-2xl mb-3 md:mb-8 shadow-2xl border border-white/5 bg-[#1a1a1a] flex items-center justify-center">
+                    <div className="relative aspect-[2/3] overflow-hidden rounded-xl mb-3 md:mb-8 shadow-2xl border border-white/5 bg-[#1a1a1a] flex items-center justify-center">
                       <img 
                         src={rawPoster} 
                         alt={theme.title} 

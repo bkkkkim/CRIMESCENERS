@@ -450,7 +450,7 @@ const ThemeReservation = () => {
                 <div key={`${theme.id}-${index}`} className={`group flex flex-col mb-0 md:mb-0 ${isComingSoon ? 'opacity-60' : ''}`}>
                   <Link 
                     to={isComingSoon ? '#' : (isDateAndTimeSelected ? `/booking/${theme.id}/${selectedDate}/${selectedTime}` : `/theme/${theme.id}`)} 
-                    className={`relative aspect-[2/3] overflow-hidden rounded-none md:rounded-2xl mb-0 md:mb-6 shadow-xl block bg-[#1a1a1a] flex items-center justify-center ${isComingSoon ? 'cursor-default' : ''}`}
+                    className={`relative aspect-[2/3] overflow-hidden rounded-xl mb-0 md:mb-6 shadow-xl block bg-[#1a1a1a] flex items-center justify-center ${isComingSoon ? 'cursor-default' : ''}`}
                     onClick={(e) => isComingSoon && e.preventDefault()}
                   >
                     <img 

@@ -457,9 +457,9 @@ const ThemeDetail = () => {
               )}
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-y-6 md:gap-y-8 gap-x-4 py-8 md:py-10 border-y border-white/5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-y-6 md:gap-y-8 gap-x-3 sm:gap-x-4 py-8 md:py-10 border-y border-white/5">
               <div className="space-y-2">
-                <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase">난이도</p>
+                <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase whitespace-nowrap">난이도</p>
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
                     <div key={`tdiff-${i}`} className={`w-3 h-3 rounded-full ${i < theme.difficulty ? 'bg-white' : 'bg-white/10'}`} />
@@ -467,7 +467,7 @@ const ThemeDetail = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase">공포도</p>
+                <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase whitespace-nowrap">공포도</p>
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
                     <div key={`tfear-${i}`} className={`w-3 h-3 rounded-full ${i < theme.fearLevel ? 'bg-[#dc2626]' : 'bg-white/10'}`} />
@@ -475,44 +475,50 @@ const ThemeDetail = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase">소요시간</p>
-                <div className="flex items-center gap-2 text-white font-bold text-sm">
-                  <Clock size={14} className="text-white/40" />
+                <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase whitespace-nowrap">소요시간</p>
+                <div className="flex items-center gap-1.5 sm:gap-2 text-white font-bold text-sm whitespace-nowrap">
+                  <Clock size={14} className="text-white/40 shrink-0" />
                   <span>{theme.duration}분</span>
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase">참여인원</p>
-                <div className="flex items-center gap-2 text-white font-bold text-sm">
-                  <Users size={14} className="text-white/40" />
+                <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase whitespace-nowrap">참여인원</p>
+                <div className="flex items-center gap-1.5 sm:gap-2 text-white font-bold text-sm whitespace-nowrap">
+                  <Users size={14} className="text-white/40 shrink-0" />
                   <span>{theme.minPlayers}-{theme.maxPlayers}명</span>
                 </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase">1인 가격</p>
+              <div className="space-y-2">
+                <div className="flex items-center gap-1.5 whitespace-nowrap">
+                  <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase shrink-0">1인 가격</p>
+                  {settings?.advanceDepositDiscount?.enabled && (
+                    <span className="text-[9px] font-bold bg-[#dc2626]/10 text-[#dc2626] border border-[#dc2626]/20 px-1 py-0.5 rounded uppercase tracking-wider leading-none shrink-0 whitespace-nowrap">
+                      선입금가
+                    </span>
+                  )}
+                </div>
                 {settings?.advanceDepositDiscount?.enabled ? (
-                  <div className="flex flex-row md:flex-col items-center md:items-start gap-1">
-                    <p className="text-white/40 text-sm font-bold line-through decoration-white/20 leading-none">{theme.price.toLocaleString()}원</p>
-                    <p className="text-white font-bold text-sm flex items-center gap-1.5 leading-tight">
+                  <div className="flex flex-row md:flex-col items-baseline md:items-start gap-1.5 md:gap-0.5 whitespace-nowrap">
+                    <p className="text-white/40 text-xs font-medium line-through decoration-white/30 leading-none">{theme.price.toLocaleString()}원</p>
+                    <p className="text-white font-bold text-sm leading-tight">
                       {(theme.price - settings.advanceDepositDiscount.discountAmount).toLocaleString()}원
-                      <span className="text-[9px] font-bold bg-[#dc2626]/10 text-[#dc2626] px-1 py-0.5 rounded uppercase tracking-wider">선입금가</span>
                     </p>
                   </div>
                 ) : (
-                  <p className="text-white font-bold text-sm">{theme.price.toLocaleString()}원</p>
+                  <p className="text-white font-bold text-sm whitespace-nowrap leading-tight">{theme.price.toLocaleString()}원</p>
                 )}
               </div>
             </div>
           </div>
 
-          <div className="relative aspect-[2/3] overflow-hidden rounded-3xl md:rounded-[40px] shadow-2xl mt-6 md:mt-12 mb-8 md:mb-12 border border-white/5 bg-[#1a1a1a] flex items-center justify-center">
+          <div className="relative aspect-[2/3] overflow-hidden rounded-xl md:rounded-2xl shadow-2xl mt-6 md:mt-12 mb-8 md:mb-12 border border-white/5 bg-[#1a1a1a] flex items-center justify-center">
             {(() => {
               const rawPoster = (theme.posterUrl && !theme.posterUrl.startsWith('/theme')) ? theme.posterUrl : 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
               const isBrandFallback = !theme.posterUrl || rawPoster.includes('1772555492065') || rawPoster.includes('brand/');
               return (
                 <img 
                   src={rawPoster} 
-                  alt={theme.title}
+                  alt={theme.title} 
                   className={`w-full h-full ${isBrandFallback ? 'object-contain p-12 opacity-40' : 'object-cover'}`} 
                   onError={(e) => {
                     e.currentTarget.src = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
@@ -525,7 +531,7 @@ const ThemeDetail = () => {
           </div>
         </div>
 
-        <div ref={calendarRef} className="bg-[#1a1a1a] p-6 md:p-8 lg:p-10 rounded-3xl md:rounded-[40px] border border-white/5 shadow-2xl w-full">
+        <div ref={calendarRef} className="bg-[#1a1a1a] p-6 md:p-8 lg:p-10 rounded-xl md:rounded-2xl border border-white/5 shadow-2xl w-full">
           <div className="flex items-center justify-between mb-10">
             <h2 className="text-xl font-bold flex items-center gap-2 tracking-tight"><CalendarIcon size={20}/> 날짜 선택</h2>
             <div className="flex items-center gap-6">
