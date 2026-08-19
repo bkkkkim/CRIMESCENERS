@@ -48,7 +48,7 @@ const NoticeBoard = () => {
   // if (loading) return <LoadingScreen />;
 
   return (
-    <div className={`pt-32 md:pt-40 pb-24 px-6 max-w-7xl mx-auto ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100 transition-opacity duration-500'}`}>
+    <div className={`pt-32 md:pt-40 pb-24 px-4 sm:px-6 md:px-8 max-w-7xl mx-auto ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100 transition-opacity duration-500'}`}>
       <div className="mb-8 md:mb-10 text-center flex flex-col items-center gap-6">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tighter uppercase font-en">Information</h1>
         
@@ -56,7 +56,7 @@ const NoticeBoard = () => {
           <button
             onClick={() => setActiveTab('method')}
             className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
-              activeTab === 'method' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'
+              activeTab === 'method' ? 'bg-white text-black' : 'text-white/60 hover:text-white'
             }`}
           >
             <Gamepad2 size={16} /> 게임 방법
@@ -64,7 +64,7 @@ const NoticeBoard = () => {
           <button
             onClick={() => setActiveTab('stores')}
             className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
-              activeTab === 'stores' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'
+              activeTab === 'stores' ? 'bg-white text-black' : 'text-white/60 hover:text-white'
             }`}
           >
             <MapPin size={16} /> 매장 안내
@@ -82,14 +82,14 @@ const NoticeBoard = () => {
             className="space-y-12"
           >
             {/* How To Play Section */}
-            <div className="bg-[#1a1a1a] p-4 sm:p-6 md:p-8 rounded-[24px] sm:rounded-[32px] md:rounded-[40px] border border-white/5 space-y-5 md:space-y-6">
+            <div className="bg-[#1a1a1a] p-4 sm:p-6 md:p-8 rounded-2xl md:rounded-3xl border border-white/5 space-y-5 md:space-y-6">
               <div className="text-center md:text-left space-y-2 border-b border-white/5 pb-4 md:pb-5">
                 <div className="flex items-center gap-2 justify-center md:justify-start">
                   <span className="bg-[#dc2626] text-[10px] font-bold px-2 py-0.5 rounded tracking-widest uppercase font-en">GAME GUIDE</span>
                 </div>
                 <h3 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-tighter font-en text-white">How to Play</h3>
                 <p className="text-xs sm:text-sm md:text-base text-[#d1d1d1] font-medium opacity-90 leading-relaxed">
-                  크라임 씨너스는 게임 몰입도를 위해, 충분한 사전 정보와 역할 숙지 시간을 제공합니다.
+                  크라임 씨너스는 게임 몰입도를 위해, 충분한 역할 파악 기회와 플레이 시간을 제공합니다.
                 </p>
               </div>
 
@@ -128,22 +128,22 @@ const NoticeBoard = () => {
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-2xl font-bold flex items-center gap-3 px-4">
+              <h3 className="text-2xl font-bold flex items-center gap-3 px-2 md:px-4">
                 <Info size={24} className="text-white/40" /> 이용 가이드 및 주의사항
               </h3>
               <div className="grid grid-cols-1 gap-4">
                 {/* Admin Managed Notice */}
                 {settings.noticeContent && (
-                  <div className="bg-[#1a1a1a] rounded-[32px] border border-white/5 overflow-hidden">
+                  <div className="bg-[#1a1a1a] rounded-2xl md:rounded-3xl border border-white/5 overflow-hidden">
                     <button 
                       onClick={() => setExpandedNotice(expandedNotice === 'admin' ? null : 'admin')}
-                      className="w-full p-8 text-left flex justify-between items-center group"
+                      className="w-full p-6 md:p-8 text-left flex justify-between items-center group"
                     >
                       <div className="flex items-center gap-3 flex-1 pr-4">
                         <span className="bg-[#dc2626] text-[10px] font-bold px-2 py-0.5 rounded tracking-widest uppercase shrink-0">중요</span>
-                        <h3 className="text-lg md:text-xl font-bold tracking-tight group-hover:text-white transition-colors line-clamp-2 md:line-clamp-none">{settings.noticeTitle.replace('[필독] ', '')}</h3>
+                        <h3 className="text-base md:text-xl font-bold tracking-tight group-hover:text-white transition-colors line-clamp-2 md:line-clamp-none">{settings.noticeTitle.replace('[필독] ', '')}</h3>
                       </div>
-                      <ChevronRight size={20} className={`text-white/20 transition-transform ${expandedNotice === 'admin' ? 'rotate-90' : ''}`} />
+                      <ChevronRight size={20} className={`text-white/20 transition-transform shrink-0 ${expandedNotice === 'admin' ? 'rotate-90' : ''}`} />
                     </button>
                     <AnimatePresence>
                       {expandedNotice === 'admin' && (
@@ -151,7 +151,7 @@ const NoticeBoard = () => {
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          className="px-8 pb-8"
+                          className="px-6 md:px-8 pb-6 md:pb-8"
                         >
                           <p className="text-white/80 text-sm leading-relaxed whitespace-pre-wrap border-t border-white/5 pt-6">{settings.noticeContent}</p>
                         </motion.div>
@@ -161,16 +161,16 @@ const NoticeBoard = () => {
                 )}
 
                 {notices.filter(n => !n.title.includes('크라임씨너스 이용 가이드')).map((notice, index) => (
-                  <div key={`${notice.id}-${index}`} className="bg-[#1a1a1a] rounded-[32px] border border-white/5 overflow-hidden">
+                  <div key={`${notice.id}-${index}`} className="bg-[#1a1a1a] rounded-2xl md:rounded-3xl border border-white/5 overflow-hidden">
                     <button 
                       onClick={() => setExpandedNotice(expandedNotice === notice.id ? null : notice.id)}
-                      className="w-full p-8 text-left flex justify-between items-center group"
+                      className="w-full p-6 md:p-8 text-left flex justify-between items-center group"
                     >
                       <div className="flex items-center gap-3 flex-1 pr-4">
                         {notice.isImportant && <span className="bg-[#dc2626] text-[10px] font-bold px-2 py-0.5 rounded tracking-widest uppercase shrink-0">중요</span>}
-                        <h3 className="text-lg md:text-xl font-bold tracking-tight group-hover:text-white transition-colors line-clamp-2 md:line-clamp-none">{notice.title}</h3>
+                        <h3 className="text-base md:text-xl font-bold tracking-tight group-hover:text-white transition-colors line-clamp-2 md:line-clamp-none">{notice.title}</h3>
                       </div>
-                      <ChevronRight size={20} className={`text-white/20 transition-transform ${expandedNotice === notice.id ? 'rotate-90' : ''}`} />
+                      <ChevronRight size={20} className={`text-white/20 transition-transform shrink-0 ${expandedNotice === notice.id ? 'rotate-90' : ''}`} />
                     </button>
                     <AnimatePresence>
                       {expandedNotice === notice.id && (
@@ -178,7 +178,7 @@ const NoticeBoard = () => {
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          className="px-8 pb-8"
+                          className="px-6 md:px-8 pb-6 md:pb-8"
                         >
                           <p className="text-white/80 text-sm leading-relaxed whitespace-pre-wrap border-t border-white/5 pt-6">{notice.content}</p>
                         </motion.div>
@@ -203,7 +203,7 @@ const NoticeBoard = () => {
             }`}
           >
             {stores.map((store, index) => (
-              <div key={`${store.id}-${index}`} className="bg-[#1a1a1a] rounded-[40px] overflow-hidden border border-white/5 group">
+              <div key={`${store.id}-${index}`} className="bg-[#1a1a1a] rounded-2xl md:rounded-3xl overflow-hidden border border-white/5 group">
                 <div className="aspect-video overflow-hidden bg-[#1a1a1a] flex items-center justify-center relative">
                   {store.imageUrl ? (
                     <img 

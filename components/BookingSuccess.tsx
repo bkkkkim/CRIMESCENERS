@@ -3,12 +3,13 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Calendar, Clock, Users, MessageSquare, CreditCard, FileText, Copy, Check } from 'lucide-react';
 import { dataService } from '../src/services/dataService';
+import { DEFAULT_ADMIN_SETTINGS } from '../constants';
 import { AdminSettings } from '../types';
 
 const BookingSuccess = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const [settings, setSettings] = useState<AdminSettings | null>(null);
+  const [settings, setSettings] = useState<AdminSettings>(state?.settings || DEFAULT_ADMIN_SETTINGS);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -16,7 +17,9 @@ const BookingSuccess = () => {
       navigate('/');
       return;
     }
-    dataService.getSettings().then(s => setSettings(s)).catch(err => console.error(err));
+    dataService.getSettings().then(s => {
+      if (s) setSettings(s);
+    }).catch(err => console.error(err));
   }, [state, navigate]);
 
   if (!state || !state.booking) return null;

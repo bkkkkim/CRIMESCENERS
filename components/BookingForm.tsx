@@ -136,7 +136,7 @@ const BookingForm = () => {
           // Don't block the user if notification fails
         }
         
-        navigate('/success', { state: { booking: result, theme } });
+        navigate('/success', { state: { booking: result, theme, settings } });
       }
     } catch (err) {
       console.error(err);
@@ -200,15 +200,15 @@ const BookingForm = () => {
   };
 
   return (
-    <div className="pt-24 md:pt-32 pb-0 md:pb-24 px-0 md:px-6 max-w-3xl mx-auto">
-      <div className="px-6 md:px-0">
+    <div className="pt-24 md:pt-32 pb-16 md:pb-24 px-4 sm:px-6 md:px-8 max-w-3xl mx-auto">
+      <div>
         <Link to={`/theme/${themeId}`} className="inline-flex items-center text-[#b3b3b3] hover:text-white mb-4 md:mb-8 gap-1 text-sm font-bold tracking-normal uppercase">
           <ChevronLeft size={16} /> Back to Scenarios
         </Link>
       </div>
 
-      <div className="bg-[#1a1a1a] md:rounded-3xl border-y md:border border-white/5 overflow-hidden">
-        <div className="p-8 md:p-12 border-b border-white/5 bg-white/5">
+      <div className="bg-[#1a1a1a] rounded-2xl md:rounded-3xl border border-white/5 overflow-hidden">
+        <div className="p-6 sm:p-8 md:p-12 border-b border-white/5 bg-white/5">
             <h1 className="text-3xl md:text-4xl font-bold mb-4 tracking-tighter">RESERVATION</h1>
             <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-[#b3b3b3] font-medium">
               <span className="text-white">{theme.title}</span>
@@ -217,7 +217,7 @@ const BookingForm = () => {
             </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-12">
+        <form onSubmit={handleSubmit} className="p-6 sm:p-8 md:p-12 space-y-12">
           {/* PROMINENT DEPOSIT NOTICE BANNER */}
           <div className="p-6 bg-[#dc2626]/10 border-2 border-[#dc2626] rounded-2xl space-y-2 shadow-xl">
             <div className="flex items-center gap-2 text-[#dc2626] text-base md:text-lg font-black">

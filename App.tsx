@@ -117,7 +117,7 @@ const Header = ({ settings }: { settings: AdminSettings }) => {
 
   return (
     <header className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 ${headerBg}`}>
-      <div className="max-w-7xl mx-auto px-6 h-20 md:h-24 flex items-center justify-between relative z-[101]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 h-20 md:h-24 flex items-center justify-between relative z-[101]">
         <Link to="/" className="h-12 md:h-14 flex items-center">
           {settings.logoUrl && !logoError ? (
             <img 
@@ -170,7 +170,7 @@ const Footer = ({ settings }: { settings: AdminSettings }) => {
   const [showPrivacy, setShowPrivacy] = useState(false);
 
   return (
-    <footer className="bg-black border-t border-white/5 pt-12 pb-12 px-6">
+    <footer className="bg-black border-t border-white/5 pt-12 pb-12 px-4 sm:px-6 md:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-12">
           <div className="space-y-4 max-w-md">

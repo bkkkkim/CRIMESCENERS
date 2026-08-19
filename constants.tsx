@@ -173,7 +173,7 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
   bankInfo: {
     bankName: '신한',
     accountNumber: '110520466113',
-    holderName: '김보경'
+    holderName: '권정혁'
   },
   businessInfo: {
     registrationNumber: '123-45-67890',
