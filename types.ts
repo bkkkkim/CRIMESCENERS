@@ -141,7 +141,7 @@ export interface BookingData {
   notes: string;
   requestPreRoleCard?: boolean;
   paymentMethod: 'on-site' | 'bank-transfer' | 'deposit' | 'onsite';
-  status: 'confirmed' | 'cancelled' | 'paid' | 'pending';
+  status: 'confirmed' | 'cancelled' | 'paid';
   totalPrice?: number;
   createdAt: string;
 }

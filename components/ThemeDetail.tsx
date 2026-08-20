@@ -223,6 +223,7 @@ const ThemeDetail = () => {
       const isClosedByAdmin = closedSlots.some(cs => cs.themeId === theme.id && cs.date === dateStr && cs.time === slot);
       const isClosedByRequest = slotBookings.some(b => b.isCloseRequested);
       const isFull = currentParticipants >= theme.maxPlayers;
+      const notesList = slotBookings.map(b => b.notes).filter(n => n && n.trim()) as string[];
       
       const isAvailable = !isClosedByAdmin && !isClosedByRequest && !isFull;
       
@@ -232,7 +233,8 @@ const ThemeDetail = () => {
         currentParticipants, 
         isClosedByAdmin, 
         isClosedByRequest,
-        isFull
+        isFull,
+        notesList
       };
     });
   };
@@ -600,7 +602,7 @@ const ThemeDetail = () => {
                       <div className="flex flex-col items-start gap-1">
                         <span className={`text-2xl font-bold font-en ${slotInfo.isAvailable ? 'group-hover:translate-x-2 transition-transform' : ''}`}>{slotInfo.time}</span>
                         {slotInfo.isAvailable && slotInfo.currentParticipants > 0 && (
-                          <span className="text-[10px] font-medium text-[#dc2626] tracking-normal uppercase font-en bg-[#dc2626]/10 px-2 py-0.5 rounded">
+                          <span className="text-[10px] font-bold text-[#dc2626] tracking-normal uppercase font-en bg-[#dc2626]/10 px-2 py-0.5 rounded">
                             {slotInfo.currentParticipants}/{theme.maxPlayers}명 Booked
                           </span>
                         )}

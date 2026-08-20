@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 
 import { compressImage } from '../src/utils/imageUtils';
+import { SlotClosureManager } from './SlotClosureManager';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState<'bookings' | 'themes' | 'stores' | 'site' | 'inquiries'>('bookings');
@@ -28,7 +29,8 @@ const AdminDashboard = () => {
   const [searchDate, setSearchDate] = useState('');
   const [searchEndDate, setSearchEndDate] = useState('');
   const [searchTheme, setSearchTheme] = useState('');
-  const [sortOrder, setSortOrder] = useState<'createdAt' | 'gameDate'>('createdAt');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'confirmed' | 'paid' | 'cancelled'>('all');
+  const [sortOrder, setSortOrder] = useState<'createdAt' | 'gameDate' | 'status'>('createdAt');
   const [currentPage, setCurrentPage] = useState(1);
   const [draggedSlideIndex, setDraggedSlideIndex] = useState<number | null>(null);
   const [draggedSuspectInfo, setDraggedSuspectInfo] = useState<{ themeIdx: number; suspectIdx: number } | null>(null);
@@ -160,6 +162,19 @@ const AdminDashboard = () => {
     setIsDirty(true);
   };
 
+  const handleBatchCloseDate = (date: string, themeId: string, timesToClose: string[]) => {
+    const otherClosed = closedSlots.filter(c => !(c.date === date && c.themeId === themeId));
+    const newClosures = timesToClose.map(time => ({ date, themeId, time }));
+    setClosedSlots([...otherClosed, ...newClosures]);
+    setIsDirty(true);
+  };
+
+  const handleBatchOpenDate = (date: string, themeId: string) => {
+    const otherClosed = closedSlots.filter(c => !(c.date === date && c.themeId === themeId));
+    setClosedSlots(otherClosed);
+    setIsDirty(true);
+  };
+
   const NavButton = ({ id, icon: Icon, label }: { id: typeof activeTab, icon: any, label: string }) => (
     <button
       onClick={() => setActiveTab(id)}
@@ -240,6 +255,7 @@ const AdminDashboard = () => {
                     >
                       <option value="createdAt">신청일순</option>
                       <option value="gameDate">게임일순</option>
+                      <option value="status">상태별순</option>
                     </select>
                     <select 
                       value={searchTheme}
@@ -260,6 +276,69 @@ const AdminDashboard = () => {
                     />
                   </div>
                 </div>
+
+                {/* 상태별 필터 탭 (예약취소, 결제완료, 예약완료 등) */}
+                <div className="flex flex-wrap items-center gap-2 pb-2 border-b border-white/5">
+                  <button
+                    type="button"
+                    onClick={() => { setStatusFilter('all'); setCurrentPage(1); }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      statusFilter === 'all' 
+                      ? 'bg-white text-black shadow-md' 
+                      : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    <span>전체</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${statusFilter === 'all' ? 'bg-black/20 text-black' : 'bg-white/10 text-white/60'}`}>
+                      {bookings.length}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setStatusFilter('confirmed'); setCurrentPage(1); }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      statusFilter === 'confirmed' 
+                      ? 'bg-blue-600 text-white shadow-md' 
+                      : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-blue-400 inline-block"></span>
+                    <span>예약 완료</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${statusFilter === 'confirmed' ? 'bg-white/20 text-white' : 'bg-white/10 text-white/60'}`}>
+                      {bookings.filter(b => b.status === 'confirmed').length}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setStatusFilter('paid'); setCurrentPage(1); }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      statusFilter === 'paid' 
+                      ? 'bg-green-600 text-white shadow-md' 
+                      : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-green-400 inline-block"></span>
+                    <span>결제 완료</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${statusFilter === 'paid' ? 'bg-white/20 text-white' : 'bg-white/10 text-white/60'}`}>
+                      {bookings.filter(b => b.status === 'paid').length}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setStatusFilter('cancelled'); setCurrentPage(1); }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      statusFilter === 'cancelled' 
+                      ? 'bg-red-600 text-white shadow-md' 
+                      : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-red-400 inline-block"></span>
+                    <span>예약 취소</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${statusFilter === 'cancelled' ? 'bg-white/20 text-white' : 'bg-white/10 text-white/60'}`}>
+                      {bookings.filter(b => b.status === 'cancelled').length}
+                    </span>
+                  </button>
+                </div>
                 {bookings.length === 0 ? (
                   <div className="p-20 text-center bg-white/5 rounded-3xl border border-white/5 text-white/40 italic">
                     접수된 예약 내역이 없습니다.
@@ -273,17 +352,29 @@ const AdminDashboard = () => {
                           const matchesStartDate = searchDate ? b.date >= searchDate : true;
                           const matchesEndDate = searchEndDate ? b.date <= searchEndDate : true;
                           const matchesTheme = searchTheme ? b.themeTitle === searchTheme : true;
-                          return matchesSearch && matchesStartDate && matchesEndDate && matchesTheme;
+                          const matchesStatus = statusFilter === 'all' ? true : (b.status === statusFilter);
+                          return matchesSearch && matchesStartDate && matchesEndDate && matchesTheme && matchesStatus;
                         });
 
                         const sorted = [...filtered].sort((a, b) => {
                           if (sortOrder === 'createdAt') {
                             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-                          } else {
+                          } else if (sortOrder === 'gameDate') {
                             const dateA = new Date(`${a.date} ${a.time}`).getTime();
                             const dateB = new Date(`${b.date} ${b.time}`).getTime();
                             return dateB - dateA;
+                          } else if (sortOrder === 'status') {
+                            const statusPriority: Record<string, number> = {
+                              'confirmed': 1,
+                              'paid': 2,
+                              'cancelled': 3
+                            };
+                            const pA = statusPriority[a.status] || 99;
+                            const pB = statusPriority[b.status] || 99;
+                            if (pA !== pB) return pA - pB;
+                            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
                           }
+                          return 0;
                         });
 
                         const totalPages = Math.ceil(sorted.length / itemsPerPage);
@@ -327,7 +418,7 @@ const AdminDashboard = () => {
                                     <select 
                                       value={booking.status}
                                       onChange={(e) => handleUpdateBookingStatus(booking.id, e.target.value as any)}
-                                      className="bg-black border border-white/10 text-white text-sm rounded-lg p-2 outline-none"
+                                      className="bg-black border border-white/10 text-white text-sm rounded-lg p-2 outline-none cursor-pointer"
                                     >
                                       <option value="confirmed">예약 완료</option>
                                       <option value="paid">결제 완료</option>
@@ -368,54 +459,16 @@ const AdminDashboard = () => {
                 )}
               </div>
 
-              <div className="space-y-8 pt-12 border-t border-white/5">
-                <h2 className="text-2xl font-bold">특정 일자/시간 마감 설정</h2>
-                <div className="bg-[#1a1a1a] p-8 rounded-3xl border border-white/5">
-                  <p className="text-sm text-white/40 mb-8 flex items-center gap-2"><AlertCircle size={16} /> 예약이 이미 찬 슬롯 외에, 매장 사정으로 닫아야 하는 슬롯을 클릭하여 마감하세요.</p>
-                  <div className="space-y-10">
-                    {themes.map((t, index) => (
-                      <div key={`${t.id}-${index}`} className="space-y-4">
-                        <h3 className="font-bold text-lg text-white/80">{t.title}</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-8 gap-3">
-                          {[0, 1, 2, 3, 4, 5, 6].flatMap(dayOffset => {
-                            const date = new Date();
-                            // Fix: Ensure we start from today correctly in local time
-                            date.setHours(0, 0, 0, 0);
-                            date.setDate(date.getDate() + dayOffset);
-                            const dateStr = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
-                            const isWeekend = isWeekendOrHoliday(date);
-                            let slots: string[] = [];
-                            if (t.useSeparateWeekdaySlots) {
-                              slots = isWeekend ? (t.customSlots || []) : (t.weekdaySlots || []);
-                            } else {
-                              slots = t.customSlots || [];
-                            }
-                            
-                            return slots.filter(s => s).map((time, slotIdx) => {
-                              const isClosed = closedSlots.some(cs => cs.date === dateStr && cs.themeId === t.id && cs.time === time);
-                              return (
-                                <button 
-                                  key={`slot-${t.id}-${dateStr}-${time}-${slotIdx}`}
-                                  onClick={() => toggleClosure(dateStr, t.id, time)}
-                                  className={`text-[10px] p-2 rounded-lg border transition-all flex flex-col items-center ${
-                                    isClosed 
-                                    ? 'bg-[#dc2626] border-[#dc2626] text-white font-bold' 
-                                    : 'border-white/10 hover:border-white/30 text-white/40'
-                                  }`}
-                                >
-                                  <span>{dateStr.slice(5)}</span>
-                                  <span className="text-sm">{time}</span>
-                                  <span className="mt-1">{isClosed ? 'CLOSED' : 'OPEN'}</span>
-                                </button>
-                              );
-                            });
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              {/* 특정 일자 / 시간 마감 설정 (월별/일자별/타임별 & 실시간 예약 연동) */}
+              <SlotClosureManager
+                themes={themes}
+                stores={stores}
+                bookings={bookings}
+                closedSlots={closedSlots}
+                onToggleClosure={toggleClosure}
+                onBatchCloseDate={handleBatchCloseDate}
+                onBatchOpenDate={handleBatchOpenDate}
+              />
             </div>
           )}
 

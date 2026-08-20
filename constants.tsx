@@ -171,8 +171,8 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
   weekdaySlots: '평일 17:00~24:00',
   weekendSlots: '주말 10:00~24:00',
   bankInfo: {
-    bankName: '신한',
-    accountNumber: '110520466113',
+    bankName: '하나',
+    accountNumber: '288-910388-91807',
     holderName: '권정혁'
   },
   businessInfo: {

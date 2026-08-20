@@ -81,6 +81,10 @@ const BookingForm = () => {
   const bookedCount = existingBookings.reduce((sum, b) => sum + b.participantCount, 0);
   const remainingCapacity = theme.maxPlayers - bookedCount;
 
+  const isDiscountEnabled = settings?.advanceDepositDiscount?.enabled;
+  const discountAmount = isDiscountEnabled ? (settings.advanceDepositDiscount?.discountAmount || 0) : 0;
+  const effectivePerPersonPrice = Math.max(0, theme.price - discountAmount);
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.name.trim()) newErrors.name = '예약자 성함을 입력해주세요.';
@@ -111,6 +115,11 @@ const BookingForm = () => {
 
     setLoading(true);
     try {
+      const isDiscountApplicable = settings?.advanceDepositDiscount?.enabled && formData.paymentMethod === 'bank-transfer';
+      const perPersonDiscount = isDiscountApplicable ? (settings.advanceDepositDiscount?.discountAmount || 0) : 0;
+      const unitPrice = Math.max(0, theme.price - perPersonDiscount);
+      const calculatedTotalPrice = unitPrice * formData.participants;
+
       const bookingData: Omit<BookingData, 'id' | 'createdAt' | 'themeTitle' | 'themePoster'> = {
         themeId: themeId!,
         date: date!,
@@ -118,9 +127,9 @@ const BookingForm = () => {
         userName: formData.name,
         userPhone: formData.phone,
         participantCount: formData.participants,
-        totalPrice: theme.price * formData.participants,
+        totalPrice: calculatedTotalPrice,
         paymentMethod: formData.paymentMethod,
-        status: 'pending',
+        status: 'confirmed',
         isCloseRequested: formData.isCloseRequested,
         requestPreRoleCard: formData.requestPreRoleCard,
         notes: formData.notes
@@ -217,21 +226,20 @@ const BookingForm = () => {
             </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 sm:p-8 md:p-12 space-y-12">
-          {/* PROMINENT DEPOSIT NOTICE BANNER */}
-          <div className="p-6 bg-[#dc2626]/10 border-2 border-[#dc2626] rounded-2xl space-y-2 shadow-xl">
-            <div className="flex items-center gap-2 text-[#dc2626] text-base md:text-lg font-black">
-              <span className="text-[#dc2626]">📢 예약 확정 안내 (선입금 필수)</span>
-            </div>
-            <p className="text-sm text-white/95 font-semibold leading-relaxed">
-              예약 신청 후 <span className="text-[#dc2626] font-black underline underline-offset-4">예약금을 선입금(계좌이체)하셔야 예약이 최종 확정</span>됩니다.<br />
-              미입금 시 예약이 자동 취소될 수 있습니다.
-            </p>
+        {/* 상단 통합 예약 확정 안내 배너 */}
+        <div className="px-6 sm:px-8 md:px-12 py-5 bg-[#dc2626]/10 border-b border-[#dc2626]/25 space-y-1.5">
+          <div className="flex items-center gap-2 text-[#dc2626] text-sm md:text-base font-black">
+            <span>📢 예약 확정 안내 (선입금 필수)</span>
           </div>
+          <p className="text-xs sm:text-sm text-white/90 font-medium leading-relaxed">
+            예약 신청 후 <span className="text-[#dc2626] font-bold underline underline-offset-4">예약금을 선입금(계좌이체)하셔야 예약이 최종 확정</span>됩니다. (미입금 시 예약이 자동 취소될 수 있습니다)
+          </p>
+        </div>
 
+        <form onSubmit={handleSubmit} className="p-6 sm:p-8 md:p-12 space-y-10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div ref={nameRef} className="space-y-3">
-              <label className="text-sm font-bold text-white/80 tracking-normal uppercase">예약자 성함</label>
+              <label className="text-sm font-bold text-white tracking-normal uppercase">예약자 성함</label>
               {errors.name && <p className="text-[10px] text-red-500 font-bold animate-pulse">{errors.name}</p>}
               <input 
                 type="text" 
@@ -245,7 +253,7 @@ const BookingForm = () => {
               />
             </div>
             <div ref={phoneRef} className="space-y-3">
-              <label className="text-sm font-bold text-white/80 tracking-normal uppercase">휴대폰 번호</label>
+              <label className="text-sm font-bold text-white tracking-normal uppercase">휴대폰 번호</label>
               {errors.phone && <p className="text-[10px] text-red-500 font-bold animate-pulse">{errors.phone}</p>}
                 <input 
                   type="tel" 
@@ -261,19 +269,16 @@ const BookingForm = () => {
             </div>
           </div>
 
-          <div ref={participantsRef} className="space-y-6">
-            <div className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/25">
-              <label className="text-sm font-bold text-white/80 tracking-normal uppercase">참여 인원 선택</label>
-              <div className="flex items-center gap-3">
-                <p className="text-sm font-bold text-white">
-                  <span className="text-[#dc2626]">{remainingCapacity}</span> / {theme.maxPlayers}명 가능
-                </p>
-              </div>
+          <div ref={participantsRef} className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-bold text-white tracking-normal uppercase">참여 인원 선택</label>
+              <span className="text-xs font-semibold text-white/70">
+                <span className="text-[#dc2626] font-bold">{remainingCapacity}</span> / {theme.maxPlayers}명 가능
+              </span>
             </div>
-            <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2.5 sm:gap-3 pt-1">
               {Array.from({ length: theme.maxPlayers }, (_, i) => i + 1).map(num => {
                 const isPossible = num <= remainingCapacity;
-                // Allow any number up to remaining capacity to be selected
                 const isSelectable = isPossible;
                 
                 return (
@@ -287,10 +292,10 @@ const BookingForm = () => {
                     }}
                     className={`aspect-square rounded-2xl border font-bold transition-all flex flex-col items-center justify-center gap-1 ${
                       formData.participants === num 
-                          ? 'bg-white border-white text-black shadow-xl shadow-white/10 scale-110' 
+                          ? 'bg-white border-white text-black shadow-xl shadow-white/10 scale-105' 
                           : isSelectable 
-                            ? 'bg-transparent border-white/10 text-[#b3b3b3] hover:border-white/30'
-                            : 'bg-white/5 border-white/5 text-white/10 cursor-not-allowed'
+                            ? 'bg-white/5 border-white/10 text-[#b3b3b3] hover:border-white/30'
+                            : 'bg-white/[0.02] border-white/5 text-white/10 cursor-not-allowed'
                     }`}
                   >
                     <span className="text-lg font-en leading-none">{num}</span>
@@ -305,8 +310,26 @@ const BookingForm = () => {
             )}
           </div>
 
+          {/* 기존 참여자들의 전달 사항 / 메모 (오픈 예약인 경우) */}
+          {existingBookings.some(b => b.notes && b.notes.trim()) && (
+            <div className="p-4 sm:p-5 bg-white/5 rounded-2xl border border-white/10 space-y-2.5">
+              <div className="flex items-center gap-2 text-sm font-bold text-white">
+                <Users size={16} className="text-red-400" />
+                <span>함께하는 플레이어의 참고 메시지</span>
+              </div>
+              <div className="space-y-2">
+                {existingBookings.filter(b => b.notes && b.notes.trim()).map((b, idx) => (
+                  <div key={idx} className="bg-black/30 p-3 rounded-xl border border-white/5 text-xs sm:text-sm text-white/80 leading-relaxed">
+                    <span className="text-white/40 font-bold mr-1.5">참여자 {idx + 1} ({b.participantCount}명):</span>
+                    <span className="text-white/90 whitespace-pre-wrap">{b.notes}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* PRE-ROLECARD OPTION */}
-          <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-3.5 shadow-lg">
+          <div className="p-4 sm:p-5 bg-white/5 border border-white/10 rounded-2xl space-y-3">
             <label htmlFor="requestPreRoleCard" className="flex items-center gap-3 cursor-pointer select-none">
               <input 
                 type="checkbox" 
@@ -315,10 +338,10 @@ const BookingForm = () => {
                 checked={formData.requestPreRoleCard}
                 onChange={(e) => setFormData({...formData, requestPreRoleCard: e.target.checked})}
               />
-              <span className="text-base font-black text-white tracking-tight">사전 롤카드 받기</span>
+              <span className="text-sm font-bold text-white tracking-normal uppercase">사전 롤카드 받기 (선택)</span>
             </label>
 
-            <div className="pl-8 space-y-3">
+            <div className="pl-8 space-y-2.5">
               <p className="text-xs text-white/80 font-medium leading-relaxed break-keep">
                 원활한 플레이를 위해 예약 전날 사전 롤카드를 발송해 드립니다.<br className="hidden sm:block" />
                 <button
@@ -336,9 +359,9 @@ const BookingForm = () => {
                   <button
                     type="button"
                     onClick={() => setShowSuspectModal(true)}
-                    className="inline-flex items-center gap-2 px-3.5 py-2 bg-neutral-900 hover:bg-neutral-800 text-white border border-white/20 hover:border-white/40 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-sm"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white border border-white/20 hover:border-white/40 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-sm"
                   >
-                    <Users size={14} className="text-red-400" />
+                    <Users size={13} className="text-red-400" />
                     <span className="text-white">사건 관계자 정보</span>
                     {theme.suspects && theme.suspects.length > 0 && (
                       <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-white/10 text-white/90 border border-white/10">
@@ -351,72 +374,88 @@ const BookingForm = () => {
             </div>
           </div>
 
-          <div className="space-y-6">
-            <div className="flex justify-between items-center relative">
-              <label className="text-sm font-bold text-white/80 tracking-normal uppercase">결제 방식</label>
-            </div>
-            
-            <div className="w-full">
-              <div className="relative">
-                {/* ADVANCE DEPOSIT TOOLTIP / SPEECH BUBBLE */}
-                {settings?.advanceDepositDiscount?.enabled && (
-                  <div className="absolute -top-11 left-1/2 -translate-x-1/2 z-10 animate-bounce">
-                    <div className="relative bg-[#dc2626] text-white text-[10px] md:text-xs font-black px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap border border-white/15">
-                      인당 {settings.advanceDepositDiscount.discountAmount.toLocaleString()}원 할인!
-                      {/* speech bubble triangle */}
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#dc2626] rotate-45 border-r border-b border-white/10"></div>
-                    </div>
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => setFormData({...formData, paymentMethod: 'bank-transfer'})}
-                  className="w-full py-5 rounded-2xl border border-white font-bold transition-all flex items-center justify-center gap-2 bg-white text-black shadow-xl"
-                >
-                  선입금 (계좌이체)
-                </button>
+          {/* 결제 방식 및 계좌 정보 영역 (일체형 단일 패널) */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-bold text-white tracking-normal uppercase whitespace-nowrap">결제 방식</label>
+                <span className="text-xs font-semibold text-white/70 bg-white/10 px-2 py-0.5 rounded-md whitespace-nowrap">계좌이체</span>
               </div>
+              {settings?.advanceDepositDiscount?.enabled && (
+                <span className="text-xs font-bold text-white bg-[#dc2626] px-2.5 py-0.5 rounded-full whitespace-nowrap">
+                  인당 {settings.advanceDepositDiscount.discountAmount.toLocaleString()}원 할인
+                </span>
+              )}
             </div>
 
-            <div className="space-y-4 animate-in fade-in duration-300">
-              <div className="p-8 bg-white/5 rounded-[32px] border border-white/20 shadow-xl">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-white/55 tracking-normal uppercase mb-2">Deposit Account</p>
-                    <div className="text-xl font-bold tracking-tight text-white mb-1">
-                      {settings.bankInfo.bankName} {settings.bankInfo.accountNumber}
+            <div className="p-4 sm:p-6 bg-white/[0.04] rounded-2xl border border-white/10 divide-y divide-white/10 space-y-4">
+              {/* 1. 총 결제 금액 */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <span className="text-sm font-bold text-white/80 block whitespace-nowrap">총 결제 금액</span>
+                  {formData.participants > 0 && (
+                    <span className="text-xs text-white/50 font-medium whitespace-nowrap block mt-0.5">
+                      {(isDiscountEnabled ? effectivePerPersonPrice : theme.price).toLocaleString()}원 × {formData.participants}명
+                    </span>
+                  )}
+                </div>
+                <div className="text-right shrink-0">
+                  {formData.participants > 0 ? (
+                    <div className="flex items-baseline justify-end gap-1.5 sm:gap-2">
+                      {isDiscountEnabled && discountAmount > 0 && (
+                        <span className="text-xs sm:text-sm text-white/40 line-through whitespace-nowrap">
+                          {(theme.price * formData.participants).toLocaleString()}원
+                        </span>
+                      )}
+                      <span className="text-xl sm:text-2xl font-black text-white tracking-tight whitespace-nowrap">
+                        {(isDiscountEnabled ? effectivePerPersonPrice * formData.participants : theme.price * formData.participants).toLocaleString()}원
+                      </span>
                     </div>
-                    <p className="text-sm font-semibold text-white/80">예금주: {settings.bankInfo.holderName}</p>
+                  ) : (
+                    <span className="text-xs text-white/40 font-medium whitespace-nowrap">인원을 선택해주세요</span>
+                  )}
+                </div>
+              </div>
+
+              {/* 2. 입금 계좌 정보 (단일 열/행 반응형 배치) */}
+              {settings?.bankInfo && (settings.bankInfo.bankName || settings.bankInfo.accountNumber) && (
+                <div className="pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="space-y-1 min-w-0">
+                    <span className="text-[11px] font-bold text-white/40 tracking-wider uppercase block">입금 계좌</span>
+                    <div className="text-sm sm:text-base font-bold text-white flex items-center gap-1.5 flex-wrap">
+                      <span className="text-white">{settings.bankInfo.bankName}</span>
+                      <span className="font-mono text-white/95">{settings.bankInfo.accountNumber}</span>
+                      <span className="text-xs text-white/60 font-normal">({settings.bankInfo.holderName})</span>
+                    </div>
                   </div>
                   <button
                     type="button"
                     onClick={handleCopyBank}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-all text-white border border-white/10"
+                    className="w-full sm:w-auto px-4 py-2 bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-xl text-xs font-bold transition-all text-white border border-white/10 flex items-center justify-center gap-1.5 shrink-0 self-stretch sm:self-center cursor-pointer"
                   >
                     {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
-                    {copied ? 'COPIED' : 'COPY'}
+                    <span>{copied ? '복사완료' : '계좌 복사'}</span>
                   </button>
                 </div>
-              </div>
+              )}
 
-              {/* ADVANCE DEPOSIT PRECAUTION NOTICE */}
-              <div className="p-6 bg-[#dc2626]/5 border border-[#dc2626]/20 rounded-2xl space-y-3 shadow-md">
-                <p className="text-xs text-[#dc2626] font-bold uppercase tracking-widest flex items-center gap-1.5">
+              {/* 3. 선입금 계좌이체 유의사항 */}
+              <div className="pt-4 space-y-1.5 text-xs text-white/70">
+                <p className="text-[#dc2626] font-bold tracking-wide flex items-center gap-1.5 mb-1">
                   ⚠️ 선입금 계좌이체 유의사항
                 </p>
-                <ul className="text-sm text-white/95 font-semibold space-y-2 list-none pl-0 leading-relaxed">
-                  <li>1) 예약자명과 입금자명이 동일해야 예약확인이 가능합니다.</li>
-                  <li>2) 당일 환불은 불가합니다.</li>
+                <ul className="space-y-1 list-none pl-0 leading-relaxed text-white/75">
+                  <li>• 예약자명과 입금자명이 동일해야 예약확인이 가능합니다.</li>
+                  <li>• 당일 취소 시 환불이 불가합니다.</li>
                   <li>
-                    3) 당일 예약은{' '}
+                    • 당일 예약은{' '}
                     <a 
                       href={contactPhone ? `tel:${contactPhone.replace(/[^0-9]/g, '')}` : '#'} 
-                      className="underline font-black text-yellow-300 hover:text-yellow-200 underline-offset-4 transition-colors"
+                      className="underline font-bold text-white hover:text-white/80 underline-offset-4 transition-colors"
                     >
                       매장으로 연락
                     </a>
-                    바랍니다. {contactPhone && <span className="text-xs text-white/70">({contactPhone})</span>}
+                    바랍니다. {contactPhone && <span className="text-white/50">({contactPhone})</span>}
                   </li>
                 </ul>
               </div>
@@ -443,33 +482,34 @@ const BookingForm = () => {
             </div>
           )}
 
-          <div className="space-y-3">
-            <label className="text-xs font-medium text-white/40 tracking-normal uppercase">매장 전달 사항 (선택)</label>
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-white tracking-normal uppercase block">전달사항 (선택)</label>
+            <p className="text-xs text-white/40">오픈 예약 시 다른 참여자도 확인 가능</p>
             <textarea 
-              rows={4}
-              className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 focus:outline-none focus:border-white transition-colors resize-none text-white placeholder:text-white/20"
-              placeholder="함께 하실 분들이나 매장에 전달하실 사항을 남겨주세요."
+              rows={3}
+              className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 focus:outline-none focus:border-white transition-colors resize-none text-white placeholder:text-white/30 text-sm mt-1"
+              placeholder="함께 하실 분들이나 매장에 전달하실 사항을 남겨주세요. (예: 크라임씬 처음인 초보입니다! 편하게 즐겨요 등)"
               value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
             />
           </div>
 
           <div className="space-y-8 pt-8 border-t border-white/5">
-            <div className="space-y-4">
-                <h4 className="text-base font-extrabold text-white">예약 유의사항</h4>
+            <div className="space-y-3">
+                <h4 className="text-sm font-bold text-white tracking-normal uppercase">예약 유의사항</h4>
                 {settings.bookingNotice ? (
-                  <div className="text-sm text-white/80 space-y-2 leading-relaxed whitespace-pre-wrap font-medium">
+                  <div className="text-xs sm:text-sm text-white/70 space-y-2 leading-relaxed whitespace-pre-wrap font-medium">
                     {settings.bookingNotice}
                   </div>
                 ) : (
-                  <ul className="text-sm text-white/80 space-y-2 list-disc pl-4 leading-relaxed font-medium">
+                  <ul className="text-xs sm:text-sm text-white/70 space-y-1.5 list-disc pl-4 leading-relaxed font-medium">
                       <li>예약 완료 즉시 입력하신 연락처로 안내해 드리며, 만약 연락처 정보를 잘못 입력하시거나 연락을 못받으신 경우 매장으로 연락해주세요.</li>
                       <li>예약일 전날 밤 10시까지 입금안내와 매장 이용 안내 전달할 예정입니다. 당일 예약 후 반복하여 취소하시는 경우 향후 매장 이용에 제한이 생길 수 있습니다.</li>
                   </ul>
                 )}
             </div>
 
-            <div ref={privacyRef} className="flex items-start gap-4 p-6 bg-white/5 rounded-2xl border border-white/10">
+            <div ref={privacyRef} className="flex items-start gap-4 p-5 bg-white/5 rounded-2xl border border-white/10">
                 <div className="pt-0.5">
                     <input 
                         type="checkbox" 
@@ -483,7 +523,7 @@ const BookingForm = () => {
                     />
                 </div>
                 <label htmlFor="privacyAgree" className="cursor-pointer">
-                    <p className={`text-sm font-extrabold transition-colors ${errors.agreed ? 'text-red-500' : 'text-white'}`}>
+                    <p className={`text-sm font-bold transition-colors ${errors.agreed ? 'text-red-500' : 'text-white'}`}>
                         개인정보수집 동의하며 유의사항 확인하였습니다 (필수)
                     </p>
                     {errors.agreed && <p className="text-[10px] text-red-500 mt-1">{errors.agreed}</p>}

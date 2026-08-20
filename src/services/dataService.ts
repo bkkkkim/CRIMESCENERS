@@ -407,7 +407,7 @@ export const dataService = {
       storeName,
       storeAddress,
       createdAt: new Date().toISOString(),
-      status: booking.status || 'pending'
+      status: booking.status || 'confirmed'
     };
 
     // Omit columns that might not exist in the Supabase schema to avoid 400/PGRST204 errors
