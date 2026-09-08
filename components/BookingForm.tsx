@@ -5,6 +5,8 @@ import { THEMES, DEFAULT_ADMIN_SETTINGS } from '../constants';
 import { ChevronLeft, CheckCircle2, Copy, Check, AlertTriangle, Users } from 'lucide-react';
 import { Theme, AdminSettings, BookingData, Store } from '../types';
 import { dataService } from '../src/services/dataService';
+import { isWeekendOrHoliday } from '../src/utils/holiday';
+import { checkSlotAutoClosed } from '../src/utils/slotAvailability';
 import LoadingScreen from './LoadingScreen';
 import SuspectModal from './SuspectModal';
 
@@ -15,6 +17,7 @@ const BookingForm = () => {
   const [settings, setSettings] = useState<AdminSettings>(DEFAULT_ADMIN_SETTINGS);
   const [stores, setStores] = useState<Store[]>([]);
   const [bookings, setBookings] = useState<BookingData[]>([]);
+  const [closedSlots, setClosedSlots] = useState<any[]>([]);
   const [copied, setCopied] = useState(false);
   const [showSuspectModal, setShowSuspectModal] = useState(false);
 
@@ -41,16 +44,18 @@ const BookingForm = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Fetch settings, bookings, stores in parallel
-        const [savedSettings, savedBookings, savedStores] = await Promise.all([
+        // Fetch settings, bookings, stores, closed slots in parallel
+        const [savedSettings, savedBookings, savedStores, savedClosedSlots] = await Promise.all([
           dataService.getSettings(),
           dataService.getBookingsBySlot(themeId!, date!, time!),
-          dataService.getStores()
+          dataService.getStores(),
+          dataService.getClosedSlots()
         ]);
 
         setSettings(savedSettings);
         setBookings(savedBookings);
         setStores(savedStores);
+        setClosedSlots(savedClosedSlots);
 
         // Get theme from local THEMES (very fast)
         const themeList = await dataService.getThemes();
@@ -58,8 +63,6 @@ const BookingForm = () => {
         
         if (found) {
           setTheme(found);
-          const booked = savedBookings.reduce((sum, b) => sum + b.participantCount, 0);
-          
           setFormData(prev => ({ ...prev, participants: 0 }));
         }
       } catch (error) {
@@ -77,9 +80,27 @@ const BookingForm = () => {
   const matchedStore = stores.find(s => s.id === theme.storeId);
   const contactPhone = matchedStore?.phone || settings.managerPhone || '';
 
-  const existingBookings = bookings.filter(b => b.themeId === themeId && b.date === date && b.time === time && b.status !== 'cancelled');
+  const existingBookings = bookings.filter(b => b.themeId === themeId && b.date?.trim() === date?.trim() && b.time?.trim() === time?.trim() && b.status !== 'cancelled');
   const bookedCount = existingBookings.reduce((sum, b) => sum + b.participantCount, 0);
-  const remainingCapacity = theme.maxPlayers - bookedCount;
+  const remainingCapacity = Math.max(0, theme.maxPlayers - bookedCount);
+
+  const isWeekend = date ? isWeekendOrHoliday(new Date(date)) : false;
+  let baseSlots: string[] = [];
+  if (theme.useSeparateWeekdaySlots) {
+    baseSlots = isWeekend ? (theme.customSlots || []) : (theme.weekdaySlots || []);
+  } else {
+    baseSlots = theme.customSlots || [];
+  }
+  const filteredBaseSlots = baseSlots.filter(s => s);
+  const autoClose = checkSlotAutoClosed(date || '', time || '', filteredBaseSlots, bookedCount > 0);
+
+  const isClosedByAdmin = closedSlots.some(cs => 
+    (!cs.themeId || cs.themeId === themeId || cs.themeId === 'all') && 
+    cs.date?.trim() === date?.trim() && 
+    (cs.time === 'all' || cs.time?.trim() === time?.trim())
+  );
+  const isClosedByRequest = existingBookings.some(b => b.isCloseRequested);
+  const isSlotClosed = isClosedByAdmin || isClosedByRequest || autoClose.isAutoClosed || remainingCapacity <= 0;
 
   const isDiscountEnabled = settings?.advanceDepositDiscount?.enabled;
   const discountAmount = isDiscountEnabled ? (settings.advanceDepositDiscount?.discountAmount || 0) : 0;
@@ -87,6 +108,10 @@ const BookingForm = () => {
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
+    if (isSlotClosed) {
+      alert(autoClose.reason || '해당 타임은 예약이 마감되었습니다. 다른 날짜나 시간대를 선택해주세요.');
+      return false;
+    }
     if (!formData.name.trim()) newErrors.name = '예약자 성함을 입력해주세요.';
     if (!formData.phone.trim()) newErrors.phone = '휴대폰 번호를 입력해주세요.';
     if (!agreed) newErrors.agreed = '개인정보 수집 및 유의사항에 동의해주세요.';
@@ -162,7 +187,7 @@ const BookingForm = () => {
   };
 
   const showCloseOption = (bookedCount + formData.participants) >= theme.minPlayers;
-  const isFormValid = formData.name.trim() && formData.phone.trim() && agreed && formData.participants > 0;
+  const isFormValid = !isSlotClosed && Boolean(formData.name.trim() && formData.phone.trim() && agreed && formData.participants > 0);
 
   const handleValidationAlert = () => {
     const missing = [];
@@ -225,6 +250,19 @@ const BookingForm = () => {
               <span>{time}</span>
             </div>
         </div>
+
+        {/* 슬롯 마감 경고 배너 */}
+        {isSlotClosed && (
+          <div className="px-6 sm:px-8 md:px-12 py-5 bg-red-600/20 border-b border-red-600/40 space-y-1.5">
+            <div className="flex items-center gap-2 text-red-400 text-sm md:text-base font-black">
+              <AlertTriangle size={18} />
+              <span>해당 타임은 예약이 마감되었습니다</span>
+            </div>
+            <p className="text-xs sm:text-sm text-white/90 font-medium leading-relaxed">
+              {autoClose.reason || '관리자에 의해 마감되었거나 예약 정원이 모두 차서 더 이상 신청할 수 없습니다. 다른 날짜 또는 시간대를 선택해 주세요.'}
+            </p>
+          </div>
+        )}
 
         {/* 상단 통합 예약 확정 안내 배너 */}
         <div className="px-6 sm:px-8 md:px-12 py-5 bg-[#dc2626]/10 border-b border-[#dc2626]/25 space-y-1.5">
@@ -310,20 +348,34 @@ const BookingForm = () => {
             )}
           </div>
 
-          {/* 기존 참여자들의 전달 사항 / 메모 (오픈 예약인 경우) */}
-          {existingBookings.some(b => b.notes && b.notes.trim()) && (
+          {/* 기존 참여자들의 전달 사항 / 메모 (오픈 예약인 경우 및 사전 롤카드 유무 노출) */}
+          {existingBookings.length > 0 && (
             <div className="p-4 sm:p-5 bg-white/5 rounded-2xl border border-white/10 space-y-2.5">
               <div className="flex items-center gap-2 text-sm font-bold text-white">
                 <Users size={16} className="text-red-400" />
                 <span>함께하는 플레이어의 참고 메시지</span>
               </div>
               <div className="space-y-2">
-                {existingBookings.filter(b => b.notes && b.notes.trim()).map((b, idx) => (
-                  <div key={idx} className="bg-black/30 p-3 rounded-xl border border-white/5 text-xs sm:text-sm text-white/80 leading-relaxed">
-                    <span className="text-white/40 font-bold mr-1.5">참여자 {idx + 1} ({b.participantCount}명):</span>
-                    <span className="text-white/90 whitespace-pre-wrap">{b.notes}</span>
-                  </div>
-                ))}
+                {existingBookings.map((b, idx) => {
+                  const isPreRoleCard = b.requestPreRoleCard || (typeof b.notes === 'string' && b.notes.includes('[사전 롤카드 신청]'));
+                  const cleanNote = (b.notes || '').replace(/\[사전 롤카드 신청\]/g, '').trim();
+                  
+                  let message = '';
+                  if (cleanNote && isPreRoleCard) {
+                    message = `${cleanNote} [사전 롤카드 신청]`;
+                  } else if (cleanNote) {
+                    message = cleanNote;
+                  } else if (isPreRoleCard) {
+                    message = '[사전 롤카드 신청]';
+                  }
+
+                  return (
+                    <div key={idx} className="bg-black/30 p-3 rounded-xl border border-white/5 text-xs sm:text-sm text-white/80 leading-relaxed">
+                      <span className="text-white/40 font-bold mr-1.5">참여자 {idx + 1} ({b.participantCount}명):</span>
+                      <span className="text-white/90 whitespace-pre-wrap">{message || '-'}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -446,6 +498,16 @@ const BookingForm = () => {
                 </p>
                 <ul className="space-y-1 list-none pl-0 leading-relaxed text-white/75">
                   <li>• 예약자명과 입금자명이 동일해야 예약확인이 가능합니다.</li>
+                  <li>
+                    • 예약하신 휴대폰번호로 5일이내 현금영수증 발행해드립니다. 영수증 발행 휴대폰 번호 변경 필요 시,{' '}
+                    <a 
+                      href={contactPhone ? `tel:${contactPhone.replace(/[^0-9]/g, '')}` : '#'} 
+                      className="underline font-bold text-white hover:text-red-400 underline-offset-4 transition-colors"
+                    >
+                      매장으로 연락
+                    </a>
+                    해주세요.
+                  </li>
                   <li>• 당일 취소 시 환불이 불가합니다.</li>
                   <li>
                     • 당일 예약은{' '}
@@ -497,16 +559,26 @@ const BookingForm = () => {
           <div className="space-y-8 pt-8 border-t border-white/5">
             <div className="space-y-3">
                 <h4 className="text-sm font-bold text-white tracking-normal uppercase">예약 유의사항</h4>
-                {settings.bookingNotice ? (
-                  <div className="text-xs sm:text-sm text-white/70 space-y-2 leading-relaxed whitespace-pre-wrap font-medium">
-                    {settings.bookingNotice}
-                  </div>
-                ) : (
-                  <ul className="text-xs sm:text-sm text-white/70 space-y-1.5 list-disc pl-4 leading-relaxed font-medium">
-                      <li>예약 완료 즉시 입력하신 연락처로 안내해 드리며, 만약 연락처 정보를 잘못 입력하시거나 연락을 못받으신 경우 매장으로 연락해주세요.</li>
-                      <li>예약일 전날 밤 10시까지 입금안내와 매장 이용 안내 전달할 예정입니다. 당일 예약 후 반복하여 취소하시는 경우 향후 매장 이용에 제한이 생길 수 있습니다.</li>
-                  </ul>
-                )}
+                <div className="text-xs sm:text-sm text-white/75 space-y-3 leading-relaxed whitespace-pre-wrap font-medium p-4 sm:p-5 rounded-2xl bg-white/5 border border-white/10">
+                  {(() => {
+                    const noticeText = settings.bookingNotice || DEFAULT_ADMIN_SETTINGS.bookingNotice;
+                    const parts = noticeText.split(/(매장으로 연락)/g);
+                    return parts.map((part, i) => {
+                      if (part === '매장으로 연락') {
+                        return (
+                          <a 
+                            key={i} 
+                            href={contactPhone ? `tel:${contactPhone.replace(/[^0-9]/g, '')}` : '#'} 
+                            className="underline font-bold text-white hover:text-red-400 underline-offset-4 transition-colors"
+                          >
+                            매장으로 연락
+                          </a>
+                        );
+                      }
+                      return part;
+                    });
+                  })()}
+                </div>
             </div>
 
             <div ref={privacyRef} className="flex items-start gap-4 p-5 bg-white/5 rounded-2xl border border-white/10">
@@ -533,14 +605,14 @@ const BookingForm = () => {
             <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#161616]/95 backdrop-blur-md border-t border-white/10 z-50 md:relative md:p-0 md:bg-transparent md:border-none">
               <button 
                 type="submit"
-                disabled={loading}
-                className={`w-full py-4 font-bold rounded-xl text-sm md:text-base transition-all shadow-xl flex items-center justify-center gap-2 cursor-pointer ${
-                  isFormValid && !loading
-                      ? 'bg-white text-black hover:bg-neutral-200 active:scale-[0.99] shadow-black/50' 
+                disabled={loading || isSlotClosed}
+                className={`w-full py-4 font-bold rounded-xl text-sm md:text-base transition-all shadow-xl flex items-center justify-center gap-2 ${
+                  isFormValid && !loading && !isSlotClosed
+                      ? 'bg-white text-black hover:bg-neutral-200 active:scale-[0.99] shadow-black/50 cursor-pointer' 
                       : 'bg-white/5 text-white/20 cursor-not-allowed shadow-none'
                 }`}
               >
-                {loading ? '예약 처리 중...' : <><CheckCircle2 size={20} /> 예약 완료하기</>}
+                {loading ? '예약 처리 중...' : isSlotClosed ? '예약이 마감된 타임입니다' : <><CheckCircle2 size={20} /> 예약 완료하기</>}
               </button>
             </div>
           </div>

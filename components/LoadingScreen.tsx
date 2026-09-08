@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { isDummyOrInvalidUrl } from '../src/utils/imageUtils';
 
 interface LoadingScreenProps {
   logoUrl?: string | null;
@@ -10,8 +11,7 @@ const DEFAULT_LOGO = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object
 
 const isValidLogoUrl = (url?: string | null): boolean => {
   if (!url) return false;
-  if (url === '/logo.jpg' || url.includes('unsplash.com') || url.includes('picsum.photos')) return false;
-  return true;
+  return !isDummyOrInvalidUrl(url);
 };
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ logoUrl }) => {

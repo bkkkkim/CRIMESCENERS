@@ -2,10 +2,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { THEMES, STORES } from '../constants';
-import { ChevronRight, Users, Clock, MapPin, Filter, ArrowUpDown, Calendar as CalendarIcon, Search, X, Ticket, SearchCheck, ChevronDown } from 'lucide-react';
+import { ChevronRight, Users, Clock, MapPin, Filter, ArrowUpDown, Calendar as CalendarIcon, Search, X, Ticket, SearchCheck, ChevronDown, Sparkles } from 'lucide-react';
 import { Theme, Store, ClosedSlot, BookingData, AdminSettings } from '../types';
 import { dataService } from '../src/services/dataService';
 import { isWeekendOrHoliday } from '../src/utils/holiday';
+import { checkSlotAutoClosed } from '../src/utils/slotAvailability';
+import { getThrillerPosterSvg, isBrokenSupabaseUrl } from '../src/utils/imageUtils';
 import LoadingScreen from './LoadingScreen';
 
 const ThemeReservation = () => {
@@ -96,14 +98,15 @@ const ThemeReservation = () => {
         baseSlots = theme.customSlots || [];
       }
 
-      baseSlots.forEach(time => {
+      const filteredBaseSlots = baseSlots.filter(s => s);
+      filteredBaseSlots.forEach(time => {
         if (!time) return;
         
         // Check if theme is closed on this date/time
         const isClosed = closedSlots.some(cs => 
-          cs.themeId === theme.id && 
-          cs.date === selectedDate && 
-          (cs.time === 'all' || cs.time === time)
+          (!cs.themeId || cs.themeId === theme.id || cs.themeId === 'all') && 
+          cs.date?.trim() === selectedDate?.trim() && 
+          (cs.time === 'all' || cs.time?.trim() === time?.trim())
         );
         if (isClosed) return;
 
@@ -116,6 +119,9 @@ const ThemeReservation = () => {
         );
         const bookedPlayers = slotBookings.reduce((sum, b) => sum + b.participantCount, 0);
         const isCloseRequested = slotBookings.some(b => b.isCloseRequested);
+
+        const autoClose = checkSlotAutoClosed(selectedDate, time, filteredBaseSlots, bookedPlayers > 0);
+        if (autoClose.isAutoClosed) return;
         
         if (!isCloseRequested && bookedPlayers < theme.maxPlayers) {
           times.add(time);
@@ -166,13 +172,14 @@ const ThemeReservation = () => {
         } else {
           baseSlots = theme.customSlots || [];
         }
-        if (!baseSlots.includes(selectedTime)) return false;
+        const filteredBaseSlots = baseSlots.filter(s => s);
+        if (!filteredBaseSlots.includes(selectedTime)) return false;
         
         // Check if theme is closed on this date/time
         const isClosed = closedSlots.some(cs => 
-          cs.themeId === theme.id && 
-          cs.date === selectedDate && 
-          (cs.time === 'all' || cs.time === selectedTime)
+          (!cs.themeId || cs.themeId === theme.id || cs.themeId === 'all') && 
+          cs.date?.trim() === selectedDate?.trim() && 
+          (cs.time === 'all' || cs.time?.trim() === selectedTime?.trim())
         );
         if (isClosed) return false;
 
@@ -186,6 +193,9 @@ const ThemeReservation = () => {
         const bookedPlayers = slotBookings.reduce((sum, b) => sum + b.participantCount, 0);
         const isCloseRequested = slotBookings.some(b => b.isCloseRequested);
         
+        const autoClose = checkSlotAutoClosed(selectedDate, selectedTime, filteredBaseSlots, bookedPlayers > 0);
+        if (autoClose.isAutoClosed) return false;
+
         if (isCloseRequested || bookedPlayers >= theme.maxPlayers) {
           return false;
         }
@@ -440,11 +450,12 @@ const ThemeReservation = () => {
 
               const isDateAndTimeSelected = selectedDate && selectedTime;
 
-              const rawPoster = (theme.posterUrl && !theme.posterUrl.startsWith('/theme')) 
+              const posterFallback = getThrillerPosterSvg(theme.title);
+              const rawPoster = (theme.posterUrl && !theme.posterUrl.startsWith('/theme') && !isBrokenSupabaseUrl(theme.posterUrl)) 
                 ? theme.posterUrl 
-                : 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
+                : posterFallback;
 
-              const isBrandFallback = !theme.posterUrl || rawPoster.includes('1772555492065') || rawPoster.includes('brand/');
+              const isBrandFallback = rawPoster === posterFallback;
 
               return (
                 <div key={`${theme.id}-${index}`} className={`group flex flex-col mb-0 md:mb-0 ${isComingSoon ? 'opacity-60' : ''}`}>
@@ -458,14 +469,13 @@ const ThemeReservation = () => {
                       alt={theme.title} 
                       className={`w-full h-full transition-transform duration-700 ${
                         isBrandFallback 
-                          ? 'object-contain p-8 opacity-40' 
+                          ? 'object-cover' 
                           : 'object-cover group-hover:scale-110'
                       } ${isComingSoon ? 'grayscale opacity-50' : ''}`}
                       loading="lazy"
                       referrerPolicy="no-referrer"
                       onError={(e) => {
-                        e.currentTarget.src = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
-                        e.currentTarget.className = 'w-full h-full object-contain p-8 bg-[#1a1a1a] opacity-40';
+                        e.currentTarget.src = posterFallback;
                       }}
                     />
                     {isComingSoon && (
@@ -498,10 +508,24 @@ const ThemeReservation = () => {
                       <h3 className="text-2xl font-bold group-hover:text-white transition-colors flex items-center gap-2">
                         {theme.title}
                       </h3>
-                      <div className="flex items-center gap-2 text-white/60 text-sm font-bold">
-                        <span>{theme.price.toLocaleString()}원</span>
+                      <div className="flex items-center gap-2 text-sm font-bold flex-wrap">
+                        {settings?.advanceDepositDiscount?.enabled ? (
+                          <>
+                            <span className="text-white/40 text-xs font-medium line-through decoration-white/30">
+                              {theme.price.toLocaleString()}원
+                            </span>
+                            <span className="text-white font-bold text-sm">
+                              {(theme.price - settings.advanceDepositDiscount.discountAmount).toLocaleString()}원
+                            </span>
+                            <span className="text-[9px] font-bold bg-[#dc2626]/10 text-[#dc2626] border border-[#dc2626]/20 px-1 py-0.5 rounded uppercase tracking-wider leading-none shrink-0 whitespace-nowrap">
+                              선입금가
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-white/60 text-sm font-bold">{theme.price.toLocaleString()}원</span>
+                        )}
                         <span className="text-white/20">|</span>
-                        <span>1명</span>
+                        <span className="text-white/60 text-xs font-normal">1명</span>
                       </div>
                     </div>
                   

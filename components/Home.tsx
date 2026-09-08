@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { THEMES, INTRO_POINTS, STORE_INFO, DEFAULT_ADMIN_SETTINGS, STORES } from '../constants';
-import { Clock, Phone, MapPin, ChevronRight, Users, ChevronDown } from 'lucide-react';
+import { Clock, Phone, MapPin, ChevronRight, Users, ChevronDown, Sparkles } from 'lucide-react';
 import { Theme, AdminSettings, Store, HeroSlide, PopupSettings, IntroPoint } from '../types';
 import { motion } from 'framer-motion';
 import { dataService } from '../src/services/dataService';
@@ -88,6 +88,8 @@ const PopupModal = ({ settings, onClose }: { settings: PopupSettings, onClose: (
   );
 };
 
+import { BRAND_LOGO_SVG, getThrillerPosterSvg, isDummyOrInvalidUrl, isBrokenSupabaseUrl } from '../src/utils/imageUtils';
+
 const BRAND_LOGO_URL = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
 
 const HeroSlideBackground = ({ 
@@ -104,8 +106,8 @@ const HeroSlideBackground = ({
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  const isBrandLogo = !imageUrl || imageUrl.includes('1772555492065') || imageUrl.includes('brand/') || imageUrl === BRAND_LOGO_URL;
-  const hasValidCustomImage = Boolean(imageUrl && !isBrandLogo && !imageError);
+  const isInvalid = !imageUrl || isDummyOrInvalidUrl(imageUrl) || imageError;
+  const hasValidCustomImage = Boolean(imageUrl && !isInvalid);
 
   return (
     <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#181818] via-[#121212] to-[#0a0a0a] overflow-hidden flex items-center justify-center">
@@ -142,9 +144,9 @@ const HeroSlideBackground = ({
         /* Refined Brand Logo Placeholder (PC & Mobile proportional) */
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
           <img 
-            src={BRAND_LOGO_URL} 
+            src={BRAND_LOGO_SVG} 
             alt="Crime Sceners" 
-            className="w-auto h-12 sm:h-16 md:h-20 max-w-[160px] sm:max-w-[220px] md:max-w-[280px] object-contain opacity-25 transform -translate-y-6"
+            className="w-auto h-12 sm:h-16 md:h-20 max-w-[180px] sm:max-w-[240px] md:max-w-[300px] object-contain opacity-40 transform -translate-y-4"
             loading={isFirst ? "eager" : "lazy"}
             decoding="async"
             referrerPolicy="no-referrer"
@@ -317,7 +319,7 @@ const IntroSection = ({ points, title, description, legacyImages }: { points: In
           {displayPoints.map((point, i) => (
             <div key={`home-point-${i}`} className="mobile-snap-item-2-5 group flex-shrink-0 flex flex-col">
               <div className="overflow-hidden rounded-[24px] md:rounded-[32px] mb-4 md:mb-6 aspect-square md:aspect-[4/5] border border-white/5 bg-[#1a1a1a] shrink-0 relative">
-                {point.imageUrl ? (
+                {point.imageUrl && !isBrokenSupabaseUrl(point.imageUrl) ? (
                   <img 
                     src={point.imageUrl} 
                     alt={point.title} 
@@ -325,11 +327,15 @@ const IntroSection = ({ points, title, description, legacyImages }: { points: In
                     loading="lazy"
                     referrerPolicy="no-referrer"
                     onError={(e) => {
-                      e.currentTarget.src = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
-                      e.currentTarget.className = 'w-full h-full object-contain p-8 opacity-40 animate-pulse';
+                      e.currentTarget.style.display = 'none';
                     }}
                   />
-                ) : null}
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-[#181818] border border-white/5">
+                    <span className="text-[#dc2626] font-bold text-xs tracking-widest uppercase mb-2">SCENERS</span>
+                    <span className="text-white/80 font-bold text-sm">{point.title}</span>
+                  </div>
+                )}
               </div>
               <div className="text-left flex-grow">
                 <h3 className="text-lg md:text-xl font-bold mb-2 md:mb-3 tracking-tight whitespace-nowrap md:whitespace-normal">{point.title}</h3>
@@ -345,7 +351,7 @@ const IntroSection = ({ points, title, description, legacyImages }: { points: In
   );
 };
 
-const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] }) => {
+const PopularThemes = ({ themes, stores, settings }: { themes: Theme[], stores: Store[], settings?: AdminSettings }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const displayThemes = themes.filter(t => t.showOnMain !== false);
   
@@ -425,11 +431,12 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                 const isComingSoon = isExpired || (isFuture && mode === 'coming_soon');
                 const isOpenFuture = isFuture && mode === 'open_calendar' && (theme.showDDay ?? true);
 
-                const rawPoster = (theme.posterUrl && !theme.posterUrl.startsWith('/theme')) 
+                const posterFallback = getThrillerPosterSvg(theme.title);
+                const rawPoster = (theme.posterUrl && !theme.posterUrl.startsWith('/theme') && !isBrokenSupabaseUrl(theme.posterUrl)) 
                   ? theme.posterUrl 
-                  : 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
+                  : posterFallback;
 
-                const isBrandFallback = !theme.posterUrl || rawPoster.includes('1772555492065') || rawPoster.includes('brand/');
+                const isBrandFallback = rawPoster === posterFallback;
 
                 return (
                   <Link 
@@ -451,14 +458,13 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                         alt={theme.title} 
                         className={`w-full h-full transition-transform duration-1000 ${
                           isBrandFallback 
-                            ? 'object-contain p-8 opacity-40' 
+                            ? 'object-cover' 
                             : 'object-cover group-hover:scale-110'
                         } ${isComingSoon ? 'grayscale opacity-50' : ''}`}
                         loading="lazy"
                         referrerPolicy="no-referrer"
                         onError={(e) => {
-                          e.currentTarget.src = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
-                          e.currentTarget.className = 'w-full h-full object-contain p-8 bg-[#1a1a1a] opacity-40';
+                          e.currentTarget.src = posterFallback;
                         }}
                       />
                       {isComingSoon && (
@@ -488,10 +494,24 @@ const PopularThemes = ({ themes, stores }: { themes: Theme[], stores: Store[] })
                         {theme.title}
                       </h3>
                       <div className="flex flex-col gap-4">
-                        <div className="flex items-center gap-2 text-white/60 text-sm font-bold">
-                          <span>{theme.price.toLocaleString()}원</span>
+                        <div className="flex items-center gap-2 text-sm font-bold flex-wrap">
+                          {settings?.advanceDepositDiscount?.enabled ? (
+                            <>
+                              <span className="text-white/40 text-xs font-medium line-through decoration-white/30">
+                                {theme.price.toLocaleString()}원
+                              </span>
+                              <span className="text-white font-bold text-sm">
+                                {(theme.price - settings.advanceDepositDiscount.discountAmount).toLocaleString()}원
+                              </span>
+                              <span className="text-[9px] font-bold bg-[#dc2626]/10 text-[#dc2626] border border-[#dc2626]/20 px-1 py-0.5 rounded uppercase tracking-wider leading-none shrink-0 whitespace-nowrap">
+                                선입금가
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-white/60 text-sm font-bold">{theme.price.toLocaleString()}원</span>
+                          )}
                           <span className="text-white/20">|</span>
-                          <span>1명</span>
+                          <span className="text-white/60 text-xs font-normal">1명</span>
                         </div>
                         
                         <div className="flex flex-wrap gap-4 text-[10px] font-medium tracking-normal uppercase text-white/40">
@@ -707,7 +727,7 @@ const Home = () => {
         title={settings.homeConfig?.introTitle || ''}
         description={settings.homeConfig?.introDescription || ''}
       />
-      <PopularThemes themes={themes} stores={stores} />
+      <PopularThemes themes={themes} stores={stores} settings={settings} />
       <StoreSection stores={stores} />
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }

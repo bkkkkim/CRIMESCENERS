@@ -1,135 +1,83 @@
 
 import { Theme, AdminSettings, Notice, Store } from './types';
+import { getThrillerPosterSvg } from './src/utils/imageUtils';
 
 export const THEMES: Theme[] = [
   {
     id: 'theme-1',
     title: '박수무당 살인사건',
-    posterUrl: 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp',
-    synopsis: '신비로운 무당의 집에서 벌어진 참혹한 살인사건. 당신은 이 미스터리를 풀고 범인을 잡을 수 있을 것인가?',
-    minPlayers: 4,
-    maxPlayers: 5,
-    duration: 100,
-    difficulty: 4,
-    fearLevel: 3,
-    price: 28000,
-    storeId: 'store-1',
-    customSlots: ['10:00', '12:30', '15:00', '17:30', '20:00'],
-    weekdaySlots: ['20:00'],
-    useSeparateWeekdaySlots: true,
-    showOnMain: true,
-    isComingSoon: false,
-    useSuspects: true,
-    suspects: [
-      {
-        id: 'suspect-1',
-        name: '강도령',
-        age: '28세',
-        gender: '남',
-        job: '박수무당 (피해자의 수제자)',
-        imageUrl: '',
-        description: '피해자 밑에서 5년간 신내림을 받고 무속 수련을 해온 제자. 최근 스승과 금전 문제로 잦은 다툼이 있었다.'
-      },
-      {
-        id: 'suspect-2',
-        name: '윤선녀',
-        age: '45세',
-        gender: '여',
-        job: '무속인 (경쟁 신당 원장)',
-        imageUrl: '',
-        description: '인근에서 가장 큰 신당을 운영하며 피해자와 오랜 기간 영적 라이벌 구도를 형성해 온 무속인.'
-      },
-      {
-        id: 'suspect-3',
-        name: '한재벌',
-        age: '53세',
-        gender: '남',
-        job: '대기업 임원 (단골 신도)',
-        imageUrl: '',
-        description: '거액의 복채를 내며 피해자에게 집안의 흉사를 상담해오던 VIP 고객. 최근 굿판의 효험에 불만을 품고 있었다.'
-      },
-      {
-        id: 'suspect-4',
-        name: '송기자',
-        age: '33세',
-        gender: '남',
-        job: '탐사보도 기자',
-        imageUrl: '',
-        description: '사이비 무속 사기 및 불법 부적 유통 실태를 취재 중이던 기자. 사건 당일 신당 주변에서 잠복 중이었다.'
-      },
-      {
-        id: 'suspect-5',
-        name: '배청소',
-        age: '61세',
-        gender: '여',
-        job: '신당 관리인',
-        imageUrl: '',
-        description: '신당의 청소와 잔심부름을 도맡아 하던 관리인. 신당 내부 사정과 신도들의 출입을 가장 잘 알고 있는 인물.'
-      }
-    ]
-  },
-  {
-    id: 'theme-2',
-    title: '미대생 살인사건',
-    posterUrl: 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp',
-    synopsis: '화려한 예술의 이면에 숨겨진 어두운 진실. 미대 작업실에서 발견된 사체와 얽히고설킨 인물들.',
+    posterUrl: 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/themes/1786496436467-zga0ai.webp',
+    synopsis: '"가짜였어! 월광이 가짜라서 신들이 노한 거야!"\n\n전라남도 사기군 비오면 대지리. 큰 비가 오면 다리가 끊겨 세상과 단절되는 외딴 산골 마을입니다. 일주일 전부터 원인 모를 역병이 돌기 시작했고, 마을의 박수무당 \'월광\'은 마을 전체의 명운을 건 \'대동굿\'을 선언했습니다. 그리고 굿 첫날 밤이 지난 아침, 그는 자신의 신당에서 처참하게 살해된 채 발견됩니다. 무당의 죽음으로 마을 전체가 패닉에 휩싸였습니다. 사건 당일 밤 신당 주변에 있었던 다섯 사람이 유력한 용의자로 지목되었습니다.',
     minPlayers: 5,
     maxPlayers: 6,
-    duration: 120,
-    difficulty: 5,
+    duration: 150,
+    difficulty: 4,
     fearLevel: 2,
-    price: 32000,
-    storeId: 'store-1',
-    customSlots: ['10:30', '13:00', '15:30', '18:00', '20:30'],
-    weekdaySlots: ['20:00'],
+    price: 40000,
+    storeId: 'store-1772805211062',
+    startDate: '2026-09-01',
+    endDate: '2027-02-28',
+    customSlots: ['09:40', '12:20', '15:00', '17:40', '20:20'],
+    weekdaySlots: ['12:20', '15:00', '17:40', '20:20'],
     useSeparateWeekdaySlots: true,
     showOnMain: true,
+    showDDay: false,
+    futureDisplayMode: 'open_calendar',
     useSuspects: true,
     suspects: [
       {
-        id: 'suspect-2-1',
-        name: '민서우',
-        age: '23세',
+        id: 'suspect-1786688103078',
+        name: '탐정',
+        age: '?',
+        gender: '?',
+        job: '탐정',
+        imageUrl: 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/suspects/1786688111474-4hze8x.webp',
+        description: '사건을 맡은 탐정'
+      },
+      {
+        id: 'suspect-1786685668281',
+        name: '최무녀',
+        age: '20세',
         gender: '여',
-        job: '회화과 4학년 (피해자의 동기)',
-        imageUrl: '',
-        description: '졸업 전시회 대상 후보로 피해자와 치열하게 경쟁하던 수석 학생.'
+        job: '무속인',
+        imageUrl: 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/suspects/1786685876511-grb4li.webp',
+        description: '무당의 신딸'
       },
       {
-        id: 'suspect-2-2',
-        name: '정하진',
-        age: '26세',
+        id: 'suspect-1786685982305',
+        name: '김경위',
+        age: '42세',
         gender: '남',
-        job: '조소과 대학원생 (조교)',
-        imageUrl: '',
-        description: '작업실 열쇠를 관리하던 실습실 조교. 피해자와 사적인 비밀을 공유하고 있었다.'
+        job: '경찰',
+        imageUrl: 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/suspects/1786685985515-rmjiib.webp',
+        description: '대지리 파출소 경찰'
       },
       {
-        id: 'suspect-2-3',
-        name: '강도일',
-        age: '50세',
+        id: 'suspect-1786686020634',
+        name: '조신부',
+        age: '52세',
         gender: '남',
-        job: '미술대학 학과장 교수',
-        imageUrl: '',
-        description: '피해자의 지도교수이자 화단의 거물. 대작 논란과 공모전 비리 의혹에 휩싸여 있다.'
+        job: '성직자',
+        imageUrl: 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/suspects/1786686026486-o1tyrm.webp',
+        description: '가톨릭 신부'
       },
       {
-        id: 'suspect-2-4',
-        name: '이수빈',
-        age: '22세',
+        id: 'suspect-1786686222682',
+        name: '컬렉리',
+        age: '39세',
+        gender: '남',
+        job: '사업가',
+        imageUrl: 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/suspects/1786686227919-xkuhhu.webp',
+        description: '골동품 수집가'
+      },
+      {
+        id: 'suspect-1786686864667',
+        name: '박기자',
+        age: '35세',
         gender: '여',
-        job: '조예과 3학년 (피해자의 후배)',
-        imageUrl: '',
-        description: '피해자의 작업을 도와주던 어시스턴트 후배. 사건 전날 큰 소리로 다투는 모습이 목격되었다.'
-      },
-      {
-        id: 'suspect-2-5',
-        name: '최유찬',
-        age: '24세',
-        gender: '남',
-        job: '타과생 (피해자의 전 연인)',
-        imageUrl: '',
-        description: '피해자와 최근 결별한 전 남자친구. 사건 당일 작업실 복도 CCTV에 찍혔다.'
+        job: '기자',
+        imageUrl: 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/suspects/1786686871916-0f28i.webp',
+        description: '언론사의 기자'
       }
     ]
   }
@@ -203,31 +151,39 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
     heroImageUrl: '',
     heroSlides: [
       {
-        id: '1',
-        imageUrl: '',
-        title: 'CRIME SCENERS',
-        subtitle: '사건 현장에 있는 우리 모두 SCENERS 입니다.',
-        buttonText: '지금 예약하기',
-        buttonLink: '/theme/theme-1'
+        id: '1774783986199',
+        title: '9월 1일 오픈!',
+        imageUrl: 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/home/1774783995611-pplo8t.webp',
+        subtitle: '현재 예약 가능합니다. 곧 뵙겠습니다!',
+        buttonLink: '/info',
+        buttonText: '이용 안내'
+      },
+      {
+        id: '1774783770396',
+        title: 'SCENERS ?',
+        imageUrl: 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/home/1786455238812-2j9y.webp',
+        subtitle: '사건현장의 우리는 SCENERS 입니다.',
+        buttonLink: '/theme/theme-1',
+        buttonText: '지금 예약하기'
       }
     ],
     introTitle: 'CRIME SCENERS?',
     introDescription: '스릴러 매니아들이 설계한 몰입형 추리 게임 카페\n\'크라임 씨너스\' 에 오신것을 환영합니다!',
     introPoints: [
       {
+        title: '완벽한 역할 몰입',
+        imageUrl: 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/home/1786533300243-qovweq.webp',
+        description: '사전 롤카드 제공 및 150분의 긴 플레이 시간'
+      },
+      {
+        title: '프라이빗 사건 현장',
+        imageUrl: 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/home/1786449717257-zn6bk.webp',
+        description: '오직 한 팀만을 위한 100% 예약제 공간'
+      },
+      {
         title: '탄탄한 시나리오',
-        description: '씨네마광 공대박사의 탄탄한 시나리오',
-        imageUrl: ''
-      },
-      {
-        title: '몰입도 높은 현장',
-        description: '미대생 출신이 직접 연출한 크라임씬',
-        imageUrl: ''
-      },
-      {
-        title: '다양한 롤플레잉',
-        description: '각기 다른 사연과 비밀을 가진 캐릭터들',
-        imageUrl: ''
+        imageUrl: 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/home/1786533304782-mcnjckj.webp',
+        description: '시네마에 미친 사람이 작업한 단 하나의 사건'
       }
     ]
   },
@@ -236,11 +192,22 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
     imageUrl: '',
     linkUrl: ''
   },
-  bookingNotice: `[예약 및 환불 규정]
-- 예약금 입금 후 예약이 확정됩니다.
-- 이용일 3일 전 취소 시 100% 환불
-- 이용일 2일 전 취소 시 50% 환불
-- 이용일 1일 전 및 당일 취소 시 환불 불가`,
+  bookingNotice: `• 환불 관련 정책
+이용 2일 전(전전날 24:00까지) : 100% 환불
+이용 1일 전(전날 24:00까지) : 50% 환불
+이용 당일/노쇼: 환불 불가
+
+기한 내 예약 취소 후 환불을 원하시는 고객님께서는 매장으로 연락 부탁드립니다.
+환불 요청 접수 후, 1~2일 이내로 처리해 드립니다.
+
+• 오픈 예약(타인 매칭) 규정 관련
+당일 타인의 결원으로 인해 최소 인원(5인) 미달로 게임이 무산될 경우, 결원 외 고객님께 100% 전액 환불해 드립니다. (결원 당사자는 환불 불가)
+결원 발생 시, 지인 대타 초청 가능하나, 매장에서 임의로 인원을 매칭해드리지 않습니다.
+
+• 사전 롤카드 관련
+- 원할한 게임을 위해 사전 롤카드 신청 고객은 함께 플레이하실 고객분들과 사전에 플레이 역할을 정해주세요.
+- 예약 전날 발송되는 문자에 정해진 역할별 고객 이메일주소들을 회신해주시면 롤카드를 발송해드립니다.
+- 오픈 예약(타인 매칭)으로 예약 확정된 팀에서는 먼저 예약하신 고객 순으로 역할을 정할 기회를 드립니다. 순차적으로 모든 롤 배정이 끝나면 플레이어 메일로 롤카드를 발송해 드립니다.`,
   reservationLandingUrl: '/theme/theme-1',
   advanceDepositDiscount: {
     enabled: true,

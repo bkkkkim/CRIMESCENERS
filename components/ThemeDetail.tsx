@@ -3,12 +3,41 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { THEMES, DEFAULT_ADMIN_SETTINGS, STORES } from '../constants';
 import { isWeekendOrHoliday } from '../src/utils/holiday';
+import { checkSlotAutoClosed } from '../src/utils/slotAvailability';
+import { getThrillerPosterSvg, isBrokenSupabaseUrl } from '../src/utils/imageUtils';
 import { Calendar as CalendarIcon, Clock, Users, ArrowLeft, ChevronLeft, ChevronRight, MapPin, X, Info, UserCheck, ExternalLink } from 'lucide-react';
 import { AdminSettings, Theme, ClosedSlot, BookingData, Store } from '../types';
 import { dataService } from '../src/services/dataService';
 import LoadingScreen from './LoadingScreen';
 import SuspectModal from './SuspectModal';
 import { motion, AnimatePresence } from 'framer-motion';
+
+// Normalizes date string to YYYY-MM-DD format
+const normalizeDate = (d?: string): string => {
+  if (!d) return '';
+  const clean = String(d).trim().replace(/[\.\/]/g, '-');
+  const parts = clean.split('-');
+  if (parts.length === 3) {
+    const y = parts[0];
+    const m = parts[1].padStart(2, '0');
+    const day = parts[2].padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+  return clean;
+};
+
+// Normalizes time string to HH:mm format
+const normalizeTime = (t?: string): string => {
+  if (!t) return '';
+  const clean = String(t).trim();
+  const parts = clean.split(':');
+  if (parts.length >= 2) {
+    const h = parts[0].padStart(2, '0');
+    const m = parts[1].padStart(2, '0');
+    return `${h}:${m}`;
+  }
+  return clean;
+};
 
 const ThemeDetail = () => {
   const { id } = useParams();
@@ -174,13 +203,24 @@ const ThemeDetail = () => {
         baseSlots = theme.customSlots || [];
       }
       
-      const daySlots = baseSlots.filter(s => s).map(slot => {
-        const slotBookings = bookings.filter(b => b.themeId === theme.id && b.date === dateStr && b.time === slot && b.status !== 'cancelled');
-        const currentParticipants = slotBookings.reduce((sum, b) => sum + b.participantCount, 0);
-        const isClosedByAdmin = closedSlots.some(cs => cs.themeId === theme.id && cs.date === dateStr && cs.time === slot);
-        const isClosedByRequest = slotBookings.some(b => b.isCloseRequested);
+      const filteredBaseSlots = baseSlots.filter(s => s);
+      const daySlots = filteredBaseSlots.map(slot => {
+        const slotBookings = bookings.filter(b => 
+          b.themeId === theme.id && 
+          normalizeDate(b.date) === normalizeDate(dateStr) && 
+          normalizeTime(b.time) === normalizeTime(slot) && 
+          b.status !== 'cancelled'
+        );
+        const currentParticipants = slotBookings.reduce((sum, b) => sum + (Number(b.participantCount) || 0), 0);
+        const isClosedByAdmin = closedSlots.some(cs => 
+          (!cs.themeId || cs.themeId === theme.id || cs.themeId === 'all') && 
+          normalizeDate(cs.date) === normalizeDate(dateStr) && 
+          (cs.time === 'all' || normalizeTime(cs.time) === normalizeTime(slot))
+        );
+        const isClosedByRequest = slotBookings.some(b => b.isCloseRequested === true || String(b.isCloseRequested).toLowerCase() === 'true');
         const isFull = currentParticipants >= theme.maxPlayers;
-        return { isAvailable: !isClosedByAdmin && !isClosedByRequest && !isFull };
+        const autoClose = checkSlotAutoClosed(dateStr, slot, filteredBaseSlots, currentParticipants > 0);
+        return { isAvailable: !isClosedByAdmin && !isClosedByRequest && !isFull && !autoClose.isAutoClosed };
       });
 
       const isAllFull = daySlots.length > 0 && daySlots.every(s => !s.isAvailable);
@@ -217,15 +257,26 @@ const ThemeDetail = () => {
       baseSlots = theme.customSlots || [];
     }
     
-    return baseSlots.filter(s => s).map(slot => {
-      const slotBookings = bookings.filter(b => b.themeId === theme.id && b.date === dateStr && b.time === slot && b.status !== 'cancelled');
-      const currentParticipants = slotBookings.reduce((sum, b) => sum + b.participantCount, 0);
-      const isClosedByAdmin = closedSlots.some(cs => cs.themeId === theme.id && cs.date === dateStr && cs.time === slot);
-      const isClosedByRequest = slotBookings.some(b => b.isCloseRequested);
+    const filteredBaseSlots = baseSlots.filter(s => s);
+    return filteredBaseSlots.map(slot => {
+      const slotBookings = bookings.filter(b => 
+        b.themeId === theme.id && 
+        normalizeDate(b.date) === normalizeDate(dateStr) && 
+        normalizeTime(b.time) === normalizeTime(slot) && 
+        b.status !== 'cancelled'
+      );
+      const currentParticipants = slotBookings.reduce((sum, b) => sum + (Number(b.participantCount) || 0), 0);
+      const isClosedByAdmin = closedSlots.some(cs => 
+        (!cs.themeId || cs.themeId === theme.id || cs.themeId === 'all') && 
+        normalizeDate(cs.date) === normalizeDate(dateStr) && 
+        (cs.time === 'all' || normalizeTime(cs.time) === normalizeTime(slot))
+      );
+      const isClosedByRequest = slotBookings.some(b => b.isCloseRequested === true || String(b.isCloseRequested).toLowerCase() === 'true');
       const isFull = currentParticipants >= theme.maxPlayers;
+      const autoClose = checkSlotAutoClosed(dateStr, slot, filteredBaseSlots, currentParticipants > 0);
       const notesList = slotBookings.map(b => b.notes).filter(n => n && n.trim()) as string[];
       
-      const isAvailable = !isClosedByAdmin && !isClosedByRequest && !isFull;
+      const isAvailable = !isClosedByAdmin && !isClosedByRequest && !isFull && !autoClose.isAutoClosed;
       
       return { 
         time: slot, 
@@ -233,6 +284,9 @@ const ThemeDetail = () => {
         currentParticipants, 
         isClosedByAdmin, 
         isClosedByRequest,
+        isAutoClosed: autoClose.isAutoClosed,
+        autoCloseReason: autoClose.reason,
+        autoCloseType: autoClose.type,
         isFull,
         notesList
       };
@@ -515,16 +569,18 @@ const ThemeDetail = () => {
 
           <div className="relative aspect-[2/3] overflow-hidden rounded-xl md:rounded-2xl shadow-2xl mt-6 md:mt-12 mb-8 md:mb-12 border border-white/5 bg-[#1a1a1a] flex items-center justify-center">
             {(() => {
-              const rawPoster = (theme.posterUrl && !theme.posterUrl.startsWith('/theme')) ? theme.posterUrl : 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
-              const isBrandFallback = !theme.posterUrl || rawPoster.includes('1772555492065') || rawPoster.includes('brand/');
+              const posterFallback = getThrillerPosterSvg(theme.title);
+              const rawPoster = (theme.posterUrl && !theme.posterUrl.startsWith('/theme') && !isBrokenSupabaseUrl(theme.posterUrl)) 
+                ? theme.posterUrl 
+                : posterFallback;
+              const isBrandFallback = rawPoster === posterFallback;
               return (
                 <img 
                   src={rawPoster} 
                   alt={theme.title} 
-                  className={`w-full h-full ${isBrandFallback ? 'object-contain p-12 opacity-40' : 'object-cover'}`} 
+                  className={`w-full h-full ${isBrandFallback ? 'object-cover' : 'object-cover'}`} 
                   onError={(e) => {
-                    e.currentTarget.src = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
-                    e.currentTarget.className = 'w-full h-full object-contain p-12 bg-[#1a1a1a] opacity-40';
+                    e.currentTarget.src = posterFallback;
                   }}
                 />
               );
@@ -592,26 +648,35 @@ const ThemeDetail = () => {
                     <button
                       key={`slot-${dateStr}-${slotInfo.time}-${index}`}
                       disabled={!slotInfo.isAvailable}
-                      onClick={() => navigate(`/booking/${theme.id}/${dateStr}/${slotInfo.time}`)}
+                      onClick={() => {
+                        if (!slotInfo.isAvailable) return;
+                        navigate(`/booking/${theme.id}/${dateStr}/${slotInfo.time}`);
+                      }}
                       className={`w-full p-6 border rounded-2xl transition-all flex justify-between items-center group ${
                         slotInfo.isAvailable 
                         ? 'border-white/10 hover:border-white hover:bg-white/5 cursor-pointer' 
-                        : 'border-white/5 opacity-20 cursor-not-allowed'
+                        : 'border-white/5 opacity-30 cursor-not-allowed bg-white/[0.02]'
                       }`}
                     >
                       <div className="flex flex-col items-start gap-1">
-                        <span className={`text-2xl font-bold font-en ${slotInfo.isAvailable ? 'group-hover:translate-x-2 transition-transform' : ''}`}>{slotInfo.time}</span>
+                        <span className={`text-2xl font-bold font-en ${slotInfo.isAvailable ? 'group-hover:translate-x-2 transition-transform' : 'text-white/40'}`}>{slotInfo.time}</span>
                         {slotInfo.isAvailable && slotInfo.currentParticipants > 0 && (
                           <span className="text-[10px] font-bold text-[#dc2626] tracking-normal uppercase font-en bg-[#dc2626]/10 px-2 py-0.5 rounded">
                             {slotInfo.currentParticipants}/{theme.maxPlayers}명 Booked
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-medium tracking-normal uppercase font-en">
-                          {slotInfo.isAvailable ? 'Available' : (slotInfo.isFull ? 'Full' : 'Closed')}
+                      <div className="flex items-center justify-end gap-2 text-right">
+                        <span className={`text-xs font-bold tracking-wider uppercase font-en text-right ${slotInfo.isAvailable ? 'text-white' : 'text-white/20'}`}>
+                          {slotInfo.isAvailable 
+                            ? 'AVAILABLE' 
+                            : (slotInfo.currentParticipants >= theme.maxPlayers || slotInfo.isFull ? 'FULL' : 'CLOSED')}
                         </span>
-                        {slotInfo.isAvailable && <ChevronRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity" />}
+                        <span className="w-4 h-4 flex items-center justify-center shrink-0">
+                          {slotInfo.isAvailable && (
+                            <ChevronRight size={16} className="text-white/40 group-hover:text-white group-hover:translate-x-0.5 transition-all opacity-0 group-hover:opacity-100" />
+                          )}
+                        </span>
                       </div>
                     </button>
                   );

@@ -150,9 +150,9 @@ const AdminDashboard = () => {
     }
   };
 
-  const toggleClosure = (date: string, themeId: string, time: string) => {
+  const toggleClosure = async (date: string, themeId: string, time: string) => {
     const exists = closedSlots.find(c => c.date === date && c.themeId === themeId && c.time === time);
-    let updated;
+    let updated: ClosedSlot[];
     if (exists) {
       updated = closedSlots.filter(c => !(c.date === date && c.themeId === themeId && c.time === time));
     } else {
@@ -160,19 +160,35 @@ const AdminDashboard = () => {
     }
     setClosedSlots(updated);
     setIsDirty(true);
+    try {
+      await dataService.saveClosedSlots(updated);
+    } catch (e) {
+      console.error("Failed to auto-save closed slots:", e);
+    }
   };
 
-  const handleBatchCloseDate = (date: string, themeId: string, timesToClose: string[]) => {
+  const handleBatchCloseDate = async (date: string, themeId: string, timesToClose: string[]) => {
     const otherClosed = closedSlots.filter(c => !(c.date === date && c.themeId === themeId));
     const newClosures = timesToClose.map(time => ({ date, themeId, time }));
-    setClosedSlots([...otherClosed, ...newClosures]);
+    const updated = [...otherClosed, ...newClosures];
+    setClosedSlots(updated);
     setIsDirty(true);
+    try {
+      await dataService.saveClosedSlots(updated);
+    } catch (e) {
+      console.error("Failed to auto-save batch closed slots:", e);
+    }
   };
 
-  const handleBatchOpenDate = (date: string, themeId: string) => {
+  const handleBatchOpenDate = async (date: string, themeId: string) => {
     const otherClosed = closedSlots.filter(c => !(c.date === date && c.themeId === themeId));
     setClosedSlots(otherClosed);
     setIsDirty(true);
+    try {
+      await dataService.saveClosedSlots(otherClosed);
+    } catch (e) {
+      console.error("Failed to auto-save batch open slots:", e);
+    }
   };
 
   const NavButton = ({ id, icon: Icon, label }: { id: typeof activeTab, icon: any, label: string }) => (

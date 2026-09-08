@@ -18,7 +18,21 @@ const SITE_CONTENT_KEYS = {
 
 // LocalStorage + In-memory cache for instant loading & network resilience
 const cache: Record<string, { data: any; timestamp: number }> = {};
-const CACHE_TTL = 600000; // 10 minutes
+const CACHE_TTL = 60000; // 1 minute fresh cache
+
+// Purge any stale cache from earlier outages
+if (typeof window !== 'undefined' && window.localStorage) {
+  try {
+    const stored = localStorage.getItem('cs_cache_settings');
+    if (stored && (stored.includes('data:image/svg') || stored.includes('data:image%2Fsvg'))) {
+      localStorage.removeItem('cs_cache_settings');
+      localStorage.removeItem('cs_cache_themes');
+      localStorage.removeItem('cs_cache_stores');
+    }
+  } catch {
+    // ignore
+  }
+}
 
 const getCachedData = (key: string) => {
   const cached = cache[key];
@@ -55,7 +69,7 @@ const setCachedData = (key: string, data: any) => {
 };
 
 // Timeout helper to avoid infinite hanging if Supabase API slows down or fails
-const queryWithTimeout = async <T>(promise: PromiseLike<T>, timeoutMs = 3500): Promise<T | null> => {
+const queryWithTimeout = async <T>(promise: PromiseLike<T>, timeoutMs = 4000): Promise<T | null> => {
   let timeoutId: any;
   const timeoutPromise = new Promise<null>((resolve) => {
     timeoutId = setTimeout(() => resolve(null), timeoutMs);
@@ -70,66 +84,60 @@ const queryWithTimeout = async <T>(promise: PromiseLike<T>, timeoutMs = 3500): P
   }
 };
 
+import { BRAND_LOGO_SVG, getThrillerPosterSvg, isDummyOrInvalidUrl } from '../utils/imageUtils';
+
 const BRAND_DEFAULT_IMAGE = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
 
 const isUnsplashOrDummy = (url?: string | null) => {
-  if (!url) return true;
-  return url.includes('unsplash.com') || url.includes('picsum.photos') || url === '/logo.jpg' || url === '/hero.jpg';
+  return isDummyOrInvalidUrl(url);
 };
 
 const sanitizeImageUrl = (url?: string | null, fallback: string = BRAND_DEFAULT_IMAGE): string => {
-  if (isUnsplashOrDummy(url)) return fallback;
+  if (isDummyOrInvalidUrl(url)) return fallback;
   return url!;
 };
 
 export const dataService = {
   // --- Site Contents (Settings, Themes, etc.) ---
   getSettings: async (): Promise<AdminSettings> => {
-    const cached = getCachedData(SITE_CONTENT_KEYS.SETTINGS);
-    
-    // Background fetch helper
-    const fetchLatest = async () => {
-      try {
-        const res = await queryWithTimeout(
-          supabase
-            .from('site_contents')
-            .select('value')
-            .eq('key', SITE_CONTENT_KEYS.SETTINGS)
-            .single()
-        );
-        const data = res?.data;
-        const error = res?.error;
-        const rawResult = (error || !data) ? DEFAULT_ADMIN_SETTINGS : data.value as AdminSettings;
+    try {
+      const res = await queryWithTimeout(
+        supabase
+          .from('site_contents')
+          .select('value')
+          .eq('key', SITE_CONTENT_KEYS.SETTINGS)
+          .single()
+      );
+      const data = res?.data;
+      const error = res?.error;
+      
+      if (!error && data?.value) {
+        const rawResult = data.value as AdminSettings;
         const result: AdminSettings = {
           ...rawResult,
-          logoUrl: sanitizeImageUrl(rawResult.logoUrl, BRAND_DEFAULT_IMAGE),
+          logoUrl: rawResult.logoUrl || BRAND_DEFAULT_IMAGE,
           homeConfig: rawResult.homeConfig ? {
             ...rawResult.homeConfig,
-            heroImageUrl: isUnsplashOrDummy(rawResult.homeConfig.heroImageUrl) ? '' : rawResult.homeConfig.heroImageUrl,
+            heroImageUrl: rawResult.homeConfig.heroImageUrl || '',
             heroSlides: (rawResult.homeConfig.heroSlides || []).map(s => ({
               ...s,
-              imageUrl: isUnsplashOrDummy(s.imageUrl) ? '' : s.imageUrl
+              imageUrl: s.imageUrl || ''
             })),
             introPoints: (rawResult.homeConfig.introPoints || []).map(p => ({
               ...p,
-              imageUrl: isUnsplashOrDummy(p.imageUrl) ? '' : p.imageUrl
+              imageUrl: p.imageUrl || ''
             }))
           } : rawResult.homeConfig
         };
         setCachedData(SITE_CONTENT_KEYS.SETTINGS, result);
         return result;
-      } catch {
-        return cached || DEFAULT_ADMIN_SETTINGS;
       }
-    };
-
-    if (cached) {
-      // Trigger background revalidation
-      fetchLatest();
-      return cached;
+    } catch (e) {
+      console.warn("Failed to fetch fresh settings from Supabase, falling back to cache", e);
     }
 
-    return await fetchLatest();
+    const cached = getCachedData(SITE_CONTENT_KEYS.SETTINGS);
+    return cached || DEFAULT_ADMIN_SETTINGS;
   },
   saveSettings: async (settings: AdminSettings) => {
     setCachedData(SITE_CONTENT_KEYS.SETTINGS, settings);
@@ -140,37 +148,31 @@ export const dataService = {
   },
 
   getThemes: async (): Promise<Theme[]> => {
-    const cached = getCachedData(SITE_CONTENT_KEYS.THEMES);
-    
-    const fetchLatest = async () => {
-      try {
-        const res = await queryWithTimeout(
-          supabase
-            .from('site_contents')
-            .select('value')
-            .eq('key', SITE_CONTENT_KEYS.THEMES)
-            .single()
-        );
-        const data = res?.data;
-        const error = res?.error;
-        const rawResult = (error || !data) ? THEMES : data.value as Theme[];
+    try {
+      const res = await queryWithTimeout(
+        supabase
+          .from('site_contents')
+          .select('value')
+          .eq('key', SITE_CONTENT_KEYS.THEMES)
+          .single()
+      );
+      const data = res?.data;
+      const error = res?.error;
+      if (!error && data?.value) {
+        const rawResult = data.value as Theme[];
         const result = rawResult.map(t => ({
           ...t,
-          posterUrl: sanitizeImageUrl(t.posterUrl, BRAND_DEFAULT_IMAGE)
+          posterUrl: t.posterUrl || getThrillerPosterSvg(t.title)
         }));
         setCachedData(SITE_CONTENT_KEYS.THEMES, result);
         return result;
-      } catch {
-        return cached || THEMES;
       }
-    };
-
-    if (cached) {
-      fetchLatest();
-      return cached;
+    } catch (e) {
+      console.warn("Failed to fetch themes from Supabase", e);
     }
 
-    return await fetchLatest();
+    const cached = getCachedData(SITE_CONTENT_KEYS.THEMES);
+    return cached || THEMES;
   },
 
   saveThemes: async (themes: Theme[]) => {
@@ -182,33 +184,27 @@ export const dataService = {
   },
 
   getNotices: async (): Promise<Notice[]> => {
-    const cached = getCachedData(SITE_CONTENT_KEYS.NOTICES);
-
-    const fetchLatest = async () => {
-      try {
-        const res = await queryWithTimeout(
-          supabase
-            .from('site_contents')
-            .select('value')
-            .eq('key', SITE_CONTENT_KEYS.NOTICES)
-            .single()
-        );
-        const data = res?.data;
-        const error = res?.error;
-        const result = (error || !data) ? INITIAL_NOTICES : data.value as Notice[];
+    try {
+      const res = await queryWithTimeout(
+        supabase
+          .from('site_contents')
+          .select('value')
+          .eq('key', SITE_CONTENT_KEYS.NOTICES)
+          .single()
+      );
+      const data = res?.data;
+      const error = res?.error;
+      if (!error && data?.value) {
+        const result = data.value as Notice[];
         setCachedData(SITE_CONTENT_KEYS.NOTICES, result);
         return result;
-      } catch {
-        return cached || INITIAL_NOTICES;
       }
-    };
-
-    if (cached) {
-      fetchLatest();
-      return cached;
+    } catch (e) {
+      console.warn("Failed to fetch notices from Supabase", e);
     }
 
-    return await fetchLatest();
+    const cached = getCachedData(SITE_CONTENT_KEYS.NOTICES);
+    return cached || INITIAL_NOTICES;
   },
   saveNotices: async (notices: Notice[]) => {
     setCachedData(SITE_CONTENT_KEYS.NOTICES, notices);
@@ -219,33 +215,27 @@ export const dataService = {
   },
 
   getClosedSlots: async (): Promise<ClosedSlot[]> => {
-    const cached = getCachedData(SITE_CONTENT_KEYS.CLOSED_SLOTS);
-
-    const fetchLatest = async () => {
-      try {
-        const res = await queryWithTimeout(
-          supabase
-            .from('site_contents')
-            .select('value')
-            .eq('key', SITE_CONTENT_KEYS.CLOSED_SLOTS)
-            .single()
-        );
-        const data = res?.data;
-        const error = res?.error;
-        const result = (error || !data) ? [] : data.value as ClosedSlot[];
+    try {
+      const res = await queryWithTimeout(
+        supabase
+          .from('site_contents')
+          .select('value')
+          .eq('key', SITE_CONTENT_KEYS.CLOSED_SLOTS)
+          .single()
+      );
+      const data = res?.data;
+      const error = res?.error;
+      if (!error && data?.value) {
+        const result = data.value as ClosedSlot[];
         setCachedData(SITE_CONTENT_KEYS.CLOSED_SLOTS, result);
         return result;
-      } catch {
-        return cached || [];
       }
-    };
-
-    if (cached) {
-      fetchLatest();
-      return cached;
+    } catch (e) {
+      console.warn("Failed to fetch closed slots from Supabase", e);
     }
 
-    return await fetchLatest();
+    const cached = getCachedData(SITE_CONTENT_KEYS.CLOSED_SLOTS);
+    return cached || [];
   },
   saveClosedSlots: async (slots: ClosedSlot[]) => {
     setCachedData(SITE_CONTENT_KEYS.CLOSED_SLOTS, slots);
