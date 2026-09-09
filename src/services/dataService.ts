@@ -34,9 +34,9 @@ if (typeof window !== 'undefined' && window.localStorage) {
   }
 }
 
-const getCachedData = (key: string) => {
+const getCachedData = (key: string, ttl: number = CACHE_TTL) => {
   const cached = cache[key];
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+  if (cached && Date.now() - cached.timestamp < ttl) {
     return cached.data;
   }
   if (typeof window !== 'undefined' && window.localStorage) {
@@ -44,7 +44,7 @@ const getCachedData = (key: string) => {
       const stored = localStorage.getItem(`cs_cache_${key}`);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (parsed && Date.now() - parsed.timestamp < CACHE_TTL) {
+        if (parsed && Date.now() - parsed.timestamp < ttl) {
           cache[key] = parsed;
           return parsed.data;
         }
@@ -54,6 +54,22 @@ const getCachedData = (key: string) => {
     }
   }
   return null;
+};
+
+export const invalidateDataCache = (key?: string) => {
+  if (key) {
+    delete cache[key];
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.removeItem(`cs_cache_${key}`);
+    }
+  } else {
+    Object.keys(cache).forEach(k => delete cache[k]);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      Object.keys(localStorage)
+        .filter(k => k.startsWith('cs_cache_'))
+        .forEach(k => localStorage.removeItem(k));
+    }
+  }
 };
 
 const setCachedData = (key: string, data: any) => {
@@ -214,14 +230,19 @@ export const dataService = {
     if (error) throw error;
   },
 
-  getClosedSlots: async (): Promise<ClosedSlot[]> => {
+  getClosedSlots: async (forceFresh = false): Promise<ClosedSlot[]> => {
+    if (!forceFresh) {
+      const cached = getCachedData(SITE_CONTENT_KEYS.CLOSED_SLOTS, 15000);
+      if (cached) return cached;
+    }
     try {
       const res = await queryWithTimeout(
         supabase
           .from('site_contents')
           .select('value')
           .eq('key', SITE_CONTENT_KEYS.CLOSED_SLOTS)
-          .single()
+          .single(),
+        3500
       );
       const data = res?.data;
       const error = res?.error;
@@ -234,7 +255,7 @@ export const dataService = {
       console.warn("Failed to fetch closed slots from Supabase", e);
     }
 
-    const cached = getCachedData(SITE_CONTENT_KEYS.CLOSED_SLOTS);
+    const cached = getCachedData(SITE_CONTENT_KEYS.CLOSED_SLOTS, 120000);
     return cached || [];
   },
   saveClosedSlots: async (slots: ClosedSlot[]) => {
@@ -324,15 +345,101 @@ export const dataService = {
   }),
 
   // --- Reservations ---
-  getBookings: async (): Promise<BookingData[]> => {
-    const { data, error } = await supabase
-      .from('reservations')
-      .select('*')
-      .order('createdAt', { ascending: false });
-    
-    if (error) return [];
-    return (data || []).map(dataService.mapBookingData);
+  getBookings: async (forceFresh = false): Promise<BookingData[]> => {
+    if (!forceFresh) {
+      const cached = getCachedData('reservations', 15000);
+      if (cached) return cached;
+    }
+
+    try {
+      const res = await queryWithTimeout(
+        supabase
+          .from('reservations')
+          .select('*')
+          .order('createdAt', { ascending: false }),
+        3500
+      );
+      if (res && !res.error && res.data) {
+        const mapped = (res.data || []).map(dataService.mapBookingData);
+        setCachedData('reservations', mapped);
+        return mapped;
+      }
+    } catch (e) {
+      console.warn("Failed to fetch fresh bookings with timeout", e);
+    }
+
+    const cachedFallback = getCachedData('reservations', 120000);
+    return cachedFallback || [];
   },
+
+  verifySlotAvailability: async (
+    themeId: string, 
+    date: string, 
+    time: string, 
+    requestingCount: number = 1
+  ): Promise<{ canBook: boolean; reason?: string; remaining: number }> => {
+    try {
+      const themes = await dataService.getThemes();
+      const theme = themes.find(t => t.id === themeId);
+      if (!theme) return { canBook: false, reason: '테마 정보를 찾을 수 없습니다.', remaining: 0 };
+
+      // Force fresh check directly from Supabase
+      const [freshBookings, freshClosed] = await Promise.all([
+        dataService.getBookings(true),
+        dataService.getClosedSlots(true)
+      ]);
+
+      const normalizeDate = (d?: string) => (d || '').trim().replace(/[\.\/]/g, '-');
+      const normalizeTime = (t?: string) => (t || '').trim();
+
+      const normDate = normalizeDate(date);
+      const normTime = normalizeTime(time);
+
+      // 1. Check if closed by admin
+      const isClosedByAdmin = freshClosed.some(cs => 
+        (!cs.themeId || cs.themeId === themeId || cs.themeId === 'all') && 
+        normalizeDate(cs.date) === normDate && 
+        (cs.time === 'all' || normalizeTime(cs.time) === normTime)
+      );
+
+      if (isClosedByAdmin) {
+        return { canBook: false, reason: '해당 타임은 관리자에 의해 마감되었습니다. 다른 일정을 선택해주세요.', remaining: 0 };
+      }
+
+      // 2. Check bookings for this slot
+      const slotBookings = freshBookings.filter(b => 
+        b.themeId === themeId && 
+        normalizeDate(b.date) === normDate && 
+        normalizeTime(b.time) === normTime && 
+        b.status !== 'cancelled'
+      );
+
+      // 3. Check if private closed by another user
+      const isClosedByRequest = slotBookings.some(b => b.isCloseRequested === true || String(b.isCloseRequested).toLowerCase() === 'true');
+      if (isClosedByRequest) {
+        return { canBook: false, reason: '해당 타임은 다른 예약팀의 프라이빗 게임(마감) 요청으로 마감되었습니다. 다른 일정을 선택해주세요.', remaining: 0 };
+      }
+
+      // 4. Check capacity
+      const bookedCount = slotBookings.reduce((sum, b) => sum + (Number(b.participantCount) || 0), 0);
+      const remaining = Math.max(0, theme.maxPlayers - bookedCount);
+
+      if (remaining <= 0) {
+        return { canBook: false, reason: '해당 타임은 이미 최대 인원(FULL)으로 마감되었습니다. 다른 일정을 선택해주세요.', remaining: 0 };
+      }
+
+      if (requestingCount > remaining) {
+        return { canBook: false, reason: `예약 인원(${requestingCount}명)이 잔여 가능 인원(${remaining}명)을 초과하여 마감되었습니다.`, remaining };
+      }
+
+      return { canBook: true, remaining };
+    } catch (err) {
+      console.error("Failed during verifySlotAvailability:", err);
+      // Fallback: allow to proceed to prevent false locking if check query fails
+      return { canBook: true, remaining: 6 };
+    }
+  },
+
   getBookingsBySlot: async (themeId: string, date: string, time: string): Promise<BookingData[]> => {
     const { data, error } = await supabase
       .from('reservations')
@@ -368,8 +475,21 @@ export const dataService = {
       .from('reservations')
       .insert([insertData]);
     if (error) throw error;
+    invalidateDataCache('reservations');
   },
   createBooking: async (booking: Omit<BookingData, 'id' | 'createdAt' | 'themeTitle' | 'themePoster'>): Promise<BookingData | null> => {
+    // 실시간 중복 예약 및 정원 초과 방지 검증
+    const check = await dataService.verifySlotAvailability(
+      booking.themeId, 
+      booking.date, 
+      booking.time, 
+      booking.participantCount
+    );
+
+    if (!check.canBook) {
+      throw new Error(check.reason || '해당 타임은 이미 예약이 마감되었습니다. 다른 일정을 선택해주세요.');
+    }
+
     const themes = await dataService.getThemes();
     const theme = themes.find(t => t.id === booking.themeId);
     
@@ -416,6 +536,7 @@ export const dataService = {
       .insert([insertData]);
     
     if (error) throw error;
+    invalidateDataCache('reservations');
     return newBooking;
   },
   updateBookingStatus: async (id: string, status: BookingData['status']) => {

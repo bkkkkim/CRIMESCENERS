@@ -17,7 +17,7 @@ const ThemeReservation = () => {
   const [closedSlots, setClosedSlots] = useState<ClosedSlot[]>([]);
   const [bookings, setBookings] = useState<BookingData[]>([]);
   const [settings, setSettings] = useState<AdminSettings | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(false);
   
   const [activeTab, setActiveTab] = useState<'book' | 'check'>('book');
   
@@ -281,7 +281,7 @@ const ThemeReservation = () => {
     }
   };
 
-  if (loading) return <LoadingScreen />;
+  if (loading && themes.length === 0) return <LoadingScreen logoUrl={settings?.logoUrl} />;
 
   return (
     <div className="pt-32 md:pt-40 pb-24 px-4 sm:px-6 md:px-8 max-w-7xl mx-auto">

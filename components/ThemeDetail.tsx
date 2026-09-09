@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { THEMES, DEFAULT_ADMIN_SETTINGS, STORES } from '../constants';
 import { isWeekendOrHoliday } from '../src/utils/holiday';
@@ -42,18 +42,31 @@ const normalizeTime = (t?: string): string => {
 const ThemeDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [theme, setTheme] = useState<Theme | null>(null);
+  const [theme, setTheme] = useState<Theme | null>(() => THEMES.find(t => t.id === id) || null);
   const [closedSlots, setClosedSlots] = useState<ClosedSlot[]>([]);
   const [bookings, setBookings] = useState<BookingData[]>([]);
   const [stores, setStores] = useState<Store[]>(STORES);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(() => !THEMES.some(t => t.id === id));
+  const [isRefreshingSlots, setIsRefreshingSlots] = useState<boolean>(false);
   
   const [showStoreInfo, setShowStoreInfo] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showComingSoonModal, setShowComingSoonModal] = useState(false);
   const [showSuspectModal, setShowSuspectModal] = useState(false);
   
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const initialTheme = THEMES.find(t => t.id === id);
+    if (initialTheme?.startDate) {
+      const start = new Date(initialTheme.startDate);
+      start.setHours(0,0,0,0);
+      const now = new Date();
+      now.setHours(0,0,0,0);
+      if (now < start) {
+        return new Date(start.getFullYear(), start.getMonth(), 1);
+      }
+    }
+    return new Date();
+  });
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [settings, setSettings] = useState<AdminSettings>(DEFAULT_ADMIN_SETTINGS);
 
@@ -102,8 +115,25 @@ const ThemeDetail = () => {
     }
   };
 
+  const refreshSlots = useCallback(async (forceFresh = false) => {
+    try {
+      setIsRefreshingSlots(true);
+      const [savedClosed, savedBookings] = await Promise.all([
+        dataService.getClosedSlots(forceFresh),
+        dataService.getBookings(forceFresh)
+      ]);
+      setClosedSlots(savedClosed);
+      setBookings(savedBookings);
+    } catch (err) {
+      console.warn("Failed to refresh slots:", err);
+    } finally {
+      setIsRefreshingSlots(false);
+    }
+  }, []);
+
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
+    refreshSlots(true);
     setTimeout(() => {
       if (timeSlotsRef.current) {
         const offset = window.innerWidth < 768 ? 90 : 120;
@@ -114,6 +144,7 @@ const ThemeDetail = () => {
   };
 
   useEffect(() => {
+    let isMounted = true;
     const loadData = async () => {
       try {
         const [savedSettings, savedClosed, savedBookings, themeList, storeList] = await Promise.all([
@@ -124,6 +155,7 @@ const ThemeDetail = () => {
           dataService.getStores()
         ]);
 
+        if (!isMounted) return;
         setSettings(savedSettings);
         setClosedSlots(savedClosed);
         setBookings(savedBookings);
@@ -158,13 +190,29 @@ const ThemeDetail = () => {
       } catch (error) {
         console.error("Failed to load theme detail data:", error);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     loadData();
-  }, [id]);
 
-  if (loading) return <LoadingScreen />;
+    // Auto revalidate when user returns to tab or window gains focus (Instagram in-app browser friendly)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshSlots(true);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleVisibilityChange);
+
+    return () => {
+      isMounted = false;
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleVisibilityChange);
+    };
+  }, [id, refreshSlots]);
+
+  if (loading && !theme) return <LoadingScreen logoUrl={settings.logoUrl} />;
   if (!theme) return null;
 
   const renderCalendar = () => {

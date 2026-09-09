@@ -343,7 +343,7 @@ const App = () => {
     let isMounted = true;
     const safetyTimer = setTimeout(() => {
       if (isMounted) setLoading(false);
-    }, 1200);
+    }, 600);
 
     const init = async () => {
       try {
@@ -377,7 +377,8 @@ const App = () => {
         Promise.all([
           dataService.getThemes(),
           dataService.getNotices(),
-          dataService.getStores()
+          dataService.getStores(),
+          dataService.getClosedSlots()
         ]).catch(() => {});
       } catch (e) {
         console.error("Init failed", e);
@@ -405,14 +406,16 @@ const AppContent = ({ loading, settings, setSettings }: { loading: boolean, sett
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
 
-  // Re-fetch settings on navigation in background
+  // Keep settings fresh periodically (every 5 minutes) rather than hammering API on every navigation
   useEffect(() => {
-    const refreshSettings = async () => {
-      const saved = await dataService.getSettings();
-      setSettings(saved);
-    };
-    refreshSettings();
-  }, [location.pathname, setSettings]);
+    const interval = setInterval(async () => {
+      try {
+        const saved = await dataService.getSettings();
+        setSettings(saved);
+      } catch {}
+    }, 300000);
+    return () => clearInterval(interval);
+  }, [setSettings]);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#121212]">

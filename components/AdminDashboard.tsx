@@ -1945,53 +1945,6 @@ const AdminDashboard = () => {
                 </section>
 
                 <section className="bg-[#1a1a1a] p-8 rounded-3xl border border-white/5 space-y-6">
-                  <h2 className="text-xl font-bold border-l-4 border-white pl-3 flex items-center gap-2"><MessageSquare size={20}/> SMS 자동 발송 설정</h2>
-                  <div className="space-y-8">
-                    <div className="p-6 bg-black rounded-2xl border border-white/5 space-y-4">
-                      <div className="flex justify-between items-center">
-                        <h3 className="font-bold">예약 완료 즉시 발송</h3>
-                        <input type="checkbox" checked={settings.smsTemplates.onBooking.enabled} 
-                          onChange={e => {
-                            setSettings({...settings, smsTemplates: {...settings.smsTemplates, onBooking: {...settings.smsTemplates.onBooking, enabled: e.target.checked}}});
-                            setIsDirty(true);
-                          }} className="accent-white w-5 h-5"/>
-                      </div>
-                      <p className="text-[10px] text-white/30 italic">변수: {'{name}, {theme}, {date}, {time}'}</p>
-                      <textarea className="w-full bg-[#121212] border border-white/10 p-4 rounded-xl text-sm outline-none" rows={3}
-                        value={settings.smsTemplates.onBooking.content}
-                        onChange={e => {
-                          setSettings({...settings, smsTemplates: {...settings.smsTemplates, onBooking: {...settings.smsTemplates.onBooking, content: e.target.value}}});
-                          setIsDirty(true);
-                        }} />
-                    </div>
-                    <div className="p-6 bg-black rounded-2xl border border-white/5 space-y-4">
-                      <div className="flex justify-between items-center">
-                        <h3 className="font-bold">방문 1일 전 안내 발송</h3>
-                        <div className="flex items-center gap-4">
-                          <input type="time" className="bg-[#121212] border border-white/10 text-xs p-1 rounded" 
-                            value={settings.smsTemplates.dayBefore.time}
-                            onChange={e => {
-                              setSettings({...settings, smsTemplates: {...settings.smsTemplates, dayBefore: {...settings.smsTemplates.dayBefore, time: e.target.value}}});
-                              setIsDirty(true);
-                            }} />
-                          <input type="checkbox" checked={settings.smsTemplates.dayBefore.enabled} 
-                            onChange={e => {
-                              setSettings({...settings, smsTemplates: {...settings.smsTemplates, dayBefore: {...settings.smsTemplates.dayBefore, enabled: e.target.checked}}});
-                              setIsDirty(true);
-                            }} className="accent-white w-5 h-5"/>
-                        </div>
-                      </div>
-                      <textarea className="w-full bg-[#121212] border border-white/10 p-4 rounded-xl text-sm outline-none" rows={3}
-                        value={settings.smsTemplates.dayBefore.content}
-                        onChange={e => {
-                          setSettings({...settings, smsTemplates: {...settings.smsTemplates, dayBefore: {...settings.smsTemplates.dayBefore, content: e.target.value}}});
-                          setIsDirty(true);
-                        }} />
-                    </div>
-                  </div>
-                </section>
-
-                <section className="bg-[#1a1a1a] p-8 rounded-3xl border border-white/5 space-y-6">
                   <h2 className="text-xl font-bold border-l-4 border-white pl-3">기본 연락처 및 슬롯 설정</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
