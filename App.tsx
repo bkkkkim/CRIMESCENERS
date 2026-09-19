@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Instagram, Youtube, Settings, Globe, Shield, FileText } from 'lucide-react';
+import { Menu, X, Instagram, Youtube, Globe, Shield, FileText } from 'lucide-react';
 import { DEFAULT_ADMIN_SETTINGS } from './constants';
 import { AdminSettings } from './types';
 import { dataService } from './src/services/dataService';
@@ -160,15 +160,6 @@ const Header = ({ settings }: { settings: AdminSettings }) => {
                 </Link>
               ))}
             </div>
-            <div className="pb-10 pt-6 border-t border-white/5">
-              <Link 
-                to="/admin" 
-                onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-2 text-xs font-bold text-white/30 hover:text-white transition-colors"
-              >
-                <Settings size={14} /> ADMIN ACCESS
-              </Link>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -220,9 +211,6 @@ const Footer = ({ settings }: { settings: AdminSettings }) => {
               <button onClick={() => setShowPrivacy(true)} className="hover:text-white transition-colors flex items-center gap-1.5">
                 <Shield size={12} /> 개인정보처리방침
               </button>
-              <Link to="/admin" className="hover:text-white transition-colors flex items-center gap-1.5">
-                <Settings size={12} /> 관리자
-              </Link>
             </div>
           </div>
         </div>
