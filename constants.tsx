@@ -12,7 +12,6 @@ export const THEMES: Theme[] = [
     maxPlayers: 6,
     duration: 150,
     difficulty: 4,
-    fearLevel: 2,
     price: 40000,
     storeId: 'store-1772805211062',
     startDate: '2026-09-01',

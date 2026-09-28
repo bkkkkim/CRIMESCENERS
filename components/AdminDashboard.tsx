@@ -532,7 +532,6 @@ const AdminDashboard = () => {
                       maxPlayers: 6, 
                       duration: 60, 
                       difficulty: 3, 
-                      fearLevel: 0, 
                       price: 20000,
                       startDate: '',
                       endDate: ''
@@ -618,6 +617,30 @@ const AdminDashboard = () => {
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div>
+                          <label className="text-xs text-white/40 mb-1 block">난이도 (1-5)</label>
+                          <input type="number" min="1" max="5" className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none focus:border-white" 
+                            value={theme.difficulty} onChange={e => {
+                              setThemes(prev => {
+                                const updated = [...prev];
+                                updated[idx] = { ...updated[idx], difficulty: parseInt(e.target.value) || 0 };
+                                setIsDirty(true);
+                                return updated;
+                              });
+                            }} />
+                        </div>
+                        <div>
+                          <label className="text-xs text-white/40 mb-1 block">소요시간 (분)</label>
+                          <input type="number" className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none focus:border-white" 
+                            value={theme.duration} onChange={e => {
+                              setThemes(prev => {
+                                const updated = [...prev];
+                                updated[idx] = { ...updated[idx], duration: parseInt(e.target.value) || 0 };
+                                setIsDirty(true);
+                                return updated;
+                              });
+                            }} />
+                        </div>
+                        <div>
                           <label className="text-xs text-white/40 mb-1 block">최소 인원</label>
                           <input type="number" className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none focus:border-white" 
                             value={theme.minPlayers} onChange={e => {
@@ -636,42 +659,6 @@ const AdminDashboard = () => {
                               setThemes(prev => {
                                 const updated = [...prev];
                                 updated[idx] = { ...updated[idx], maxPlayers: parseInt(e.target.value) || 0 };
-                                setIsDirty(true);
-                                return updated;
-                              });
-                            }} />
-                        </div>
-                        <div>
-                          <label className="text-xs text-white/40 mb-1 block">난이도 (1-5)</label>
-                          <input type="number" min="1" max="5" className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none focus:border-white" 
-                            value={theme.difficulty} onChange={e => {
-                              setThemes(prev => {
-                                const updated = [...prev];
-                                updated[idx] = { ...updated[idx], difficulty: parseInt(e.target.value) || 0 };
-                                setIsDirty(true);
-                                return updated;
-                              });
-                            }} />
-                        </div>
-                        <div>
-                          <label className="text-xs text-white/40 mb-1 block">공포도 (0-5)</label>
-                          <input type="number" min="0" max="5" className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none focus:border-white" 
-                            value={theme.fearLevel} onChange={e => {
-                              setThemes(prev => {
-                                const updated = [...prev];
-                                updated[idx] = { ...updated[idx], fearLevel: parseInt(e.target.value) || 0 };
-                                setIsDirty(true);
-                                return updated;
-                              });
-                            }} />
-                        </div>
-                        <div>
-                          <label className="text-xs text-white/40 mb-1 block">소요시간 (분)</label>
-                          <input type="number" className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none focus:border-white" 
-                            value={theme.duration} onChange={e => {
-                              setThemes(prev => {
-                                const updated = [...prev];
-                                updated[idx] = { ...updated[idx], duration: parseInt(e.target.value) || 0 };
                                 setIsDirty(true);
                                 return updated;
                               });

@@ -18,7 +18,7 @@ export interface Theme {
   maxPlayers: number;
   duration: number;
   difficulty: number;
-  fearLevel: number; // Added fear level
+  fearLevel?: number;
   price: number;
   customSlots?: string[]; // Default or Weekend slots
   weekdaySlots?: string[]; // Optional: separate weekday slots

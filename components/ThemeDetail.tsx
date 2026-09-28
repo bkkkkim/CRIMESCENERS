@@ -561,20 +561,12 @@ const ThemeDetail = () => {
               )}
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-y-6 md:gap-y-8 gap-x-3 sm:gap-x-4 py-8 md:py-10 border-y border-white/5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-6 md:gap-y-8 gap-x-4 sm:gap-x-6 py-8 md:py-10 border-y border-white/5">
               <div className="space-y-2">
                 <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase whitespace-nowrap">난이도</p>
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
                     <div key={`tdiff-${i}`} className={`w-3 h-3 rounded-full ${i < theme.difficulty ? 'bg-white' : 'bg-white/10'}`} />
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <p className="text-[10px] font-medium text-white/40 tracking-normal uppercase whitespace-nowrap">공포도</p>
-                <div className="flex gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={`tfear-${i}`} className={`w-3 h-3 rounded-full ${i < theme.fearLevel ? 'bg-[#dc2626]' : 'bg-white/10'}`} />
                   ))}
                 </div>
               </div>

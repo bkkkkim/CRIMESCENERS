@@ -483,64 +483,64 @@ const PopularThemes = ({ themes, stores, settings }: { themes: Theme[], stores: 
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 z-0" />
                     </div>
                     
-                    <div className="text-left">
-                      <div className="flex items-center gap-2 mb-3 md:mb-4">
-                        <span className="bg-[#dc2626] text-[10px] font-medium px-2 py-1 rounded tracking-normal uppercase font-en">BEST</span>
-                        {theme.storeId && store && (
-                          <span className="text-white/40 text-xs font-medium uppercase tracking-normal">{store.name}</span>
-                        )}
-                      </div>
-                      <h3 className="text-xl md:text-2xl font-bold mb-1.5 md:mb-2 tracking-tight line-clamp-1 flex items-center gap-2">
-                        {theme.title}
-                      </h3>
-                      <div className="flex flex-col gap-4">
-                        <div className="flex items-center gap-2 text-sm font-bold flex-wrap">
-                          {settings?.advanceDepositDiscount?.enabled ? (
-                            <>
-                              <span className="text-white/40 text-xs font-medium line-through decoration-white/30">
-                                {theme.price.toLocaleString()}원
-                              </span>
-                              <span className="text-white font-bold text-sm">
-                                {(theme.price - settings.advanceDepositDiscount.discountAmount).toLocaleString()}원
-                              </span>
-                              <span className="text-[9px] font-bold bg-[#dc2626]/10 text-[#dc2626] border border-[#dc2626]/20 px-1 py-0.5 rounded uppercase tracking-wider leading-none shrink-0 whitespace-nowrap">
-                                선입금가
-                              </span>
-                            </>
-                          ) : (
-                            <span className="text-white/60 text-sm font-bold">{theme.price.toLocaleString()}원</span>
+                    <div className="text-left space-y-3.5">
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className="bg-[#dc2626] text-[10px] font-medium px-2 py-1 rounded tracking-normal uppercase font-en">BEST</span>
+                          {theme.storeId && store && (
+                            <span className="text-white/40 text-xs font-medium uppercase tracking-normal">{store.name}</span>
                           )}
-                          <span className="text-white/20">|</span>
-                          <span className="text-white/60 text-xs font-normal">1명</span>
                         </div>
-                        
-                        <div className="flex flex-wrap gap-4 text-[10px] font-medium tracking-normal uppercase text-white/40">
-                          <div className="flex items-center gap-1.5">
-                            <span>난이도</span>
-                            <div className="flex gap-0.5">
+                        <h3 className="text-xl md:text-2xl font-bold tracking-tight line-clamp-1 flex items-center gap-2">
+                          {theme.title}
+                        </h3>
+                      </div>
+
+                      <div className="flex flex-col gap-2.5">
+                        {/* 난이도 & 소요시간 & 참여인원 (윗줄 노출) */}
+                        <div className="flex items-center gap-3.5 sm:gap-4.5 text-xs text-white/60 flex-wrap">
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className="text-white/40 text-xs font-medium">난이도</span>
+                            <div className="flex gap-0.5 items-center">
                               {[...Array(5)].map((_, i) => (
                                 <div key={`diff-${i}`} className={`w-2 h-2 rounded-full ${i < theme.difficulty ? 'bg-white' : 'bg-white/10'}`} />
                               ))}
                             </div>
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            <span>공포도</span>
-                            <div className="flex gap-0.5">
-                              {[...Array(5)].map((_, i) => (
-                                <div key={`fear-${i}`} className={`w-2 h-2 rounded-full ${i < theme.fearLevel ? 'bg-[#dc2626]' : 'bg-white/10'}`} />
-                              ))}
-                            </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            <Clock size={13} className="text-white/40 shrink-0" />
+                            <span className="text-white/40 text-xs font-medium">소요시간</span>
+                            <span className="text-white font-medium text-xs">{theme.duration}분</span>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            <Users size={13} className="text-white/40 shrink-0" />
+                            <span className="text-white/40 text-xs font-medium">참여인원</span>
+                            <span className="text-white font-medium text-xs">{theme.minPlayers}-{theme.maxPlayers}명</span>
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-x-6 gap-y-3 text-xs md:text-sm text-white/60 font-medium pt-2 border-t border-white/5">
-                          <div className="flex items-center gap-2">
-                            <Clock size={14} className="text-white/20" />
-                            <span className="font-bold">{theme.duration}분</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Users size={14} className="text-white/20" />
-                            <span className="font-bold">{theme.minPlayers}-{theme.maxPlayers}명</span>
+                        {/* 1인 가격 (아래에 노출) */}
+                        <div className="flex items-center justify-start">
+                          <div className="flex items-center gap-2 text-sm font-bold flex-wrap">
+                            {settings?.advanceDepositDiscount?.enabled ? (
+                              <>
+                                <span className="text-white/40 text-xs font-medium line-through decoration-white/30">
+                                  {theme.price.toLocaleString()}원
+                                </span>
+                                <span className="text-white font-bold text-sm">
+                                  {(theme.price - settings.advanceDepositDiscount.discountAmount).toLocaleString()}원
+                                </span>
+                                <span className="text-[9px] font-bold bg-[#dc2626]/10 text-[#dc2626] border border-[#dc2626]/20 px-1 py-0.5 rounded uppercase tracking-wider leading-none shrink-0 whitespace-nowrap">
+                                  선입금가
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-white text-sm font-bold">{theme.price.toLocaleString()}원</span>
+                            )}
+                            <span className="text-white/20">|</span>
+                            <span className="text-white/50 text-xs font-normal">1명</span>
                           </div>
                         </div>
                       </div>

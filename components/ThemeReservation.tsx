@@ -238,8 +238,6 @@ const ThemeReservation = () => {
           return a.duration - b.duration;
         case 'difficulty':
           return a.difficulty - b.difficulty;
-        case 'fear':
-          return a.fearLevel - b.fearLevel;
         case 'latest':
         default:
           return themes.indexOf(b) - themes.indexOf(a);
@@ -406,7 +404,6 @@ const ThemeReservation = () => {
                     {sortBy === 'participants' && '참여인원순'}
                     {sortBy === 'duration' && '소요시간순'}
                     {sortBy === 'difficulty' && '난이도순'}
-                    {sortBy === 'fear' && '공포도순'}
                   </span>
                   <select 
                     value={sortBy} 
@@ -418,7 +415,6 @@ const ThemeReservation = () => {
                     <option value="participants" className="bg-[#1a1a1a] text-white">참여인원순</option>
                     <option value="duration" className="bg-[#1a1a1a] text-white">소요시간순</option>
                     <option value="difficulty" className="bg-[#1a1a1a] text-white">난이도순</option>
-                    <option value="fear" className="bg-[#1a1a1a] text-white">공포도순</option>
                   </select>
                 </div>
               </div>
@@ -500,72 +496,73 @@ const ThemeReservation = () => {
                     )}
                   </Link>
                   
-                  <div className="space-y-4 px-0 pb-6 pt-4 md:p-0">
-                    <div className="flex flex-col gap-1">
+                  <div className="px-0 pb-6 pt-4 md:p-0 space-y-3.5">
+                    <div className="flex flex-col gap-1.5">
                       {theme.storeId && store && (
                         <span className="text-white/40 text-xs font-medium uppercase tracking-normal">{store.name}</span>
                       )}
                       <h3 className="text-2xl font-bold group-hover:text-white transition-colors flex items-center gap-2">
                         {theme.title}
                       </h3>
-                      <div className="flex items-center gap-2 text-sm font-bold flex-wrap">
-                        {settings?.advanceDepositDiscount?.enabled ? (
-                          <>
-                            <span className="text-white/40 text-xs font-medium line-through decoration-white/30">
-                              {theme.price.toLocaleString()}원
-                            </span>
-                            <span className="text-white font-bold text-sm">
-                              {(theme.price - settings.advanceDepositDiscount.discountAmount).toLocaleString()}원
-                            </span>
-                            <span className="text-[9px] font-bold bg-[#dc2626]/10 text-[#dc2626] border border-[#dc2626]/20 px-1 py-0.5 rounded uppercase tracking-wider leading-none shrink-0 whitespace-nowrap">
-                              선입금가
-                            </span>
-                          </>
-                        ) : (
-                          <span className="text-white/60 text-sm font-bold">{theme.price.toLocaleString()}원</span>
-                        )}
-                        <span className="text-white/20">|</span>
-                        <span className="text-white/60 text-xs font-normal">1명</span>
-                      </div>
                     </div>
                   
-                  <div className="flex flex-wrap gap-4 text-[10px] font-medium tracking-normal uppercase text-white/40">
-                    <div className="flex items-center gap-1.5">
-                      <span>난이도</span>
-                      <div className="flex gap-0.5">
-                        {[...Array(5)].map((_, i) => (
-                          <div key={`rdiff-${i}`} className={`w-2 h-2 rounded-full ${i < theme.difficulty ? 'bg-white' : 'bg-white/10'}`} />
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span>공포도</span>
-                      <div className="flex gap-0.5">
-                        {[...Array(5)].map((_, i) => (
-                          <div key={`rfear-${i}`} className={`w-2 h-2 rounded-full ${i < theme.fearLevel ? 'bg-[#dc2626]' : 'bg-white/10'}`} />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                    <div className="flex flex-col gap-2.5">
+                      {/* 난이도 & 소요시간 & 참여인원 (윗줄 노출) */}
+                      <div className="flex items-center gap-3.5 sm:gap-4.5 text-xs text-white/60 flex-wrap">
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="text-white/40 text-xs font-medium">난이도</span>
+                          <div className="flex gap-0.5 items-center">
+                            {[...Array(5)].map((_, i) => (
+                              <div key={`rdiff-${i}`} className={`w-2 h-2 rounded-full ${i < theme.difficulty ? 'bg-white' : 'bg-white/10'}`} />
+                            ))}
+                          </div>
+                        </div>
 
-                  <div className="pt-4 flex items-center justify-between border-t border-white/5">
-                    <div className="flex items-center gap-4 text-xs text-white/60">
-                      <span className="flex items-center gap-1.5">
-                        <Users size={14} /> {theme.minPlayers}-{theme.maxPlayers}명
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <Clock size={14} /> {theme.duration}분
-                      </span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <Clock size={13} className="text-white/40 shrink-0" />
+                          <span className="text-white/40 text-xs font-medium">소요시간</span>
+                          <span className="text-white font-medium text-xs">{theme.duration}분</span>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <Users size={13} className="text-white/40 shrink-0" />
+                          <span className="text-white/40 text-xs font-medium">참여인원</span>
+                          <span className="text-white font-medium text-xs">{theme.minPlayers}-{theme.maxPlayers}명</span>
+                        </div>
+                      </div>
+
+                      {/* 1인 가격 (아래에 노출) & 바로가기 버튼 */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm font-bold flex-wrap">
+                          {settings?.advanceDepositDiscount?.enabled ? (
+                            <>
+                              <span className="text-white/40 text-xs font-medium line-through decoration-white/30">
+                                {theme.price.toLocaleString()}원
+                              </span>
+                              <span className="text-white font-bold text-sm">
+                                {(theme.price - settings.advanceDepositDiscount.discountAmount).toLocaleString()}원
+                              </span>
+                              <span className="text-[9px] font-bold bg-[#dc2626]/10 text-[#dc2626] border border-[#dc2626]/20 px-1 py-0.5 rounded uppercase tracking-wider leading-none shrink-0 whitespace-nowrap">
+                                선입금가
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-white text-sm font-bold">{theme.price.toLocaleString()}원</span>
+                          )}
+                          <span className="text-white/20">|</span>
+                          <span className="text-white/50 text-xs font-normal">1명</span>
+                        </div>
+
+                        <Link 
+                          to={isComingSoon ? '#' : `/theme/${theme.id}`} 
+                          onClick={(e) => isComingSoon && e.preventDefault()}
+                          className={`w-8 h-8 rounded-full bg-white/5 shrink-0 ml-2 flex items-center justify-center transition-all ${isComingSoon ? 'opacity-50 cursor-default' : 'group-hover:bg-white group-hover:text-black'}`}
+                        >
+                          <ChevronRight size={14} />
+                        </Link>
+                      </div>
                     </div>
-                    <Link 
-                      to={isComingSoon ? '#' : `/theme/${theme.id}`} 
-                      onClick={(e) => isComingSoon && e.preventDefault()}
-                      className={`w-8 h-8 rounded-full bg-white/5 flex items-center justify-center transition-all ${isComingSoon ? 'opacity-50 cursor-default' : 'group-hover:bg-white group-hover:text-black'}`}
-                    >
-                      <ChevronRight size={14} />
-                    </Link>
                   </div>
-                </div>
               </div>
               );
             }))}
