@@ -42,7 +42,7 @@ const AdminDashboard = () => {
         const [s, t, b, c, i, st] = await Promise.all([
           dataService.getSettings(),
           dataService.getThemes(),
-          dataService.getBookings(),
+          dataService.getAdminBookings(),
           dataService.getClosedSlots(),
           dataService.getInquiries(),
           dataService.getStores()
@@ -99,8 +99,10 @@ const AdminDashboard = () => {
     } catch (error: any) {
       console.error("Failed to publish changes:", error);
       const msg = error.message || "";
-      if (msg.includes('row-level security policy')) {
-        alert("오류: Supabase DB 테이블(site_contents) 권한(RLS) 설정이 필요합니다.\n\n해결 방법:\n1. Supabase 대시보드 -> Table Editor -> site_contents 선택\n2. 상단 'RLS is enabled' 옆의 'Add policy' 클릭\n3. 'Enable read/write access for all' 또는 'Full access' 템플릿 선택\n4. Target Roles: 'anon' 선택\n5. Review -> Save 클릭 후 다시 시도해 주세요.");
+      if (msg.includes('Unauthorized admin access')) {
+        alert("관리자 인증 세션이 만료되었습니다. 새로고침 후 관리자 비밀번호를 다시 입력해 주세요.");
+      } else if (msg.includes('row-level security policy')) {
+        alert("오류: Supabase 보안 함수(SQL 스크립트)가 아직 적용되지 않았거나 관리자 인증이 필요합니다. 새로고침 후 다시 로그인해 주세요.");
       } else {
         alert("변경사항 반영에 실패했습니다. 네트워크 상태를 확인해 주세요.\n오류 내용: " + msg);
       }

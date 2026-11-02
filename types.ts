@@ -146,6 +146,17 @@ export interface BookingData {
   createdAt: string;
 }
 
+export interface PublicSlotBooking {
+  themeId: string;
+  date: string;
+  time: string;
+  participantCount: number;
+  isCloseRequested: boolean;
+  status: 'confirmed' | 'cancelled' | 'paid';
+  notes?: string;
+  requestPreRoleCard?: boolean;
+}
+
 export interface ClosedSlot {
   date: string;
   themeId: string;

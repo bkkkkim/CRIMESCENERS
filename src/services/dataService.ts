@@ -1,7 +1,7 @@
-
 import { createClient } from '@supabase/supabase-js';
-import { Theme, AdminSettings, BookingData, ClosedSlot, Notice, Inquiry, Store } from '../../types';
+import { Theme, AdminSettings, BookingData, PublicSlotBooking, ClosedSlot, Notice, Inquiry, Store } from '../../types';
 import { THEMES, DEFAULT_ADMIN_SETTINGS, INITIAL_NOTICES, STORES } from '../../constants';
+import { getThrillerPosterSvg } from '../utils/imageUtils';
 
 const SUPABASE_URL = 'https://gkkgprsflomawizioiao.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_wlQ4HAA8WN4NRIUNS-DdJg_ZSYUDV9f';
@@ -16,13 +16,16 @@ const SITE_CONTENT_KEYS = {
   STORES: 'stores',
 };
 
+const ADMIN_PW_STORAGE_KEY = 'cs_admin_pw';
+
 // LocalStorage + In-memory cache for instant loading & network resilience
 const cache: Record<string, { data: any; timestamp: number }> = {};
 const CACHE_TTL = 60000; // 1 minute fresh cache
 
-// Purge any stale cache from earlier outages
+// Purge any legacy PII cache (`cs_cache_reservations`) & stale SVG cache immediately
 if (typeof window !== 'undefined' && window.localStorage) {
   try {
+    localStorage.removeItem('cs_cache_reservations');
     const stored = localStorage.getItem('cs_cache_settings');
     if (stored && (stored.includes('data:image/svg') || stored.includes('data:image%2Fsvg'))) {
       localStorage.removeItem('cs_cache_settings');
@@ -33,6 +36,41 @@ if (typeof window !== 'undefined' && window.localStorage) {
     // ignore
   }
 }
+
+const getAdminPassword = (): string => {
+  if (typeof window === 'undefined' || !window.sessionStorage) return '';
+  try {
+    return sessionStorage.getItem(ADMIN_PW_STORAGE_KEY) || '';
+  } catch {
+    return '';
+  }
+};
+
+const setAdminPassword = (pw: string) => {
+  if (typeof window === 'undefined' || !window.sessionStorage) return;
+  try {
+    if (pw) {
+      sessionStorage.setItem(ADMIN_PW_STORAGE_KEY, pw);
+    } else {
+      sessionStorage.removeItem(ADMIN_PW_STORAGE_KEY);
+    }
+  } catch {
+    // ignore
+  }
+};
+
+const isMissingRpcError = (error: any): boolean => {
+  if (!error) return false;
+  const code = String(error.code || '');
+  const msg = String(error.message || '');
+  return (
+    code === 'PGRST202' ||
+    code === '42883' ||
+    msg.includes('Could not find the function') ||
+    msg.includes('function public.')
+  );
+};
+
 
 const getCachedData = (key: string, ttl: number = CACHE_TTL) => {
   const cached = cache[key];
@@ -94,26 +132,57 @@ const queryWithTimeout = async <T>(promise: PromiseLike<T>, timeoutMs = 4000): P
     const result = await Promise.race([promise, timeoutPromise]);
     clearTimeout(timeoutId);
     return result;
-  } catch (err) {
+  } catch {
     clearTimeout(timeoutId);
     return null;
   }
 };
 
-import { BRAND_LOGO_SVG, getThrillerPosterSvg, isDummyOrInvalidUrl } from '../utils/imageUtils';
-
 const BRAND_DEFAULT_IMAGE = 'https://gkkgprsflomawizioiao.supabase.co/storage/v1/object/public/images/brand/1772555492065-xn1njp.webp';
 
-const isUnsplashOrDummy = (url?: string | null) => {
-  return isDummyOrInvalidUrl(url);
-};
+const saveSiteContentSecure = async (key: string, value: any) => {
+  const pw = getAdminPassword();
+  if (pw) {
+    const { error: rpcError } = await supabase.rpc('admin_save_site_content', {
+      p_password: pw,
+      p_key: key,
+      p_value: value,
+    });
+    if (!rpcError) return;
+    if (!isMissingRpcError(rpcError)) {
+      throw rpcError;
+    }
+  }
 
-const sanitizeImageUrl = (url?: string | null, fallback: string = BRAND_DEFAULT_IMAGE): string => {
-  if (isDummyOrInvalidUrl(url)) return fallback;
-  return url!;
+  // Fallback only before SQL security script is applied
+  const { error } = await supabase
+    .from('site_contents')
+    .upsert({ key, value }, { onConflict: 'key' });
+  if (error) throw error;
 };
 
 export const dataService = {
+  // --- Admin Auth ---
+  getAdminSessionPassword: getAdminPassword,
+  setAdminSessionPassword: setAdminPassword,
+
+  verifyAdminPassword: async (password: string): Promise<boolean> => {
+    const trimmed = (password || '').trim();
+    if (!trimmed) return false;
+
+    const { data, error } = await supabase.rpc('verify_admin_password', {
+      p_password: trimmed,
+    });
+
+    if (!error) {
+      const ok = Boolean(data);
+      if (ok) setAdminPassword(trimmed);
+      return ok;
+    }
+
+    return false;
+  },
+
   // --- Site Contents (Settings, Themes, etc.) ---
   getSettings: async (): Promise<AdminSettings> => {
     try {
@@ -126,7 +195,7 @@ export const dataService = {
       );
       const data = res?.data;
       const error = res?.error;
-      
+
       if (!error && data?.value) {
         const rawResult = data.value as AdminSettings;
         const result: AdminSettings = {
@@ -157,10 +226,7 @@ export const dataService = {
   },
   saveSettings: async (settings: AdminSettings) => {
     setCachedData(SITE_CONTENT_KEYS.SETTINGS, settings);
-    const { error } = await supabase
-      .from('site_contents')
-      .upsert({ key: SITE_CONTENT_KEYS.SETTINGS, value: settings }, { onConflict: 'key' });
-    if (error) throw error;
+    await saveSiteContentSecure(SITE_CONTENT_KEYS.SETTINGS, settings);
   },
 
   getThemes: async (): Promise<Theme[]> => {
@@ -193,10 +259,7 @@ export const dataService = {
 
   saveThemes: async (themes: Theme[]) => {
     setCachedData(SITE_CONTENT_KEYS.THEMES, themes);
-    const { error } = await supabase
-      .from('site_contents')
-      .upsert({ key: SITE_CONTENT_KEYS.THEMES, value: themes }, { onConflict: 'key' });
-    if (error) throw error;
+    await saveSiteContentSecure(SITE_CONTENT_KEYS.THEMES, themes);
   },
 
   getNotices: async (): Promise<Notice[]> => {
@@ -224,10 +287,7 @@ export const dataService = {
   },
   saveNotices: async (notices: Notice[]) => {
     setCachedData(SITE_CONTENT_KEYS.NOTICES, notices);
-    const { error } = await supabase
-      .from('site_contents')
-      .upsert({ key: SITE_CONTENT_KEYS.NOTICES, value: notices }, { onConflict: 'key' });
-    if (error) throw error;
+    await saveSiteContentSecure(SITE_CONTENT_KEYS.NOTICES, notices);
   },
 
   getClosedSlots: async (forceFresh = false): Promise<ClosedSlot[]> => {
@@ -260,10 +320,7 @@ export const dataService = {
   },
   saveClosedSlots: async (slots: ClosedSlot[]) => {
     setCachedData(SITE_CONTENT_KEYS.CLOSED_SLOTS, slots);
-    const { error } = await supabase
-      .from('site_contents')
-      .upsert({ key: SITE_CONTENT_KEYS.CLOSED_SLOTS, value: slots }, { onConflict: 'key' });
-    if (error) throw error;
+    await saveSiteContentSecure(SITE_CONTENT_KEYS.CLOSED_SLOTS, slots);
   },
 
   getStores: async (): Promise<Store[]> => {
@@ -297,10 +354,7 @@ export const dataService = {
   },
   saveStores: async (stores: Store[]) => {
     setCachedData(SITE_CONTENT_KEYS.STORES, stores);
-    const { error } = await supabase
-      .from('site_contents')
-      .upsert({ key: SITE_CONTENT_KEYS.STORES, value: stores }, { onConflict: 'key' });
-    if (error) throw error;
+    await saveSiteContentSecure(SITE_CONTENT_KEYS.STORES, stores);
   },
 
   // --- Storage ---
@@ -328,7 +382,7 @@ export const dataService = {
 
   deleteImage: async (url: string) => {
     if (!url || !url.includes('gkkgprsflomawizioiao.supabase.co')) return;
-    
+
     try {
       const path = url.split('/storage/v1/object/public/images/')[1];
       if (path) {
@@ -344,38 +398,222 @@ export const dataService = {
     requestPreRoleCard: b.requestPreRoleCard ?? (typeof b.notes === 'string' && b.notes.includes('[사전 롤카드 신청]'))
   }),
 
-  // --- Reservations ---
-  getBookings: async (forceFresh = false): Promise<BookingData[]> => {
+  mapPublicSlotBooking: (b: any): PublicSlotBooking => ({
+    themeId: String(b.themeId || ''),
+    date: String(b.date || ''),
+    time: String(b.time || ''),
+    participantCount: Number(b.participantCount) || 0,
+    isCloseRequested: b.isCloseRequested === true || String(b.isCloseRequested).toLowerCase() === 'true',
+    status: (b.status || 'confirmed') as PublicSlotBooking['status'],
+    notes: typeof b.notes === 'string' ? b.notes : undefined,
+    requestPreRoleCard: b.requestPreRoleCard ?? (typeof b.notes === 'string' && b.notes.includes('[사전 롤카드 신청]')),
+  }),
+
+  // --- Public Slot Occupancy (ZERO PII: never selects or returns names, phones, or booking numbers) ---
+  getPublicBookings: async (forceFresh = false): Promise<PublicSlotBooking[]> => {
     if (!forceFresh) {
-      const cached = getCachedData('reservations', 15000);
+      const cached = getCachedData('public_slots', 15000);
       if (cached) return cached;
     }
 
     try {
-      const res = await queryWithTimeout(
-        supabase
-          .from('reservations')
-          .select('*')
-          .order('createdAt', { ascending: false }),
+      const rpcRes = await queryWithTimeout(
+        supabase.rpc('get_public_slot_bookings'),
         3500
       );
-      if (res && !res.error && res.data) {
-        const mapped = (res.data || []).map(dataService.mapBookingData);
-        setCachedData('reservations', mapped);
+
+      if (rpcRes && !rpcRes.error && Array.isArray(rpcRes.data)) {
+        const mapped = rpcRes.data.map(dataService.mapPublicSlotBooking);
+        setCachedData('public_slots', mapped);
         return mapped;
       }
+
+      // Narrow-column fallback before SQL script is run (still NEVER requests PII columns)
+      if (!rpcRes || isMissingRpcError(rpcRes.error)) {
+        const fallbackRes = await queryWithTimeout(
+          supabase
+            .from('reservations')
+            .select('themeId, date, time, participantCount, isCloseRequested, status')
+            .neq('status', 'cancelled'),
+          3500
+        );
+        if (fallbackRes && !fallbackRes.error && fallbackRes.data) {
+          const mapped = (fallbackRes.data || []).map(dataService.mapPublicSlotBooking);
+          setCachedData('public_slots', mapped);
+          return mapped;
+        }
+      }
     } catch (e) {
-      console.warn("Failed to fetch fresh bookings with timeout", e);
+      console.warn("Failed to fetch public slot bookings", e);
     }
 
-    const cachedFallback = getCachedData('reservations', 120000);
+    const cachedFallback = getCachedData('public_slots', 120000);
     return cachedFallback || [];
   },
 
+  getPublicBookingsBySlot: async (themeId: string, date: string, time: string): Promise<PublicSlotBooking[]> => {
+    try {
+      const { data, error } = await supabase.rpc('get_public_slot_details', {
+        p_theme_id: themeId,
+        p_date: date,
+        p_time: time,
+      });
+
+      if (!error && Array.isArray(data)) {
+        return data.map(dataService.mapPublicSlotBooking);
+      }
+
+      if (isMissingRpcError(error)) {
+        // Narrow-column fallback before SQL script is run (no userName, userPhone, id, or bookingNumber)
+        const fallback = await supabase
+          .from('reservations')
+          .select('themeId, date, time, participantCount, isCloseRequested, status, notes')
+          .eq('themeId', themeId)
+          .eq('date', date)
+          .eq('time', time)
+          .neq('status', 'cancelled');
+
+        if (!fallback.error && fallback.data) {
+          return fallback.data.map((row: any) =>
+            dataService.mapPublicSlotBooking({
+              ...row,
+              notes: row.isCloseRequested ? '' : row.notes,
+            })
+          );
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to fetch public slot details", e);
+    }
+    return [];
+  },
+
+  // --- Customer Self-Service Lookup & Cancel (Server-verified by bookingNumber + name + phone) ---
+  lookupBooking: async (bookingNumber: string, userName: string, userPhone: string): Promise<BookingData | null> => {
+    const cleanCode = (bookingNumber || '').trim().replace(/^#/, '').toUpperCase();
+    const cleanName = (userName || '').trim();
+    const cleanPhone = (userPhone || '').replace(/[^0-9]/g, '');
+
+    if (cleanCode.length < 4 || !cleanName || cleanPhone.length < 8) {
+      return null;
+    }
+
+    const enrichTotalPrice = async (raw: any): Promise<BookingData> => {
+      const mapped = dataService.mapBookingData(raw);
+      if (mapped.totalPrice == null) {
+        try {
+          const [themes, settings] = await Promise.all([
+            dataService.getThemes(),
+            dataService.getSettings(),
+          ]);
+          const theme = themes.find(t => t.id === mapped.themeId);
+          if (theme) {
+            const isTransfer = mapped.paymentMethod === 'bank-transfer' || mapped.paymentMethod === 'deposit';
+            const discount = (isTransfer && settings?.advanceDepositDiscount?.enabled)
+              ? (settings.advanceDepositDiscount.discountAmount || 0)
+              : 0;
+            mapped.totalPrice = Math.max(0, theme.price - discount) * (Number(mapped.participantCount) || 0);
+          }
+        } catch {
+          // ignore
+        }
+      }
+      return mapped;
+    };
+
+    const { data, error } = await supabase.rpc('lookup_reservation', {
+      p_booking_number: cleanCode,
+      p_user_name: cleanName,
+      p_user_phone: cleanPhone,
+    });
+
+    if (!error) {
+      if (!data) return null;
+      return await enrichTotalPrice(data);
+    }
+
+    if (isMissingRpcError(error)) {
+      const fallback = await supabase
+        .from('reservations')
+        .select('*')
+        .eq('userName', cleanName)
+        .neq('status', 'cancelled');
+
+      if (!fallback.error && fallback.data) {
+        const match = fallback.data.find((b: any) => {
+          const rowPhone = String(b.userPhone || '').replace(/[^0-9]/g, '');
+          const rowCode = String(b.bookingNumber || String(b.id || '').split('-')[0]).toUpperCase();
+          return (
+            rowPhone === cleanPhone &&
+            (rowCode === cleanCode || String(b.id || '').toUpperCase() === cleanCode)
+          );
+        });
+        if (match) return await enrichTotalPrice(match);
+      }
+    }
+
+    return null;
+  },
+
+  cancelBookingByUser: async (id: string, userName: string, userPhone: string): Promise<boolean> => {
+    const cleanName = (userName || '').trim();
+    const cleanPhone = (userPhone || '').replace(/[^0-9]/g, '');
+
+    const { data, error } = await supabase.rpc('cancel_user_reservation', {
+      p_id: id,
+      p_user_name: cleanName,
+      p_user_phone: cleanPhone,
+    });
+
+    if (!error) {
+      invalidateDataCache('public_slots');
+      return Boolean(data);
+    }
+
+    if (isMissingRpcError(error)) {
+      const fallback = await supabase
+        .from('reservations')
+        .update({ status: 'cancelled' })
+        .eq('id', id)
+        .eq('userName', cleanName);
+      if (fallback.error) throw fallback.error;
+      invalidateDataCache('public_slots');
+      return true;
+    }
+
+    throw error;
+  },
+
+  // --- Admin Reservations (Requires Admin Password, never cached in localStorage) ---
+  getAdminBookings: async (): Promise<BookingData[]> => {
+    const pw = getAdminPassword();
+    if (pw) {
+      const { data, error } = await supabase.rpc('admin_get_reservations', {
+        p_password: pw,
+      });
+      if (!error && Array.isArray(data)) {
+        return data.map(dataService.mapBookingData);
+      }
+      if (error && !isMissingRpcError(error)) {
+        console.error("Admin bookings fetch denied or failed:", error);
+        return [];
+      }
+    }
+
+    // Pre-SQL fallback only
+    const { data, error } = await supabase
+      .from('reservations')
+      .select('*')
+      .order('createdAt', { ascending: false });
+
+    if (error || !data) return [];
+    return data.map(dataService.mapBookingData);
+  },
+
   verifySlotAvailability: async (
-    themeId: string, 
-    date: string, 
-    time: string, 
+    themeId: string,
+    date: string,
+    time: string,
     requestingCount: number = 1
   ): Promise<{ canBook: boolean; reason?: string; remaining: number }> => {
     try {
@@ -383,9 +621,9 @@ export const dataService = {
       const theme = themes.find(t => t.id === themeId);
       if (!theme) return { canBook: false, reason: '테마 정보를 찾을 수 없습니다.', remaining: 0 };
 
-      // Force fresh check directly from Supabase
+      // Force fresh check using non-PII public slot bookings
       const [freshBookings, freshClosed] = await Promise.all([
-        dataService.getBookings(true),
+        dataService.getPublicBookings(true),
         dataService.getClosedSlots(true)
       ]);
 
@@ -396,9 +634,9 @@ export const dataService = {
       const normTime = normalizeTime(time);
 
       // 1. Check if closed by admin
-      const isClosedByAdmin = freshClosed.some(cs => 
-        (!cs.themeId || cs.themeId === themeId || cs.themeId === 'all') && 
-        normalizeDate(cs.date) === normDate && 
+      const isClosedByAdmin = freshClosed.some(cs =>
+        (!cs.themeId || cs.themeId === themeId || cs.themeId === 'all') &&
+        normalizeDate(cs.date) === normDate &&
         (cs.time === 'all' || normalizeTime(cs.time) === normTime)
       );
 
@@ -407,10 +645,10 @@ export const dataService = {
       }
 
       // 2. Check bookings for this slot
-      const slotBookings = freshBookings.filter(b => 
-        b.themeId === themeId && 
-        normalizeDate(b.date) === normDate && 
-        normalizeTime(b.time) === normTime && 
+      const slotBookings = freshBookings.filter(b =>
+        b.themeId === themeId &&
+        normalizeDate(b.date) === normDate &&
+        normalizeTime(b.time) === normTime &&
         b.status !== 'cancelled'
       );
 
@@ -435,33 +673,10 @@ export const dataService = {
       return { canBook: true, remaining };
     } catch (err) {
       console.error("Failed during verifySlotAvailability:", err);
-      // Fallback: allow to proceed to prevent false locking if check query fails
       return { canBook: true, remaining: 6 };
     }
   },
 
-  getBookingsBySlot: async (themeId: string, date: string, time: string): Promise<BookingData[]> => {
-    const { data, error } = await supabase
-      .from('reservations')
-      .select('*')
-      .eq('themeId', themeId)
-      .eq('date', date)
-      .eq('time', time)
-      .neq('status', 'cancelled');
-    
-    if (error) return [];
-    return (data || []).map(dataService.mapBookingData);
-  },
-  getBookingsByTheme: async (themeId: string): Promise<BookingData[]> => {
-    const { data, error } = await supabase
-      .from('reservations')
-      .select('*')
-      .eq('themeId', themeId)
-      .neq('status', 'cancelled');
-    
-    if (error) return [];
-    return (data || []).map(dataService.mapBookingData);
-  },
   addBooking: async (booking: BookingData) => {
     const { totalPrice, bookingNumber: omittedBookingNumber, requestPreRoleCard: omittedRequestPreRoleCard, ...insertData } = booking as any;
     if (booking.requestPreRoleCard) {
@@ -475,14 +690,15 @@ export const dataService = {
       .from('reservations')
       .insert([insertData]);
     if (error) throw error;
-    invalidateDataCache('reservations');
+    invalidateDataCache('public_slots');
   },
+
   createBooking: async (booking: Omit<BookingData, 'id' | 'createdAt' | 'themeTitle' | 'themePoster'>): Promise<BookingData | null> => {
     // 실시간 중복 예약 및 정원 초과 방지 검증
     const check = await dataService.verifySlotAvailability(
-      booking.themeId, 
-      booking.date, 
-      booking.time, 
+      booking.themeId,
+      booking.date,
+      booking.time,
       booking.participantCount
     );
 
@@ -492,10 +708,10 @@ export const dataService = {
 
     const themes = await dataService.getThemes();
     const theme = themes.find(t => t.id === booking.themeId);
-    
+
     let storeName = undefined;
     let storeAddress = undefined;
-    
+
     if (theme && theme.storeId) {
       const stores = await dataService.getStores();
       const store = stores.find(s => s.id === theme.storeId);
@@ -504,7 +720,7 @@ export const dataService = {
         storeAddress = store.address;
       }
     }
-    
+
     const generatedId = crypto.randomUUID();
     const bookingNumber = generatedId.split('-')[0].toUpperCase();
 
@@ -534,28 +750,62 @@ export const dataService = {
     const { error } = await supabase
       .from('reservations')
       .insert([insertData]);
-    
+
     if (error) throw error;
-    invalidateDataCache('reservations');
+    invalidateDataCache('public_slots');
     return newBooking;
   },
+
   updateBookingStatus: async (id: string, status: BookingData['status']) => {
-    await supabase
+    const pw = getAdminPassword();
+    if (pw) {
+      const { error } = await supabase.rpc('admin_update_reservation_status', {
+        p_password: pw,
+        p_id: id,
+        p_status: status,
+      });
+      if (!error) {
+        invalidateDataCache('public_slots');
+        return;
+      }
+      if (!isMissingRpcError(error)) {
+        throw error;
+      }
+    }
+
+    const { error } = await supabase
       .from('reservations')
       .update({ status })
       .eq('id', id);
+    if (error) throw error;
+    invalidateDataCache('public_slots');
   },
 
-  // --- Inquiries ---
+  // --- Inquiries (Admin-only read, public insert) ---
   getInquiries: async (): Promise<Inquiry[]> => {
+    const pw = getAdminPassword();
+    if (pw) {
+      const { data, error } = await supabase.rpc('admin_get_inquiries', {
+        p_password: pw,
+      });
+      if (!error && Array.isArray(data)) {
+        return data as Inquiry[];
+      }
+      if (error && !isMissingRpcError(error)) {
+        console.error("Admin inquiries fetch denied or failed:", error);
+        return [];
+      }
+    }
+
     const { data, error } = await supabase
       .from('inquiries')
       .select('*')
       .order('createdAt', { ascending: false });
-    
+
     if (error) return [];
     return data as Inquiry[];
   },
+
   addInquiry: async (inquiry: Omit<Inquiry, 'id' | 'createdAt'>) => {
     const { error } = await supabase
       .from('inquiries')
@@ -568,10 +818,8 @@ export const dataService = {
   },
 
   // --- Notifications ---
-  sendNotification: async (type: 'booking' | 'contact' | 'reminder', data: any, settings: AdminSettings) => {
-    // Netlify 환경에서는 서버가 없으므로 프론트엔드에서 직접 알리고 API를 호출할 수 없습니다. (IP 제한 문제)
-    // 따라서 이 함수는 현재 작동하지 않으며, Zapier나 Supabase Edge Functions를 통한 백엔드 연동이 필요합니다.
-    console.log(`[Notification Placeholder] Type: ${type} - Please configure Zapier or Edge Functions for actual SMS delivery.`);
+  sendNotification: async (type: 'booking' | 'contact' | 'reminder', _data: any, _settings: AdminSettings) => {
+    console.log(`[Notification Placeholder] Type: ${type} - Handled via Supabase Webhook / Make integration.`);
   },
 
   // --- Helper ---
@@ -580,21 +828,16 @@ export const dataService = {
     const theme = themes.find(t => t.id === themeId);
     if (!theme) return 0;
 
-    const { data: bookings, error } = await supabase
-      .from('reservations')
-      .select('participantCount, isCloseRequested')
-      .eq('themeId', themeId)
-      .eq('date', date)
-      .eq('time', time)
-      .neq('status', 'cancelled');
+    const publicSlots = await dataService.getPublicBookings(true);
+    const bookings = publicSlots.filter(
+      b => b.themeId === themeId && b.date === date && b.time === time && b.status !== 'cancelled'
+    );
 
-    if (error) return 0;
+    const bookedCount = bookings.reduce((sum, b) => sum + b.participantCount, 0);
+    const isClosedByRequest = bookings.some(b => b.isCloseRequested);
 
-    const bookedCount = (bookings || []).reduce((sum, b) => sum + b.participantCount, 0);
-    const isClosedByRequest = (bookings || []).some(b => b.isCloseRequested);
-    
     const closedSlots = await dataService.getClosedSlots();
-    const isClosedByAdmin = closedSlots.some(cs => 
+    const isClosedByAdmin = closedSlots.some(cs =>
       cs.themeId === themeId && cs.date === date && cs.time === time
     );
 

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { THEMES, DEFAULT_ADMIN_SETTINGS, STORES } from '../constants';
 import { ChevronLeft, CheckCircle2, Copy, Check, AlertTriangle, Users } from 'lucide-react';
-import { Theme, AdminSettings, BookingData, Store } from '../types';
+import { Theme, AdminSettings, BookingData, PublicSlotBooking, Store } from '../types';
 import { dataService } from '../src/services/dataService';
 import { isWeekendOrHoliday } from '../src/utils/holiday';
 import { checkSlotAutoClosed } from '../src/utils/slotAvailability';
@@ -15,7 +15,7 @@ const BookingForm = () => {
   const navigate = useNavigate();
   const [settings, setSettings] = useState<AdminSettings>(DEFAULT_ADMIN_SETTINGS);
   const [stores, setStores] = useState<Store[]>(STORES);
-  const [bookings, setBookings] = useState<BookingData[]>([]);
+  const [bookings, setBookings] = useState<PublicSlotBooking[]>([]);
   const [closedSlots, setClosedSlots] = useState<any[]>([]);
   const [copied, setCopied] = useState(false);
   const [showSuspectModal, setShowSuspectModal] = useState(false);
@@ -48,7 +48,7 @@ const BookingForm = () => {
         // Fetch settings, bookings, stores, closed slots in parallel
         const [savedSettings, savedBookings, savedStores, savedClosedSlots, themeList] = await Promise.all([
           dataService.getSettings(),
-          dataService.getBookingsBySlot(themeId!, date!, time!),
+          dataService.getPublicBookingsBySlot(themeId!, date!, time!),
           dataService.getStores(),
           dataService.getClosedSlots(true),
           dataService.getThemes()
@@ -74,7 +74,7 @@ const BookingForm = () => {
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && themeId && date && time) {
-        dataService.getBookingsBySlot(themeId, date, time).then(b => {
+        dataService.getPublicBookingsBySlot(themeId, date, time).then(b => {
           if (isMounted) setBookings(b);
         });
         dataService.getClosedSlots(true).then(cs => {

@@ -255,19 +255,54 @@ const Footer = ({ settings }: { settings: AdminSettings }) => {
 const AdminGuard = ({ children }: { children: React.ReactNode }) => {
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isChecking, setIsChecking] = useState(() => Boolean(dataService.getAdminSessionPassword()));
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    const savedPw = dataService.getAdminSessionPassword();
+    if (!savedPw) {
+      setIsChecking(false);
+      return;
+    }
+    let active = true;
+    dataService.verifyAdminPassword(savedPw).then((ok) => {
+      if (!active) return;
+      if (ok) {
+        setIsAuthenticated(true);
+      } else {
+        dataService.setAdminSessionPassword('');
+      }
+      setIsChecking(false);
+    }).catch(() => {
+      if (active) setIsChecking(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === '0226') {
-      console.log("Admin login successful");
-      setIsAuthenticated(true);
-      setError('');
-    } else {
-      setError('비밀번호가 올바르지 않습니다.');
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setError('');
+    try {
+      const ok = await dataService.verifyAdminPassword(password);
+      if (ok) {
+        setIsAuthenticated(true);
+        setError('');
+      } else {
+        setError('비밀번호가 올바르지 않습니다.');
+      }
+    } catch {
+      setError('인증 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  if (isChecking) return <LoadingScreen />;
   if (isAuthenticated) return <>{children}</>;
 
   return (
@@ -298,9 +333,10 @@ const AdminGuard = ({ children }: { children: React.ReactNode }) => {
           </div>
           <button 
             type="submit"
-            className="w-full bg-white text-black font-bold py-4 rounded-2xl hover:bg-white/90 transition-colors"
+            disabled={isSubmitting}
+            className="w-full bg-white text-black font-bold py-4 rounded-2xl hover:bg-white/90 transition-colors disabled:opacity-50"
           >
-            접속하기
+            {isSubmitting ? '확인 중...' : '접속하기'}
           </button>
         </form>
       </motion.div>

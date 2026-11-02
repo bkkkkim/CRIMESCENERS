@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { THEMES, STORES } from '../constants';
 import { ChevronRight, Users, Clock, MapPin, Filter, ArrowUpDown, Calendar as CalendarIcon, Search, X, Ticket, SearchCheck, ChevronDown, Sparkles } from 'lucide-react';
-import { Theme, Store, ClosedSlot, BookingData, AdminSettings } from '../types';
+import { Theme, Store, ClosedSlot, BookingData, PublicSlotBooking, AdminSettings } from '../types';
 import { dataService } from '../src/services/dataService';
 import { isWeekendOrHoliday } from '../src/utils/holiday';
 import { checkSlotAutoClosed } from '../src/utils/slotAvailability';
@@ -15,7 +15,7 @@ const ThemeReservation = () => {
   const [themes, setThemes] = useState<Theme[]>(THEMES);
   const [stores, setStores] = useState<Store[]>(STORES);
   const [closedSlots, setClosedSlots] = useState<ClosedSlot[]>([]);
-  const [bookings, setBookings] = useState<BookingData[]>([]);
+  const [bookings, setBookings] = useState<PublicSlotBooking[]>([]);
   const [settings, setSettings] = useState<AdminSettings | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   
@@ -37,6 +37,9 @@ const ThemeReservation = () => {
   const [foundBooking, setFoundBooking] = useState<BookingData | null>(null);
   const [showNotFound, setShowNotFound] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [cancelNotice, setCancelNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const contactPhone = settings?.managerPhone || stores[0]?.phone || '';
 
@@ -47,7 +50,7 @@ const ThemeReservation = () => {
           dataService.getThemes(),
           dataService.getStores(),
           dataService.getClosedSlots(),
-          dataService.getBookings(),
+          dataService.getPublicBookings(),
           dataService.getSettings()
         ]);
         
@@ -247,35 +250,54 @@ const ThemeReservation = () => {
     return result;
   }, [themes, selectedStoreId, sortBy, selectedDate, selectedTime, closedSlots, bookings]);
 
-  const handleCheckBooking = (e: React.FormEvent) => {
+  const handleCheckBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    const booking = bookings.find(b => 
-      (b.bookingNumber === bookingNumber || b.id.toUpperCase().startsWith(bookingNumber.toUpperCase())) && 
-      b.userName === bookerName && 
-      b.userPhone === bookerPhone &&
-      b.status !== 'cancelled'
-    );
-    
-    if (booking) {
-      setFoundBooking(booking);
-      setShowNotFound(false);
-    } else {
+    if (isLookingUp) return;
+    setIsLookingUp(true);
+    setCancelNotice(null);
+    try {
+      const booking = await dataService.lookupBooking(bookingNumber, bookerName, bookerPhone);
+      if (booking) {
+        setFoundBooking(booking);
+        setShowNotFound(false);
+      } else {
+        setFoundBooking(null);
+        setShowNotFound(true);
+      }
+    } catch (error) {
+      console.error("Failed to lookup booking:", error);
       setFoundBooking(null);
       setShowNotFound(true);
+    } finally {
+      setIsLookingUp(false);
     }
   };
 
   const handleCancelBooking = async () => {
-    if (!foundBooking) return;
+    if (!foundBooking || isCancelling) return;
+    setIsCancelling(true);
     try {
-      await dataService.updateBookingStatus(foundBooking.id, 'cancelled');
-      setBookings(prev => prev.map(b => b.id === foundBooking.id ? { ...b, status: 'cancelled' } : b));
+      const ok = await dataService.cancelBookingByUser(
+        foundBooking.id,
+        foundBooking.userName,
+        foundBooking.userPhone || bookerPhone
+      );
+      if (!ok) {
+        setCancelNotice({ type: 'error', message: '예약자 정보가 일치하지 않거나 이미 취소된 예약입니다.' });
+        setShowCancelConfirm(false);
+        return;
+      }
+      const refreshedSlots = await dataService.getPublicBookings(true);
+      setBookings(refreshedSlots);
       setShowCancelConfirm(false);
       setFoundBooking(null);
-      alert('예약이 취소되었습니다.');
+      setCancelNotice({ type: 'success', message: '예약이 정상적으로 취소되었습니다.' });
     } catch (error) {
       console.error("Failed to cancel booking:", error);
-      alert('예약 취소 중 오류가 발생했습니다.');
+      setCancelNotice({ type: 'error', message: '예약 취소 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' });
+      setShowCancelConfirm(false);
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -609,10 +631,11 @@ const ThemeReservation = () => {
               </div>
               <button
                 type="submit"
-                className="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-white/90 transition-colors flex items-center justify-center gap-2 mt-6"
+                disabled={isLookingUp}
+                className="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-white/90 transition-colors flex items-center justify-center gap-2 mt-6 disabled:opacity-50"
               >
                 <Search size={18} />
-                예약 조회하기
+                {isLookingUp ? '조회 중...' : '예약 조회하기'}
               </button>
               <p className="text-xs text-white/60 text-center mt-4 leading-relaxed">
                 예약 번호는 예약일에 발송된 문자에서 확인 가능합니다.<br />
@@ -626,6 +649,16 @@ const ThemeReservation = () => {
                 해주세요.
               </p>
             </form>
+
+            {cancelNotice && (
+              <div className={`mb-4 rounded-xl p-4 text-center border ${
+                cancelNotice.type === 'success'
+                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                  : 'bg-red-500/10 border-red-500/20 text-red-400'
+              }`}>
+                <p className="text-sm font-medium">{cancelNotice.message}</p>
+              </div>
+            )}
 
             {showNotFound && (
               <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-center">
@@ -704,9 +737,10 @@ const ThemeReservation = () => {
               </button>
               <button
                 onClick={handleCancelBooking}
-                className="flex-1 py-3 bg-[#dc2626] text-white rounded-xl font-bold hover:bg-[#ef4444] transition-colors"
+                disabled={isCancelling}
+                className="flex-1 py-3 bg-[#dc2626] text-white rounded-xl font-bold hover:bg-[#ef4444] transition-colors disabled:opacity-50"
               >
-                취소하기
+                {isCancelling ? '취소 처리 중...' : '취소하기'}
               </button>
             </div>
           </div>

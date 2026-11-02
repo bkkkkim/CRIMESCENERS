@@ -6,7 +6,7 @@ import { isWeekendOrHoliday } from '../src/utils/holiday';
 import { checkSlotAutoClosed } from '../src/utils/slotAvailability';
 import { getThrillerPosterSvg, isBrokenSupabaseUrl } from '../src/utils/imageUtils';
 import { Calendar as CalendarIcon, Clock, Users, ArrowLeft, ChevronLeft, ChevronRight, MapPin, X, Info, UserCheck, ExternalLink } from 'lucide-react';
-import { AdminSettings, Theme, ClosedSlot, BookingData, Store } from '../types';
+import { AdminSettings, Theme, ClosedSlot, PublicSlotBooking, Store } from '../types';
 import { dataService } from '../src/services/dataService';
 import LoadingScreen from './LoadingScreen';
 import SuspectModal from './SuspectModal';
@@ -44,7 +44,7 @@ const ThemeDetail = () => {
   const navigate = useNavigate();
   const [theme, setTheme] = useState<Theme | null>(() => THEMES.find(t => t.id === id) || null);
   const [closedSlots, setClosedSlots] = useState<ClosedSlot[]>([]);
-  const [bookings, setBookings] = useState<BookingData[]>([]);
+  const [bookings, setBookings] = useState<PublicSlotBooking[]>([]);
   const [stores, setStores] = useState<Store[]>(STORES);
   const [loading, setLoading] = useState<boolean>(() => !THEMES.some(t => t.id === id));
   const [isRefreshingSlots, setIsRefreshingSlots] = useState<boolean>(false);
@@ -120,7 +120,7 @@ const ThemeDetail = () => {
       setIsRefreshingSlots(true);
       const [savedClosed, savedBookings] = await Promise.all([
         dataService.getClosedSlots(forceFresh),
-        dataService.getBookings(forceFresh)
+        dataService.getPublicBookings(forceFresh)
       ]);
       setClosedSlots(savedClosed);
       setBookings(savedBookings);
@@ -150,7 +150,7 @@ const ThemeDetail = () => {
         const [savedSettings, savedClosed, savedBookings, themeList, storeList] = await Promise.all([
           dataService.getSettings(),
           dataService.getClosedSlots(),
-          dataService.getBookings(),
+          dataService.getPublicBookings(),
           dataService.getThemes(),
           dataService.getStores()
         ]);
